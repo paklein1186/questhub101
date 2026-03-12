@@ -128,7 +128,7 @@ export function MyContributionsSummary() {
                 <th className="text-center p-2 font-medium w-12">#</th>
                 <th className="text-right p-2 font-medium">⭐ XP</th>
                 <th className="text-right p-2 font-medium">FMV 🟡</th>
-                <th className="text-right p-2 font-medium">🟩 Coins</th>
+                <th className="text-right p-2 font-medium">Coins</th>
                 <th className="text-right p-2 font-medium">🌱 $CTG</th>
                 <th className="text-right p-2 font-medium">Outstanding</th>
               </tr>
