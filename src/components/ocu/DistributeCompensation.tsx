@@ -300,20 +300,28 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         await supabase.from("notifications" as any).insert({
           user_id: entry.user_id,
           type: "quest_distribution",
-          title: `💰 You received ${coinAmount > 0 ? `${coinAmount} Coins` : ""} from quest "${quest.title}"`,
+          title: `💰 You received ${coinAmount > 0 ? `${coinAmount} Coins` : ""}${ctgAmount > 0 ? `${coinAmount > 0 ? " + " : ""}${ctgAmount} $CTG` : ""} from quest "${quest.title}"`,
           link: `/quests/${quest.id}`,
           entity_type: "quest",
           entity_id: quest.id,
         });
       }
 
-      // 5. Update quest escrow if coins were distributed
-      const totalDistributed = preview.reduce((s, p) => s + (compensationMode === "fiat" ? 0 : p.distribution), 0);
-      if (totalDistributed > 0) {
-        const currentEscrow = Number((quest as any).coins_escrow ?? 0);
-        const newEscrow = Math.max(0, currentEscrow - totalDistributed);
-        const questUpdate: any = { coins_escrow: newEscrow };
-        if (newEscrow <= 0) questUpdate.coins_escrow_status = "released";
+      // 5. Update quest escrow
+      const totalDistributed = preview.reduce((s, p) => s + p.distribution, 0);
+      if (!isFiatMode && totalDistributed > 0) {
+        const questUpdate: any = {};
+        if (isCtgMode) {
+          const currentCtgEscrow = Number((quest as any).ctg_escrow ?? 0);
+          const newCtg = Math.max(0, currentCtgEscrow - totalDistributed);
+          questUpdate.ctg_escrow = newCtg;
+          if (newCtg <= 0) questUpdate.ctg_escrow_status = "released";
+        } else {
+          const currentEscrow = Number((quest as any).coins_escrow ?? 0);
+          const newEscrow = Math.max(0, currentEscrow - totalDistributed);
+          questUpdate.coins_escrow = newEscrow;
+          if (newEscrow <= 0) questUpdate.coins_escrow_status = "released";
+        }
         await supabase.from("quests").update(questUpdate as any).eq("id", quest.id);
       }
 
