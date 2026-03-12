@@ -158,7 +158,7 @@ export default function BuyXpPage() {
             className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 mb-6"
           >
             <div className="flex items-center gap-3 mb-3">
-              <Leaf className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <CurrencyIcon currency="ctg" className="h-6 w-6" />
               <div>
                 <h3 className="font-display text-lg font-bold flex items-center gap-2">
                   Exchange your $CTG for Credits
