@@ -350,7 +350,7 @@ export function ContributionLogPanel({
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Total budget</p>
-                <p className="font-bold text-emerald-600">{questCoinBudget} 🟩</p>
+                <p className="font-bold text-emerald-600">{questCoinBudget} Coins</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Contributor pool</p>
