@@ -516,9 +516,10 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coins" className="text-xs">🟡 Coins (platform)</SelectItem>
-                    <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
-                    <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
+                     <SelectItem value="coins" className="text-xs">🪙 Coins (platform)</SelectItem>
+                     <SelectItem value="ctg" className="text-xs">🌱 $CTG</SelectItem>
+                     <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
+                     <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
