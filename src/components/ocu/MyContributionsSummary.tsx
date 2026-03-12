@@ -181,7 +181,7 @@ export function MyContributionsSummary() {
                 <td className="p-2 text-center">{totalContributions}</td>
                 <td className="p-2 text-right text-yellow-600 dark:text-yellow-400">⭐ {totalXp.toFixed(0)}</td>
                 <td className="p-2 text-right text-primary">🟡 {totalFmv.toFixed(0)}</td>
-                <td className="p-2 text-right text-teal-600 dark:text-teal-400">🟩 {totalCoins.toFixed(0)}</td>
+                <td className="p-2 text-right text-teal-600 dark:text-teal-400">{totalCoins.toFixed(0)}</td>
                 <td className="p-2 text-right text-emerald-600 dark:text-emerald-400">🌱 {totalCtg.toFixed(0)}</td>
                 <td className="p-2 text-right text-amber-600 dark:text-amber-400">
                   🟡 {totalOutstanding.toFixed(0)}

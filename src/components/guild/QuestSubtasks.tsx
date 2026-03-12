@@ -504,7 +504,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                   value={subtask.credit_reward ?? 0}
                   onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
                   className="w-14 h-6 text-[10px] text-center p-0"
-                  title="🟩 Coins — fiat-backed reward for completing this subtask"
+                  title="Coins — fiat-backed reward for completing this subtask"
                 />
               </div>
             ) : (subtask.credit_reward ?? 0) > 0 ? (

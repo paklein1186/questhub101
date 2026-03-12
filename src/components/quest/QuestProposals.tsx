@@ -355,7 +355,7 @@ export function QuestProposals({
                     <Badge variant="outline" className={`text-xs ${campaign.status === "ACTIVE" ? "bg-green-500/10 text-green-700 border-green-500/30" : campaign.status === "COMPLETED" ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-orange-500/10 text-orange-700 border-orange-500/30"}`}>
                       {campaign.status}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "🟩 $CTG"}</Badge>
+                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "$CTG"}</Badge>
                   </div>
                   <span className="text-lg font-bold text-primary">
                     {campaign.raised_amount} / {campaign.goal_amount} {unit}

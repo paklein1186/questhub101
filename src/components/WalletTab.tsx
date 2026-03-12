@@ -411,7 +411,7 @@ export function WalletTab() {
                         className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 p-3 text-center hover:bg-teal-100 dark:hover:bg-teal-950/50 transition-colors disabled:opacity-50"
                       >
                         <p className="text-sm font-bold text-teal-700 dark:text-teal-300">
-                          🟩 {opt.coins.toLocaleString()}
+                          {opt.coins.toLocaleString()}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
                           ≈ €{(opt.coins * COIN_EUR_RATE).toFixed(0)}
