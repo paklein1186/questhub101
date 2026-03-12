@@ -13,9 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
+import { Banknote, Send, DollarSign, AlertTriangle, History, Flag } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { OCUFeatureGate } from "./OCUFeatureGate";
+import { ReportConcernDialog } from "./ReportConcernDialog";
 
 interface ContributorSummary {
   user_id: string;
@@ -150,6 +151,33 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         .limit(1)
         .maybeSingle();
       return data;
+    },
+  });
+
+  // Fetch distribution history
+  const { data: compensationHistory = [] } = useQuery({
+    queryKey: ["compensation-history", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contribution_compensations" as any)
+        .select("*")
+        .eq("quest_id", quest.id)
+        .order("compensated_at", { ascending: false });
+      if (!data || data.length === 0) return [];
+
+      const userIds = [...new Set((data as any[]).flatMap((d: any) => [d.user_id, d.compensated_by].filter(Boolean)))];
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
+        .in("user_id", userIds);
+      const pMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+      return (data as any[]).map((d: any) => ({
+        ...d,
+        recipient_name: pMap.get(d.user_id)?.name ?? "Unknown",
+        recipient_avatar: pMap.get(d.user_id)?.avatar_url ?? null,
+        distributor_name: pMap.get(d.compensated_by)?.name ?? "Unknown",
+      }));
     },
   });
 
@@ -477,6 +505,34 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           </>
         )}
 
+        {/* Distribution History */}
+        {compensationHistory.length > 0 && (
+          <div className="space-y-3 mt-2">
+            <h4 className="text-sm font-semibold flex items-center gap-1.5">
+              <History className="h-4 w-4" /> Distribution History
+            </h4>
+            <div className="rounded-lg border border-border overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left p-2 font-medium">Date</th>
+                    <th className="text-left p-2 font-medium">Recipient</th>
+                    <th className="text-left p-2 font-medium">Distributed by</th>
+                    <th className="text-right p-2 font-medium">Amount</th>
+                    <th className="text-left p-2 font-medium">Note</th>
+                    <th className="p-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compensationHistory.map((h: any) => (
+                    <CompensationHistoryRow key={h.id} entry={h} questId={quest.id} questTitle={quest.title} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Confirm Dialog */}
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="max-w-sm">
@@ -537,5 +593,66 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         </Dialog>
       </div>
     </OCUFeatureGate>
+  );
+}
+
+/* ─── Compensation History Row ─── */
+function CompensationHistoryRow({ entry, questId, questTitle }: {
+  entry: any; questId: string; questTitle: string;
+}) {
+  const [reportOpen, setReportOpen] = useState(false);
+  const date = new Date(entry.compensated_at);
+
+  return (
+    <>
+      <tr className="border-b border-border last:border-0 hover:bg-muted/30">
+        <td className="p-2 text-muted-foreground whitespace-nowrap">
+          {date.toLocaleDateString()} <span className="text-[10px]">{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        </td>
+        <td className="p-2">
+          <div className="flex items-center gap-1.5">
+            <Avatar className="h-4 w-4">
+              <AvatarImage src={entry.recipient_avatar ?? undefined} />
+              <AvatarFallback className="text-[7px]">{entry.recipient_name?.[0]}</AvatarFallback>
+            </Avatar>
+            <span className="font-medium">{entry.recipient_name}</span>
+          </div>
+        </td>
+        <td className="p-2 text-muted-foreground">{entry.distributor_name}</td>
+        <td className="p-2 text-right">
+          <div className="flex items-center justify-end gap-1">
+            {entry.amount_coins > 0 && (
+              <span className="flex items-center gap-0.5">
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
+                {Number(entry.amount_coins).toLocaleString()}
+              </span>
+            )}
+            {entry.amount_fiat > 0 && (
+              <span className="text-muted-foreground ml-1">(€{Number(entry.amount_fiat).toFixed(2)})</span>
+            )}
+          </div>
+        </td>
+        <td className="p-2 text-muted-foreground truncate max-w-[120px]" title={entry.note}>
+          {entry.note || "—"}
+        </td>
+        <td className="p-2">
+          <button
+            onClick={() => setReportOpen(true)}
+            className="text-muted-foreground hover:text-destructive transition-colors"
+            title="Report a concern"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+        </td>
+      </tr>
+      <ReportConcernDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        distributionId={entry.id}
+        questId={questId}
+        questTitle={questTitle}
+        distributionDate={entry.compensated_at}
+      />
+    </>
   );
 }
