@@ -98,7 +98,7 @@ export function TreasuryDashboard() {
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)
           ) : (
             <>
-              <StatCard icon={Coins} label="GMV (30d)" value={`€${(econStats?.gmv ?? 0).toLocaleString()}`} color="text-primary" />
+              <StatCard icon={getCurrencyConfig("coins").icon} label="GMV (30d)" value={`€${(econStats?.gmv ?? 0).toLocaleString()}`} color="text-primary" />
               <StatCard icon={TrendingUp} label="Commission Rev." value={`€${(econStats?.commissionRevenue ?? 0).toLocaleString()}`} color="text-emerald-500" />
               <StatCard icon={Users} label="Active Holders" value={String(econStats?.activeHolders ?? 0)} color="text-blue-500" />
               <StatCard icon={Zap} label="Platform Credit Velocity" value={`${econStats?.velocity ?? 0}%`} color="text-amber-500" />
