@@ -106,11 +106,11 @@ export function MyContributionsSummary() {
     <div className="space-y-5">
       {/* ─── Stats banner ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Quests" value={questCount} />
-        <StatCard icon={<Coins className="h-4 w-4" />} label="Contributions" value={totalContributions} />
-        <StatCard icon={<Star className="h-4 w-4 text-yellow-500" />} label="⭐ XP Earned" value={totalXp} />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="Quests" value={questCount} />
+        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Contributions" value={totalContributions} />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="⭐ XP Earned" value={totalXp} />
         <StatCard icon={<span className="text-sm">🟩</span>} label="Coins Received" value={totalCoins} accent="teal" />
-        <StatCard icon={<Sprout className="h-4 w-4 text-emerald-500" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
+        <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
         <StatCard icon={<span className="text-sm">🟡</span>} label="Outstanding FMV" value={totalOutstanding} accent="amber" />
       </div>
 
