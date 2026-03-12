@@ -613,7 +613,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                         <Plus className="h-3.5 w-3.5 mr-1" /> Add Coins
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setAddCtgOpen(true)}>
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🌱 $CTG
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add $CTG
                       </Button>
                     </div>
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
