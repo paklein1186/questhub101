@@ -431,7 +431,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             {/* Credit reward indicator */}
             {canManage ? (
               <div className="flex items-center gap-0.5" title="🟩 Coins — fiat-backed reward for completing this subtask">
-                <Coins className="h-3 w-3 text-amber-500" />
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
                 <Input
                   type="number"
                   min="0"
