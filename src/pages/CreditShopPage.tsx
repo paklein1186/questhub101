@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Coins, Rocket, Star, Sparkles, ShieldCheck, Eye,
+  ArrowLeft, Rocket, Star, Sparkles, ShieldCheck, Eye,
   Megaphone, GraduationCap, Store, Percent, Bot, Zap, ArrowRight,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
