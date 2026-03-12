@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 // ── My Quests (created + joined) ──
 export function MyQuestsTab({ userId }: { userId: string }) {
