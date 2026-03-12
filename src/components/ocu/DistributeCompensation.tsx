@@ -40,6 +40,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { rate: coinsRate } = useCoinsRate();
   const [mode, setMode] = useState<"proportional" | "individual">("proportional");
   const [totalAmount, setTotalAmount] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("");
