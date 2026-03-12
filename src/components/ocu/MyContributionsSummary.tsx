@@ -96,7 +96,7 @@ export function MyContributionsSummary() {
   if (summaries.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-6 text-center">
-        <Coins className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+        <CurrencyIcon currency="coins" className="h-8 w-8 mx-auto text-muted-foreground mb-2" colorClassName="text-muted-foreground" />
         <p className="text-sm text-muted-foreground">No verified contributions yet.</p>
       </div>
     );
