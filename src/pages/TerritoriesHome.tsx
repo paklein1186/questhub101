@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PageShell } from "@/components/PageShell";
 import { TerritoryBrowseSection } from "@/components/explore/TerritoryBrowseSection";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
 
 /* ── Geocoding search (Nominatim) ── */
 interface GeoResult {
@@ -65,16 +66,28 @@ function useMatchTerritory(name: string | null) {
   });
 }
 
+/* ── Infer territory level from geo result ── */
+function inferLevel(geo: GeoResult): string {
+  const t = geo.type?.toLowerCase() ?? "";
+  const addr = geo.address ?? {};
+  if (addr.country_code && !addr.state && !addr.city && !addr.town && !addr.village) return "NATIONAL";
+  if (addr.state && !addr.city && !addr.town && !addr.village) return "REGION";
+  return "TOWN";
+}
+
 export default function TerritoriesHome() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGeo, setSelectedGeo] = useState<GeoResult | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [pioneering, setPioneering] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: geoResults = [], isLoading: geoLoading } = useGeoSearch(searchQuery);
-  const { data: matchedTerritories = [] } = useMatchTerritory(
+  const { data: matchedTerritories = [], isLoading: matchLoading } = useMatchTerritory(
     selectedGeo?.display_name?.split(",")[0] ?? (searchQuery.length >= 3 ? searchQuery : null)
   );
 
@@ -98,6 +111,55 @@ export default function TerritoriesHome() {
   const handleNavigateToTerritory = useCallback((slug: string | null, id: string) => {
     navigate(`/territories/${slug ?? id}`);
   }, [navigate]);
+
+  /* ── Pioneer: create the territory from geocoded data ── */
+  const handlePioneer = useCallback(async () => {
+    if (!selectedGeo || !currentUser.id) return;
+    setPioneering(true);
+    try {
+      const shortName = selectedGeo.display_name.split(",")[0].trim();
+      const level = inferLevel(selectedGeo);
+      const lat = parseFloat(selectedGeo.lat);
+      const lng = parseFloat(selectedGeo.lon);
+
+      // Check duplicate again
+      const { data: existing } = await supabase
+        .from("territories")
+        .select("id, slug")
+        .ilike("name", shortName)
+        .eq("is_deleted", false)
+        .maybeSingle();
+
+      if (existing) {
+        navigate(`/territories/${existing.slug ?? existing.id}`);
+        toast({ title: `${shortName} already exists — redirecting!` });
+        return;
+      }
+
+      const insertPayload: Record<string, unknown> = {
+        name: shortName,
+        level,
+      };
+      if (!isNaN(lat)) insertPayload.latitude = lat;
+      if (!isNaN(lng)) insertPayload.longitude = lng;
+
+      const { data: newTerritory, error } = await supabase
+        .from("territories")
+        .insert(insertPayload as any)
+        .select("id, slug")
+        .single();
+
+      if (error) throw error;
+
+      qc.invalidateQueries({ queryKey: ["territories"] });
+      toast({ title: `🌱 ${shortName} created! You can now pioneer it.` });
+      navigate(`/territories/${newTerritory.slug ?? newTerritory.id}`);
+    } catch (e: any) {
+      toast({ title: "Failed to create territory", description: e.message, variant: "destructive" });
+    } finally {
+      setPioneering(false);
+    }
+  }, [selectedGeo, currentUser.id, navigate, toast, qc]);
 
   return (
     <PageShell>
@@ -157,7 +219,7 @@ export default function TerritoriesHome() {
                 )}
 
                 {/* Geocoding results */}
-                {geoLoading ? (
+                {geoLoading || matchLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   </div>
@@ -190,7 +252,7 @@ export default function TerritoriesHome() {
           </div>
 
           {/* Selected location — show "Pioneer" CTA if not on platform */}
-          {selectedGeo && matchedTerritories.length === 0 && (
+          {selectedGeo && matchedTerritories.length === 0 && !matchLoading && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -206,10 +268,24 @@ export default function TerritoriesHome() {
                     Be the first to pioneer this territory and build its ecological community.
                   </p>
                 </div>
-                {currentUser.id && (
+                {currentUser.id ? (
+                  <Button
+                    size="sm"
+                    className="shrink-0 gap-1.5"
+                    onClick={handlePioneer}
+                    disabled={pioneering}
+                  >
+                    {pioneering ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    {pioneering ? "Creating…" : "Pioneer"}
+                  </Button>
+                ) : (
                   <Button size="sm" className="shrink-0 gap-1.5" asChild>
-                    <Link to={`/explore?tab=territories`}>
-                      <Sparkles className="h-3.5 w-3.5" /> Pioneer
+                    <Link to="/login">
+                      <Sparkles className="h-3.5 w-3.5" /> Log in to Pioneer
                     </Link>
                   </Button>
                 )}
