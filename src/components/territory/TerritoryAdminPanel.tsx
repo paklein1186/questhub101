@@ -108,12 +108,18 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
   const [tags, setTags] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Location state
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+
   const { data: territory } = useQuery({
     queryKey: ["territory-admin-meta", territoryId],
     queryFn: async () => {
       const { data } = await supabase
         .from("territories")
-        .select("summary, stats")
+        .select("summary, stats, latitude, longitude")
         .eq("id", territoryId)
         .single();
       return data;
@@ -125,26 +131,60 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
       setSummary((territory as any).summary ?? "");
       setImageUrls((territory as any).stats?.images ?? []);
       setTags(((territory as any).stats?.tags ?? []).join(", "));
+      setLatitude((territory as any).latitude != null ? String((territory as any).latitude) : "");
+      setLongitude((territory as any).longitude != null ? String((territory as any).longitude) : "");
     }
   }, [territory]);
+
+  const handleGeocode = async () => {
+    const code = postalCode.trim();
+    if (!code) return;
+    setGeocoding(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(code)}&format=json&limit=1`,
+      );
+      const results = await res.json();
+      if (results.length > 0) {
+        setLatitude(results[0].lat);
+        setLongitude(results[0].lon);
+        toast({ title: `Coordinates resolved from postal code "${code}"` });
+      } else {
+        toast({ title: "No results for this postal code", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Geocoding failed", variant: "destructive" });
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      const updatePayload: Record<string, unknown> = {
+        summary,
+        stats: {
+          ...(territory as any)?.stats,
+          images: imageUrls,
+          tags: tags.split(",").map((t: string) => t.trim()).filter(Boolean),
+        },
+        updated_at: new Date().toISOString(),
+      };
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        updatePayload.latitude = lat;
+        updatePayload.longitude = lng;
+      }
+
       const { error } = await supabase
         .from("territories")
-        .update({
-          summary,
-          stats: {
-            ...(territory as any)?.stats,
-            images: imageUrls,
-            tags: tags.split(",").map((t: string) => t.trim()).filter(Boolean),
-          },
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload as any)
         .eq("id", territoryId);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["territory-detail", territoryId] });
+      qc.invalidateQueries({ queryKey: ["territory-admin-meta", territoryId] });
       toast({ title: "Portal updated" });
     } catch (e: any) {
       toast({ title: "Save failed", description: e.message, variant: "destructive" });
