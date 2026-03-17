@@ -577,7 +577,8 @@
     "createGuild": { "title": "Create a Guild", "subtitle": "Gather people around a shared intention." },
     "createCompany": { "title": "Create a Traditional Organization", "subtitle": "Bring your organization into the ecosystem." },
     "networkHub": { "title": "My Network", "subtitle": "Your ecosystem at a glance." },
-    "trustGraph": { "title": "Open Trust Graph", "subtitle": "A transparent, human-powered reputation layer for the ecosystem." }
+    "trustGraph": { "title": "Open Trust Graph", "subtitle": "A transparent, human-powered reputation layer for the ecosystem." },
+    "faq": { "title": "FAQ", "subtitle": "Frequently asked questions" }
   },
   "hubs": {
     "vision": { "title": "Vision", "subtitle": "Our philosophy, structure and roadmap." },
