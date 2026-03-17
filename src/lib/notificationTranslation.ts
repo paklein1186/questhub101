@@ -36,8 +36,10 @@ export function translateNotificationTitle(n: Notification, t: TFunction): strin
  * Falls back to the stored body if no pattern matches.
  */
 export function translateNotificationBody(n: Notification, t: TFunction): string {
-  const body = n.body || "";
-  if (!body) return "";
+  const rawBody = n.body || "";
+  if (!rawBody) return "";
+  // Strip @[Name](id) mention tokens to show plain names
+  const body = rawBody.replace(/@\[([^\]]+)\]\([^)]+\)/g, "$1");
 
   // Try pattern matching for known body formats
   // "X commented on your entity: "snippet""
