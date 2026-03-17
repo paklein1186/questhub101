@@ -795,7 +795,7 @@ Respond ONLY in this exact JSON format, no markdown:
         </DialogHeader>
 
         {/* Progress dots */}
-        <div className="flex items-center gap-1.5 justify-center">
+        <div className="flex items-center gap-1.5 justify-center shrink-0">
           {activeSteps.map((s, i) => (
             <div
               key={s}
