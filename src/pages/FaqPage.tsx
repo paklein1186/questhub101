@@ -401,7 +401,7 @@ export default function FaqPage() {
             This FAQ evolves with you. Suggest improvements, ask questions, contribute.
           </p>
           <Button asChild>
-            <Link to="/support">
+            <Link to="/contact">
               <MessageSquare className="h-4 w-4 mr-2" /> Give feedback
             </Link>
           </Button>
