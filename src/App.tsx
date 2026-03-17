@@ -112,6 +112,7 @@ import JobsPage from "./pages/JobsPage";
 import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
+import FaqPage from "./pages/FaqPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import SupportPage from "./pages/SupportPage";
 

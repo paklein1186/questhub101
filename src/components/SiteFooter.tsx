@@ -36,7 +36,7 @@ export function SiteFooter() {
               to={link.href}
               className="text-xs sm:text-sm font-semibold text-primary hover:text-secondary transition-colors duration-200"
             >
-              {t(link.labelKey)}
+              {t(link.labelKey, { defaultValue: (link as any).fallbackLabel || link.labelKey })}
             </Link>
           ))}
         </nav>
