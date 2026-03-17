@@ -243,7 +243,7 @@ interface NotificationStore {
   preferences: NotificationPreferences;
   updatePreferences: (prefs: Partial<NotificationPreferences>) => void;
   notifyComment: (params: { commentAuthorId: string; targetType: CommentTargetType; targetId: string; commentId: string; commentSnippet: string; }) => void;
-  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; }) => void;
+  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; targetType?: string; targetId?: string; }) => void;
   notifyQuestUpdate: (params: { questId: string; questUpdateId: string; updateTitle: string; }) => void;
   notifyBooking: (params: { bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string; serviceId?: string; requesterId?: string; }) => void;
   notifyGuildMemberAdded: (params: { guildId: string; userId: string }) => void;
