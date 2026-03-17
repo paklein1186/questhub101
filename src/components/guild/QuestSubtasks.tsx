@@ -85,26 +85,38 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     },
   });
 
-  // Fetch quest participants (+ creator) for assignee picker
+  // Fetch quest participants, guild members, and creator for assignee picker
   const { data: guildMembers = [] } = useQuery({
-    queryKey: ["quest-participants-for-subtasks", questId],
+    queryKey: ["quest-participants-for-subtasks", questId, guildId],
     queryFn: async () => {
-      // Get approved participants
+      const userIdSet = new Set<string>();
+
+      // Get approved quest participants
       const { data: parts } = await supabase
         .from("quest_participants")
         .select("user_id")
         .eq("quest_id", questId)
         .eq("status", "APPROVED");
+      (parts || []).forEach((p: any) => userIdSet.add(p.user_id));
+
       // Also get the quest creator
       const { data: quest } = await supabase
         .from("quests")
         .select("created_by_user_id")
         .eq("id", questId)
         .single();
-      const participantIds = (parts || []).map((p: any) => p.user_id);
-      if (quest?.created_by_user_id && !participantIds.includes(quest.created_by_user_id)) {
-        participantIds.push(quest.created_by_user_id);
+      if (quest?.created_by_user_id) userIdSet.add(quest.created_by_user_id);
+
+      // Also include guild members if quest belongs to a guild
+      if (guildId) {
+        const { data: gMembers } = await supabase
+          .from("guild_members")
+          .select("user_id")
+          .eq("guild_id", guildId);
+        (gMembers || []).forEach((m: any) => userIdSet.add(m.user_id));
       }
+
+      const participantIds = [...userIdSet];
       if (participantIds.length === 0) return [];
       const { data: profiles } = await supabase
         .from("profiles_public")
