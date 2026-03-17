@@ -186,6 +186,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             commentAuthorId: comment.author_id,
             commentId,
             commentSnippet: comment.content,
+            targetType,
+            targetId,
           });
         }
       }
