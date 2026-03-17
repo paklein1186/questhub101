@@ -841,7 +841,7 @@ Respond ONLY in this exact JSON format, no markdown:
           </div>
         )}
         {step === "source" && (
-          <div className="flex items-center justify-start pt-2">
+          <div className="flex items-center justify-start pt-2 shrink-0">
             <Button variant="ghost" size="sm" onClick={goBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
