@@ -824,7 +824,7 @@ Respond ONLY in this exact JSON format, no markdown:
 
         {/* Navigation — source step has its own buttons */}
         {step !== "kind" && step !== "source" && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-2 shrink-0">
             <Button variant="ghost" size="sm" onClick={goBack} disabled={!canGoBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> {t("common.back")}
             </Button>
