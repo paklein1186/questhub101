@@ -112,6 +112,7 @@ import JobsPage from "./pages/JobsPage";
 import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
+import FaqPage from "./pages/FaqPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import SupportPage from "./pages/SupportPage";
 
@@ -246,6 +247,7 @@ const App = () => (
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/cookies" element={<CookiesPage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/faq" element={<FaqPage />} />
                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/security" element={<SecurityPage />} />
