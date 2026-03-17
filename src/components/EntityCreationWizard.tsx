@@ -783,8 +783,8 @@ Respond ONLY in this exact JSON format, no markdown:
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {kind && (() => {
               const Icon = KIND_CONFIG[kind].icon;
@@ -795,7 +795,7 @@ Respond ONLY in this exact JSON format, no markdown:
         </DialogHeader>
 
         {/* Progress dots */}
-        <div className="flex items-center gap-1.5 justify-center">
+        <div className="flex items-center gap-1.5 justify-center shrink-0">
           {activeSteps.map((s, i) => (
             <div
               key={s}
@@ -808,21 +808,23 @@ Respond ONLY in this exact JSON format, no markdown:
           ))}
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Navigation — source step has its own buttons */}
         {step !== "kind" && step !== "source" && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-2 shrink-0">
             <Button variant="ghost" size="sm" onClick={goBack} disabled={!canGoBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> {t("common.back")}
             </Button>
@@ -839,7 +841,7 @@ Respond ONLY in this exact JSON format, no markdown:
           </div>
         )}
         {step === "source" && (
-          <div className="flex items-center justify-start pt-2">
+          <div className="flex items-center justify-start pt-2 shrink-0">
             <Button variant="ghost" size="sm" onClick={goBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
