@@ -8,6 +8,7 @@ const FOOTER_LINKS = [
   { labelKey: "footer.ecosystem", href: "/ecosystem" },
   { labelKey: "footer.legal", href: "/legal" },
   { labelKey: "footer.about", href: "/about" },
+  { labelKey: "footer.faq", href: "/faq", fallbackLabel: "FAQ" },
 ];
 
 export function SiteFooter() {
