@@ -638,14 +638,17 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   // ── Trigger: Comment upvote ──
 
-  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
+  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet, targetType, targetId }: any) => {
     if (commentAuthorId === upvoterId) return;
     const actorName = await resolveActorName(upvoterId);
+    const cleanSnippet = stripMentionTokens((commentSnippet || "").slice(0, 60));
+    const deepLink = targetType && targetId ? buildNotifDeepLink(targetType, targetId) : "/notifications";
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
-      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
+      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${cleanSnippet}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
-      deepLinkUrl: "/notifications",
+      deepLinkUrl: deepLink,
+      data: { targetType, targetId, commentId },
     });
   }, [addNotification, resolveActorName]);
 
