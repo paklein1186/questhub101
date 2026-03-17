@@ -1608,5 +1608,108 @@
     "suggestSearchExistingPrompt": "Cherche dans mes quêtes, guildes et services existants quelque chose de similaire",
     "suggestDifferent": "Essayer autrement",
     "suggestDifferentPrompt": "Laisse-moi essayer une approche différente"
+  },
+  "faqPage": {
+    "headerTitle": "FAQ — changethegame",
+    "headerAlpha": "(Alpha)",
+    "headerSubtitle": "Une plateforme en évolution, co-construite avec ses utilisateurs",
+    "introBannerTitle": "🌱 Ceci est une version alpha",
+    "introBannerText": "Vous êtes co-constructeur, pas simple utilisateur. Les fonctionnalités évoluent grâce à vos retours. Vos contributions façonnent l'ADN de la plateforme.",
+    "searchPlaceholder": "Rechercher une question...",
+    "noResults": "Aucune question ne correspond à votre recherche. Essayez d'autres mots-clés.",
+    "ctaTitle": "Aidez à façonner changethegame",
+    "ctaText": "Cette FAQ évolue avec vous. Suggérez des améliorations, posez des questions, contribuez.",
+    "ctaButton": "Donner un retour",
+    "finalNote": "changethegame est un commun en évolution — construit avec vous, pas pour vous. 🌟",
+    "sections": {
+      "core": {
+        "title": "Essentiel",
+        "q1": "Qu'est-ce que changethegame ?",
+        "a1": ["changethegame est une plateforme collaborative qui connecte les personnes, les lieux et les projets œuvrant pour des futurs régénératifs.", "Elle permet la coordination des compétences, des ressources et des initiatives à travers les territoires — numériques et physiques."],
+        "q2": "Est-ce un produit fini ?",
+        "a2": ["Non — changethegame est actuellement en alpha.", "Les fonctionnalités évoluent. Certains éléments peuvent être instables. Vos retours façonnent directement le système.", "👉 Vous êtes co-constructeur, pas simple utilisateur."],
+        "q3": "Pourquoi publier une version inachevée ?",
+        "a3": ["Parce que c'est une infrastructure basée sur les communs. Nous croyons que :", "• L'usage réel révèle les vrais besoins", "• L'intelligence collective surpasse la conception fermée", "• Les contributeurs précoces façonnent l'ADN de la plateforme"]
+      },
+      "commons-ai-tech": {
+        "title": "Communs, IA & Tech",
+        "q1": "Que sont les « communs numériques » dans changethegame ?",
+        "a1": ["Les communs numériques sont des ressources partagées, ouvertes, co-gouvernées et non-extractives.", "Sur changethegame : les connaissances, outils et réseaux sont traités comme des communs. La valeur circule au lieu d'être captée."],
+        "q2": "Comment changethegame utilise-t-il l'IA ?",
+        "a2": ["L'IA agit comme un support cognitif : assistant de navigation, moteur de mise en relation et aide au contenu.", "👉 Elle soutient la prise de décision, elle ne la remplace pas."],
+        "q3": "Quelle est votre approche de la sobriété de l'IA ?",
+        "a3": ["Nous appliquons des principes de frugalité de l'IA :", "• Calcul minimal nécessaire", "• Pas de boucles addictives ou de dark patterns", "• Conception centrée sur l'humain", "👉 L'intelligence doit être significative, pas excessive."],
+        "q4": "changethegame est-il décentralisé ?",
+        "a4": ["Partiellement, et progressivement. Nous explorons l'identité décentralisée, la gouvernance distribuée et l'infrastructure modulaire.", "👉 Nous privilégions l'utilité d'abord, la décentralisation ensuite."],
+        "q5": "changethegame sera-t-il open source ?",
+        "a5": ["Partiellement. Certains modules seront ouverts. Certaines infrastructures resteront gérées. La logique des communs restera transparente.", "👉 L'objectif est la valeur ouverte, pas la pureté idéologique."]
+      },
+      "value-ownership": {
+        "title": "Valeur & Propriété",
+        "q1": "Comment les contributions sont-elles reconnues ?",
+        "a1": ["À travers plusieurs niveaux : réputation (XP), crédits plateforme et opportunités économiques.", "👉 Toute valeur n'est pas financière — mais toutes les contributions comptent."],
+        "q2": "Quelle est la différence entre XP, crédits et tokens ?",
+        "a2": ["• XP → réputation & confiance", "• Crédits → utilisables sur la plateforme (services, IA, actions)", "• Tokens / parts → valeur à long terme & gouvernance"],
+        "q3": "Puis-je gagner de l'argent via la plateforme ?",
+        "a3": ["Oui — indirectement et progressivement : via des missions, collaborations et implications dans des projets.", "👉 changethegame est un facilitateur d'opportunités, pas une place de marché d'emploi."],
+        "q4": "Comment les réputations sont-elles construites et validées ?",
+        "a4": ["Par les contributions, les interactions entre pairs et l'implication dans les projets.", "Au fil du temps, un graphe de confiance émerge au lieu d'un scoring centralisé."],
+        "q5": "Qu'est-ce qui empêche les abus ou la manipulation du système ?",
+        "a5": ["Nous combinons validation sociale, réputation multi-signaux et accès progressif à la confiance.", "👉 Les systèmes sont conçus pour récompenser la contribution constante plutôt que l'exploitation à court terme."],
+        "q6": "Comment fonctionne le système d'actionnariat ?",
+        "a6": ["Nous explorons des modèles de propriété hybrides : structures multi-parties prenantes, accès basé sur la contribution et mécanismes d'alignement à long terme.", "Cela peut inclure différentes classes de parts, des droits de gouvernance et une redistribution de la valeur.", "⚠️ Encore expérimental — co-conçu avec les utilisateurs."],
+        "q7": "Qui possède changethegame ?",
+        "a7": ["Actuellement initié par une équipe fondatrice. À long terme : conçu pour évoluer vers des structures de propriété partagée."],
+        "q8": "Les utilisateurs peuvent-ils influencer la gouvernance ?",
+        "a8": ["Oui — progressivement. Boucles de retour (maintenant), participation structurée (ensuite), rôles de gouvernance (plus tard).", "👉 La gouvernance se mérite et s'active, elle ne se donne pas instantanément."],
+        "q9": "Quelle est la vision de gouvernance à long terme ?",
+        "a9": ["Un modèle hybride combinant gouvernance des communs, représentation des parties prenantes et couches de décision distribuées.", "👉 Ni purement centralisé, ni totalement décentralisé."]
+      },
+      "platform-usage": {
+        "title": "Utilisation de la plateforme",
+        "q1": "Comment créer et gérer mon profil ?",
+        "a1": ["Vous pouvez créer un profil personnel, ajouter des compétences, intérêts et projets, et le mettre à jour dynamiquement.", "👉 Votre profil devient votre interface avec l'écosystème."],
+        "q2": "Que sont les « guildes » et comment fonctionnent-elles ?",
+        "a2": ["Les guildes sont des groupes thématiques ou fonctionnels organisés autour de compétences, sujets ou missions.", "Elles permettent la coordination, le partage de connaissances et l'action collective."],
+        "q3": "Comment trouver ou rejoindre des projets ?",
+        "a3": ["Via les fils de découverte, les recommandations et les invitations directes.", "👉 La plateforme vise à réduire la friction entre l'intention et l'action."],
+        "q4": "Que sont les « quêtes » ou missions ?",
+        "a4": ["Les quêtes sont des tâches orientées action liées à des besoins réels. Elles peuvent être individuelles, collectives ou territoriales."],
+        "q5": "Comment fonctionne le matching entre utilisateurs ?",
+        "a5": ["Par des suggestions assistées par IA, des intérêts partagés et des besoins complémentaires.", "👉 Axé sur la collaboration significative, pas le réseautage aléatoire."]
+      },
+      "data-infra": {
+        "title": "Données & Infrastructure",
+        "q1": "Où sont stockées mes données ?",
+        "a1": ["Actuellement sur une infrastructure centralisée sécurisée. À l'avenir, des approches plus distribuées seront explorées."],
+        "q2": "Mes données sont-elles sécurisées et privées ?",
+        "a2": ["Oui. Des pratiques de sécurité standards sont appliquées. Aucune vente de données personnelles.", "👉 La confiance est fondamentale."],
+        "q3": "Quelle est l'interopérabilité de la plateforme ?",
+        "a3": ["Nous visons des connexions API, des intégrations modulaires et une compatibilité multi-plateforme.", "👉 changethegame doit être un hub, pas un silo."]
+      },
+      "ecosystem-vision": {
+        "title": "Écosystème & Vision",
+        "q1": "Quels types de projets ou lieux sont soutenus ?",
+        "a1": ["Tiers-lieux, initiatives régénératives, projets culturels, sociaux, écologiques et écosystèmes hybrides physiques-numériques."],
+        "q2": "Quel est le lien entre changethegame et les territoires réels ?",
+        "a2": ["Il est conçu comme une couche de coordination pour les lieux, un outil de collaboration territoriale et un pont entre écosystèmes numériques et physiques.", "👉 Pas seulement une plateforme — une infrastructure territoriale."]
+      },
+      "alpha-disclaimer": {
+        "title": "Avertissement Alpha",
+        "q1": "Que signifie « alpha » pour mon expérience ?",
+        "a1": ["Les choses évolueront vite. Certaines fonctionnalités peuvent casser. Les interfaces peuvent changer.", "👉 En échange : vous avez de l'influence, vous façonnez le système, vous faites partie des fondations."]
+      }
+    }
+  },
+  "supportPage": {
+    "quickstartTitle": "Guides de démarrage rapide",
+    "quickstartItems": ["Comment créer votre profil", "Comment lancer une quête", "Comment rejoindre une guilde", "Comment proposer un service", "Comment utiliser les agents IA"],
+    "indepthTitle": "Guides approfondis",
+    "indepthItems": ["XP, crédits & index de contribution", "Pods et outils de collaboration", "Gouvernance de guilde", "Activation de territoire", "Formations & modules d'apprentissage", "Comment fonctionne l'IA et où vont les données"],
+    "troubleshootingTitle": "Dépannage",
+    "troubleshootingItems": ["Je ne peux pas créer une quête", "Ma guilde ne s'affiche pas correctement", "Mon organisation n'est pas rattachée", "Les réservations ne s'ouvrent pas", "Les notifications n'apparaissent pas"],
+    "askTitle": "Demander de l'aide",
+    "askText": "Bloqué ? Contactez l'équipe pour un support direct.",
+    "contactLink": "Nous contacter"
   }
 }
