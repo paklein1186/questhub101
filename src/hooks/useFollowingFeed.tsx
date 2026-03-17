@@ -173,11 +173,23 @@ export function useFollowingFeed(filterType?: string) {
       }
       await Promise.all(nameFetches);
 
-      // Attach context names to posts for display
+      // Attach context names and links to posts for display
+      const linkMap: Record<string, string> = {
+        GUILD: "/guilds/",
+        GUILD_DISCUSSION: "/guilds/",
+        COMPANY: "/companies/",
+        POD: "/pods/",
+        QUEST: "/quests/",
+        COURSE: "/courses/",
+        SERVICE: "/services/",
+        USER: "/users/",
+      };
       for (const post of result) {
         if (post.context_id) {
           (post as any).contextName =
             contextNames.get(`${post.context_type}:${post.context_id}`) || null;
+          const prefix = linkMap[post.context_type];
+          if (prefix) (post as any).contextLink = prefix + post.context_id;
         }
       }
 

@@ -243,7 +243,7 @@ interface NotificationStore {
   preferences: NotificationPreferences;
   updatePreferences: (prefs: Partial<NotificationPreferences>) => void;
   notifyComment: (params: { commentAuthorId: string; targetType: CommentTargetType; targetId: string; commentId: string; commentSnippet: string; }) => void;
-  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; }) => void;
+  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; targetType?: string; targetId?: string; }) => void;
   notifyQuestUpdate: (params: { questId: string; questUpdateId: string; updateTitle: string; }) => void;
   notifyBooking: (params: { bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string; serviceId?: string; requesterId?: string; }) => void;
   notifyGuildMemberAdded: (params: { guildId: string; userId: string }) => void;
@@ -285,8 +285,8 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "milestone": return `/me/milestones`;
     case "TERRITORY": return `/territories/${targetId}`;
     case "FEED_POST": return `/feed?post=${targetId}`;
-    case "COMMENT": return `/notifications`; // comments don't have standalone pages
-    default: return `/notifications`;
+    case "COMMENT": return `/notifications`;
+    default: return "/";
   }
 }
 
@@ -638,14 +638,17 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   // ── Trigger: Comment upvote ──
 
-  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
+  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet, targetType, targetId }: any) => {
     if (commentAuthorId === upvoterId) return;
     const actorName = await resolveActorName(upvoterId);
+    const cleanSnippet = stripMentionTokens((commentSnippet || "").slice(0, 60));
+    const deepLink = targetType && targetId ? buildNotifDeepLink(targetType, targetId) : "/notifications";
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
-      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
+      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${cleanSnippet}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
-      deepLinkUrl: "/notifications",
+      deepLinkUrl: deepLink,
+      data: { targetType, targetId, commentId },
     });
   }, [addNotification, resolveActorName]);
 
