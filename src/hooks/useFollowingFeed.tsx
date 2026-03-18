@@ -188,6 +188,8 @@ export function useFollowingFeed(filterType?: string) {
         COURSE: "/courses/",
         SERVICE: "/services/",
         USER: "/users/",
+        TERRITORY: "/territories/",
+        EVENT: "/events/",
       };
       for (const post of result) {
         if (post.context_id) {
