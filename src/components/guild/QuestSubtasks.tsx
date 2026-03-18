@@ -383,8 +383,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   };
 
   const confirmAndCommitDone = (subtaskId: string) => {
+    const subtask = subtasks.find((s: any) => s.id === subtaskId);
+    const prevStatus = subtask?.status || "TODO";
     setConfirmDoneId(null);
-    setPendingDone((prev) => new Map(prev).set(subtaskId, "IN_PROGRESS"));
+    setPendingDone((prev) => new Map(prev).set(subtaskId, prevStatus));
     const timer = setTimeout(() => {
       commitSubtaskDone(subtaskId);
       setDoneCooldowns((prev) => new Map(prev).set(subtaskId, Date.now()));
