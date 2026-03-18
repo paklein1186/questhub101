@@ -135,7 +135,8 @@ export function useFollowingFeed(filterType?: string) {
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
         if (post.context_id) {
-          const t = post.context_type;
+          // Normalize GUILD_DISCUSSION → GUILD for lookup
+          const t = post.context_type === "GUILD_DISCUSSION" ? "GUILD_DISCUSSION" : post.context_type;
           if (!contextGroups[t]) contextGroups[t] = [];
           if (!contextGroups[t].includes(post.context_id))
             contextGroups[t].push(post.context_id);
