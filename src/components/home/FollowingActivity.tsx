@@ -136,14 +136,19 @@ export function FollowingActivity() {
 
       // Fetch context names for posts
       // Resolve origin context names — only guilds, quests, users
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "USER"];
+      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
+      const lookupTypeMap: Record<string, string> = {
+        GUILD: "GUILD", GUILD_DISCUSSION: "GUILD",
+        QUEST: "QUEST", QUEST_DISCUSSION: "QUEST",
+        USER: "USER", POD: "POD", GUILD_EVENT: "GUILD_EVENT",
+      };
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
         if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
-          if (!contextGroups[lookupType]) contextGroups[lookupType] = [];
-          if (!contextGroups[lookupType].includes(post.context_id))
-            contextGroups[lookupType].push(post.context_id);
+          const lt = lookupTypeMap[post.context_type] || post.context_type;
+          if (!contextGroups[lt]) contextGroups[lt] = [];
+          if (!contextGroups[lt].includes(post.context_id))
+            contextGroups[lt].push(post.context_id);
         }
       }
       const contextNames = new Map<string, string>();
@@ -151,6 +156,8 @@ export function FollowingActivity() {
         GUILD: { table: "guilds", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
         USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        POD: { table: "pods", nameCol: "name" },
+        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
       };
       await Promise.all(
         Object.entries(contextGroups).map(async ([type, ids]) => {
