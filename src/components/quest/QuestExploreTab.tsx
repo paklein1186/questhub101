@@ -210,11 +210,6 @@ export function QuestExploreTab({
           </AccordionTrigger>
           <AccordionContent>
             <div className="flex items-center gap-2 mb-4">
-              <Link to={`/opportunities?quest=${quest.id}`}>
-                <Button size="sm" variant="ghost" className="text-xs gap-1.5">
-                  <Lightbulb className="h-3.5 w-3.5" /> View all opportunities
-                </Button>
-              </Link>
               {canPostUpdate && (
                 <Dialog open={inviteOpen} onOpenChange={(o) => { setInviteOpen(o); if (!o) setInviteEmail(""); }}>
                   <DialogTrigger asChild>
