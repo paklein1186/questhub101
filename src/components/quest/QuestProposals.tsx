@@ -342,9 +342,11 @@ export function QuestProposals({
   const canSubmitProposal = currentUser.id && (questStatus === "OPEN_FOR_PROPOSALS" || questStatus === "OPEN");
   const pendingProposals = proposals.filter((p: any) => p.status === "PENDING");
 
+  const needsMap = Object.fromEntries((needs as any[]).map((n: any) => [n.id, n]));
+
   return (
     <div className="space-y-6">
-      {/* ── Quest Needs ────────────────────────────────── */}
+      {/* ── Quest Needs + Contributions (merged) ──────── */}
       <div className="rounded-xl border border-border bg-card p-5 space-y-3">
         <h3 className="font-display font-semibold flex items-center gap-2 text-sm">
           <Lightbulb className="h-4 w-4 text-primary" /> What this quest needs
@@ -352,72 +354,7 @@ export function QuestProposals({
         <QuestNeedsManager questId={questId} questOwnerId={questOwnerId} readOnly />
       </div>
 
-      {/* ── Funding Campaigns ──────────────────────────── */}
-      {(campaigns as any[]).length > 0 ? (
-        <div className="space-y-3">
-          <h3 className="font-display font-semibold flex items-center gap-2">
-            <CurrencyIcon currency="coins" className="h-4 w-4" /> Funding Campaigns
-          </h3>
-          {(campaigns as any[]).map((campaign: any) => {
-            const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
-            const isActive = campaign.status === "ACTIVE";
-            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "Tokens";
-            return (
-              <div key={campaign.id} className={`rounded-xl border bg-card p-5 ${campaign.status === "CANCELLED" ? "border-destructive/30 opacity-70" : "border-border"}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{campaign.title || "Untitled campaign"}</span>
-                    <Badge variant="outline" className={`text-xs ${campaign.status === "ACTIVE" ? "bg-green-500/10 text-green-700 border-green-500/30" : campaign.status === "COMPLETED" ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-orange-500/10 text-orange-700 border-orange-500/30"}`}>
-                      {campaign.status}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "$CTG"}</Badge>
-                  </div>
-                  <span className="text-lg font-bold text-primary">
-                    {campaign.raised_amount} / {campaign.goal_amount} {unit}
-                  </span>
-                </div>
-                {campaign.goal_amount > 0 && (
-                  <div className="space-y-1 mb-3">
-                    <Progress value={pct} className="h-2.5" />
-                    <p className="text-xs text-muted-foreground text-right">{pct}% funded</p>
-                  </div>
-                )}
-                {/* Contribute button (only for active credit campaigns) */}
-                {isActive && currentUser.id && campaign.type === "CREDITS" && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5 mr-1" /> Contribute</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader><DialogTitle>Contribute $CTG to "{campaign.title}"</DialogTitle></DialogHeader>
-                      <div className="space-y-4 mt-2">
-                        <div className="flex gap-2">
-                          {[5, 10, 20, 50].map(v => (
-                            <Button key={v} variant="outline" size="sm" onClick={() => setFundAmount(String(v))}>{v}</Button>
-                          ))}
-                        </div>
-                        <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
-                        <Button onClick={() => fundQuest(Number(fundAmount) || 0, campaign)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
-                          <CurrencyIcon currency="ctg" className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-                {isActive && campaign.type === "FIAT" && (
-                  <p className="text-xs text-muted-foreground mt-2 italic">Fiat contributions are processed via Stripe checkout.</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border bg-card p-5 text-center">
-          <p className="text-sm text-muted-foreground">No funding campaigns configured yet. The quest owner can create campaigns in <span className="font-medium text-foreground">Settings → Fundraising</span>.</p>
-        </div>
-      )}
-
-      {/* ── Proposals list ────────────────────────────── */}
+      {/* ── Contributions (proposals linked to needs) ── */}
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold flex items-center gap-2">
           <Send className="h-4 w-4" /> Contributions ({proposals.length})
@@ -430,6 +367,22 @@ export function QuestProposals({
             <DialogContent>
               <DialogHeader><DialogTitle>Submit a Contribution</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-2">
+                {/* Link to a need (optional) */}
+                {(needs as any[]).length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Related Opportunity</label>
+                    <Select value={propNeedId ?? "__none__"} onValueChange={(v) => setPropNeedId(v === "__none__" ? null : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select an opportunity…" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— None —</SelectItem>
+                        {(needs as any[]).map((n: any) => (
+                          <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Link your contribution to a specific quest need</p>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium mb-1 block">Title *</label>
                   <Input value={propTitle} onChange={e => setPropTitle(e.target.value)} maxLength={120} placeholder="What you propose to do" />
