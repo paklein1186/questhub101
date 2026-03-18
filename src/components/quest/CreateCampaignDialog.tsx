@@ -71,7 +71,6 @@ export function CreateCampaignDialog({
 
     const payload: any = {
       title: title.trim(),
-      description: description.trim() || null,
       campaign_currency: currency,
       threshold_amount: Number(threshold),
       dispatch_mode: dispatchMode,
@@ -81,14 +80,16 @@ export function CreateCampaignDialog({
     };
 
     if (isEditing) {
-      await supabase.from("quest_campaigns" as any).update(payload).eq("id", editingCampaign.id);
+      const { error } = await supabase.from("quest_campaigns" as any).update(payload).eq("id", editingCampaign.id);
+      if (error) { toast({ title: "Failed to update campaign", description: error.message, variant: "destructive" }); setSaving(false); return; }
       toast({ title: "Campaign updated" });
     } else {
       payload.quest_id = questId;
       payload.created_by_user_id = currentUser.id;
       payload.status = "ACTIVE";
       payload.raised_amount = 0;
-      await supabase.from("quest_campaigns" as any).insert(payload);
+      const { error } = await supabase.from("quest_campaigns" as any).insert(payload);
+      if (error) { toast({ title: "Failed to create campaign", description: error.message, variant: "destructive" }); setSaving(false); return; }
       toast({ title: "Campaign created" });
     }
 
