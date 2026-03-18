@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestProposals } from "@/components/quest/QuestProposals";
-import { FundQuestCard } from "@/components/quest/FundQuestCard";
+
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 import { UserSearchInput } from "@/components/UserSearchInput";
