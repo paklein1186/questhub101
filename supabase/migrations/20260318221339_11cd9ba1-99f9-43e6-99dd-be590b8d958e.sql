@@ -1,0 +1,1 @@
+ALTER TABLE public.quest_proposals ADD COLUMN need_id UUID REFERENCES public.quest_needs(id) ON DELETE SET NULL DEFAULT NULL;
