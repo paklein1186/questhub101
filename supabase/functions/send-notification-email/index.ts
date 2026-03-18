@@ -284,7 +284,7 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
     </div>
 
     <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
-      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+      © ${new Date().getFullYear()} changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
     </p>
   </div>
 </body>
