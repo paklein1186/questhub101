@@ -162,6 +162,7 @@ import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
 import NaturalSystemPage from "./pages/NaturalSystemPage";
+import OpportunitiesPage from "./pages/OpportunitiesPage";
 
 const queryClient = new QueryClient();
 
