@@ -101,21 +101,56 @@ export function MilestoneTracker() {
   );
 }
 
+// Map milestone codes to actionable routes
+const MILESTONE_ROUTES: Record<string, string> = {
+  complete_profile: "/me?tab=profile",
+  add_spoken_languages: "/me?tab=profile",
+  join_first_guild: "/guilds",
+  join_creative_circle: "/guilds",
+  impact_guild: "/guilds",
+  create_first_quest: "/quests/create",
+  creative_artwork_quest: "/quests/create",
+  impact_quest: "/quests/create",
+  publish_service: "/services/create",
+  collaborate_pod: "/explore",
+  contribute_territory: "/territories",
+  impact_territory_memory: "/territories",
+  attend_event: "/explore?tab=events",
+  become_shareholder: "/explore",
+  publish_course: "/courses/create",
+  creative_class: "/courses/create",
+  host_workshop: "/explore",
+};
+
 function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; index: number }) {
+  const navigate = useNavigate();
   const rewardLabel = milestone.reward_type !== "NONE" && milestone.reward_amount > 0
     ? `+${milestone.reward_amount} ${milestone.reward_type}`
     : null;
+
+  const route = MILESTONE_ROUTES[milestone.code];
+  const isClickable = !milestone.isCompleted && !!route;
+
+  const handleClick = () => {
+    if (isClickable && route) {
+      navigate(route);
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2 }}
+      onClick={handleClick}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? (e) => { if (e.key === "Enter") handleClick(); } : undefined}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
         milestone.isCompleted
           ? "bg-primary/5 opacity-70"
-          : "bg-accent/20 hover:bg-accent/40"
+          : "bg-accent/20 hover:bg-accent/40 cursor-pointer"
       )}
     >
       {/* Status icon */}
@@ -159,6 +194,11 @@ function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; 
           <Gift className="h-3 w-3" />
           {rewardLabel}
         </span>
+      )}
+
+      {/* Action arrow for incomplete */}
+      {isClickable && (
+        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
       )}
 
       {milestone.isCompleted && (
