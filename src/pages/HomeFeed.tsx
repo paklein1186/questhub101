@@ -27,6 +27,7 @@ import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept f
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { MilestoneJourney } from "@/components/home/MilestoneJourney";
 
 
 /* ───────── Persona-specific config ───────── */
