@@ -135,34 +135,34 @@ export function FollowingActivity() {
       }
 
       // Fetch context names for posts
+      // Resolve origin context names — only guilds, quests, users
+      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "USER"];
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
-        if (post.context_id) {
-          if (!contextGroups[post.context_type]) contextGroups[post.context_type] = [];
-          if (!contextGroups[post.context_type].includes(post.context_id))
-            contextGroups[post.context_type].push(post.context_id);
+        if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
+          const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
+          if (!contextGroups[lookupType]) contextGroups[lookupType] = [];
+          if (!contextGroups[lookupType].includes(post.context_id))
+            contextGroups[lookupType].push(post.context_id);
         }
       }
       const contextNames = new Map<string, string>();
-      const tableMap: Record<string, { table: string; nameCol: string }> = {
+      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
-        COMPANY: { table: "companies", nameCol: "name" },
-        POD: { table: "pods", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
-        COURSE: { table: "courses", nameCol: "title" },
-        SERVICE: { table: "services", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name" },
+        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
       };
       await Promise.all(
         Object.entries(contextGroups).map(async ([type, ids]) => {
           const cfg = tableMap[type];
           if (!cfg || ids.length === 0) return;
+          const idCol = cfg.idCol || "id";
           const { data } = await (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
-            .in(type === "USER" ? "user_id" : "id", ids) as any);
+            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
+            .in(idCol, ids) as any);
           (data ?? []).forEach((row: any) => {
-            const key = type === "USER" ? row.user_id : row.id;
+            const key = idCol !== "id" ? row[idCol] : row.id;
             contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
           });
         })
@@ -172,15 +172,18 @@ export function FollowingActivity() {
       const merged: NetworkItem[] = [];
 
       for (const p of posts) {
+        if (!p.context_id || !ORIGIN_TYPES.includes(p.context_type)) {
+          merged.push({ id: p.id, type: "post", created_at: p.created_at, author: profileMap.get(p.author_user_id), content: p.content, context_type: p.context_type, context_id: p.context_id });
+          continue;
+        }
+        const lookupType = p.context_type === "GUILD_DISCUSSION" ? "GUILD" : p.context_type;
+        let ctxName = contextNames.get(`${lookupType}:${p.context_id}`) || undefined;
+        if (p.context_type === "USER" && ctxName) ctxName = `${ctxName}'s wall`;
         merged.push({
-          id: p.id,
-          type: "post",
-          created_at: p.created_at,
-          author: profileMap.get(p.author_user_id),
-          content: p.content,
-          context_type: p.context_type,
-          context_id: p.context_id,
-          contextName: contextNames.get(`${p.context_type}:${p.context_id}`) || undefined,
+          id: p.id, type: "post", created_at: p.created_at,
+          author: profileMap.get(p.author_user_id), content: p.content,
+          context_type: p.context_type, context_id: p.context_id,
+          contextName: ctxName,
         });
       }
 
