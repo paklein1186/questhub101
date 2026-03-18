@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown, ChevronUp, Gift, Sparkles, Lock } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Gift, Sparkles, ArrowRight } from "lucide-react";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
