@@ -136,22 +136,27 @@ export function CreateCampaignDialog({
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1 block">Threshold Amount</label>
+            <label className="text-sm font-medium mb-1 flex items-center gap-1.5">
+              <CurrencyIcon currency={currency === "coins" ? "coins" : "ctg"} className="h-4 w-4" />
+              Threshold Amount ({currency === "coins" ? "Coins" : "$CTG"})
+            </label>
             <Input
               type="number"
               min={1}
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
-              placeholder="Target amount"
+              placeholder={`Target in ${currency === "coins" ? "Coins" : "$CTG"}`}
             />
             {currency === "coins" && threshold && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
                 ≈ €{(Number(threshold) * coinsRate).toFixed(2)}
               </p>
             )}
             {currency === "ctg" && threshold && (
-              <p className="text-xs text-muted-foreground mt-1">
-                🌱 {Number(threshold).toLocaleString()} $CTG — not fiat-backed
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <CurrencyIcon currency="ctg" className="h-3 w-3" />
+                {Number(threshold).toLocaleString()} $CTG — not fiat-backed
               </p>
             )}
           </div>
