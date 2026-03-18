@@ -162,14 +162,15 @@ export function useFollowingFeed(filterType?: string) {
       for (const [type, ids] of Object.entries(contextGroups)) {
         const cfg = tableMap[type];
         if (!cfg || ids.length === 0) continue;
+        const idCol = cfg.idCol || "id";
         nameFetches.push(
           (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
-            .in(type === "USER" ? "user_id" : "id", ids) as any)
+            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
+            .in(idCol, ids) as any)
             .then(({ data }: any) => {
               (data ?? []).forEach((row: any) => {
-                const key = type === "USER" ? row.user_id : row.id;
+                const key = idCol !== "id" ? row[idCol] : row.id;
                 contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
               });
             })
