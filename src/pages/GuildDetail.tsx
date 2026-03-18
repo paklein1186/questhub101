@@ -33,7 +33,6 @@ import { DraftBanner } from "@/components/DraftBanner";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useLastTab } from "@/hooks/useLastTab";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -304,18 +303,13 @@ export default function GuildDetail() {
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
   const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-settings", "agent-revenue": "agent-settings" };
-  const { getLastTab: getLastGuildTab, saveLastTab: saveLastGuildTab } = useLastTab("guild");
-  const urlTab = guildSp.get("tab");
-  const rawTab = urlTab || getLastGuildTab(id, "overview");
+  const rawTab = guildSp.get("tab") || "overview";
   const activeTab = legacyTabMap[rawTab] || rawTab;
-  const setActiveTab = (v: string) => {
-    saveLastGuildTab(id, v);
-    setGuildSp(prev => {
-      const next = new URLSearchParams(prev);
-      if (v === "overview") next.delete("tab"); else next.set("tab", v);
-      return next;
-    }, { replace: true });
-  };
+  const setActiveTab = (v: string) => setGuildSp(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [editSvcId, setEditSvcId] = useState<string | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
@@ -448,13 +442,13 @@ export default function GuildDetail() {
 
       {guild.banner_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
-          <img src={guild.banner_url} alt={`${guild.name} banner`} className="w-full h-full object-cover" />
+          <img src={guild.banner_url} alt="" className="w-full h-full object-cover" />
         </div>
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
-          {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt={`${guild.name} logo`} />}
+          {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt="" />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{guild.name}</h1>
@@ -501,29 +495,62 @@ export default function GuildDetail() {
 
       <SectionBanner {...HINTS.banners.guildFirst} />
       <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
-        {(() => {
-          const allTabs: TabDefinition[] = [
-            { value: "overview", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Overview</span></> },
-            { value: "members", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Members</span> ({members.length})</> },
-            { value: "quests", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Quests</span> ({quests.length})</> },
-            { value: "human-interactions", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Human Interactions</span></>, visible: isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public") },
-            { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
-            { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
-            { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span><HintTooltip {...HINTS.tooltips.guildAI} /></>, visible: isMember },
-            { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Matchmaker</span></>, visible: isAdmin },
-            { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
-            { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span><HintTooltip {...HINTS.tooltips.guildPartners} /></> },
-            { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span><HintTooltip {...HINTS.tooltips.guildTrust} /></> },
-            { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span><HintTooltip {...HINTS.tooltips.guildLiving} /></> },
-            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span><HintTooltip {...HINTS.tooltips.guildOVN} /></> },
-            { value: "contribution-map", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Map</span></>, visible: isMember },
-            { value: "agent-settings", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agent Settings</span></>, visible: isAdmin },
-            { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span><HintTooltip {...HINTS.tooltips.guildGraph} /></> },
-          ];
-          const defaultOrder = allTabs.map((t) => t.value);
-          return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
-        })()}
+        <div className="flex items-center gap-1">
+          <TabsList>
+            <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 mr-1" /> Overview</TabsTrigger>
+            <TabsTrigger value="network"><Users className="h-3.5 w-3.5 mr-1" /> Network ({members.length})</TabsTrigger>
+            <TabsTrigger value="work"><Compass className="h-3.5 w-3.5 mr-1" /> Work</TabsTrigger>
+            {(isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public")) && (
+              <TabsTrigger value="activity"><MessageCircle className="h-3.5 w-3.5 mr-1" /> Activity</TabsTrigger>
+            )}
+          </TabsList>
 
+          {/* ─── Contextual More Menu ─── */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 px-2.5">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="ml-1 text-sm">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setActiveTab("ovn")}>
+                <Network className="h-4 w-4 mr-2" /> Contribution Ledger
+              </DropdownMenuItem>
+              {isMember && (
+                <DropdownMenuItem onClick={() => setActiveTab("contribution-map")}>
+                  <Network className="h-4 w-4 mr-2" /> Value Map
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => setActiveTab("living")}>
+                <Leaf className="h-4 w-4 mr-2" /> Ecosystem
+              </DropdownMenuItem>
+              {isMember && (
+                <DropdownMenuItem onClick={() => setActiveTab("ai")}>
+                  <Bot className="h-4 w-4 mr-2" /> AI Studio
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => setActiveTab("graph")}>
+                <Compass className="h-4 w-4 mr-2" /> Graph
+              </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem onClick={() => setActiveTab("agent-settings")}>
+                    <BotIcon className="h-4 w-4 mr-2" /> Agent Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
+                    <Sparkles className="h-4 w-4 mr-2" /> Matchmaker
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-2" /> Settings</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* ═══════════ OVERVIEW TAB ═══════════ */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {guild.description && (
             <GuestContentGate blur>
@@ -536,7 +563,6 @@ export default function GuildDetail() {
             </GuestContentGate>
           )}
 
-          {/* Unit details */}
           <div>
             <h3 className="font-display font-semibold mb-2">Details</h3>
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-3">
@@ -608,9 +634,9 @@ export default function GuildDetail() {
 
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
             <EntityFollowersCount entityId={guild.id} entityType="GUILD" />
-            <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
-            <button onClick={() => setActiveTab("quests")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
-            <button onClick={() => setActiveTab("services")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></button>
+            <button onClick={() => setActiveTab("network")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
+            <button onClick={() => setActiveTab("work")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
+            <button onClick={() => setActiveTab("work")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></button>
             <div className="rounded-lg border border-border bg-card p-4 text-center">
               <p className="text-2xl font-bold text-primary flex items-center justify-center gap-1"><Wallet className="h-5 w-5" />{guild.credits_balance ?? 0}</p>
               <p className="text-sm text-muted-foreground">Guild Wallet</p>
@@ -622,45 +648,23 @@ export default function GuildDetail() {
             <GuildCTGStat guildId={guild.id} />
           </div>
 
-          {/* Highlighted posts from Discussion/Posts tab */}
-          <HighlightedPostsTiles guildId={guild.id} onViewAll={() => setActiveTab("discussion")} />
+          <HighlightedPostsTiles guildId={guild.id} onViewAll={() => setActiveTab("activity")} />
           <GuildMembershipCard guild={guild} />
           <PartnersBlock entityType="GUILD" entityId={guild.id} />
         </TabsContent>
 
-        <TabsContent value="partnerships" className="mt-6">
-          <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
-        </TabsContent>
-
-        <TabsContent value="trust" className="mt-6">
+        {/* ═══════════ NETWORK TAB (Members + Trust) ═══════════ */}
+        <TabsContent value="network" className="mt-6 space-y-6">
+          {/* Trust overview integrated */}
           <TrustTab nodeType={TrustNodeType.GUILD} nodeId={guild.id} />
-        </TabsContent>
 
-        <TabsContent value="living" className="mt-6">
-          <LivingTab linkedType="entity" linkedId={guild.id} />
-        </TabsContent>
-
-        <TabsContent value="ovn" className="mt-6">
-          <GuildOVNTab guildId={guild.id} guildName={guild.name} isMember={isMember} currentUserId={currentUser.id} />
-        </TabsContent>
-
-        <TabsContent value="agent-settings" className="mt-6">
-          <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
-        </TabsContent>
-
-        <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
-          <GraphView centerType="guild" centerId={guild.id} height={700} />
-        </TabsContent>
-
-        <TabsContent value="contribution-map" className="mt-6">
-          <GuildContributionMap guildId={guild.id} />
-        </TabsContent>
-
-        <TabsContent value="members" className="mt-6 space-y-4">
+          {/* Top trusted members */}
           <TopTrustedMembers
             memberIds={memberUserIds}
             relevantTags={(guild.guild_topics || []).map((gt: any) => gt.topics?.name).filter(Boolean)}
           />
+
+          {/* Admin tools */}
           {isAdmin && (
             <>
               <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
@@ -674,6 +678,8 @@ export default function GuildDetail() {
               </div>
             </>
           )}
+
+          {/* Members grid */}
           <div className="grid gap-3 md:grid-cols-2">
             {members.map((m: any) => {
               const userRoles = getRolesForUser(m.user_id);
@@ -712,80 +718,104 @@ export default function GuildDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="quests" className="mt-6 space-y-3">
-          <PendingAffiliationRequests entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
-          {isMember && (
-            <div className="flex items-center gap-3 mb-3">
-              <Button size="sm" asChild>
-                <Link to={`/guilds/${guild.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create Quest for this Guild</Link>
-              </Button>
-              <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_CREDIT_COST} itemLabel="quest" />
+        {/* ═══════════ WORK TAB (Quests + Services + Events + Partnerships) ═══════════ */}
+        <TabsContent value="work" className="mt-6 space-y-6">
+          {/* Quests section */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display font-semibold flex items-center gap-2"><Compass className="h-4 w-4 text-primary" /> Quests ({quests.length})</h3>
+              {isMember && (
+                <div className="flex items-center gap-2">
+                  <Button size="sm" asChild>
+                    <Link to={`/guilds/${guild.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> New Quest</Link>
+                  </Button>
+                  <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_CREDIT_COST} itemLabel="quest" />
+                </div>
+              )}
             </div>
-          )}
-          <EntityQuestsFilters quests={quests}>
-            {(filtered, viewMode) => (
-              <>
-                {filtered.length === 0 && <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />}
-                <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
-                  {filtered.map((q: any) => (
-                    <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                      {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt={`${q.title} cover`} className="w-full h-full object-cover" /></div>}
-                      <div className="p-4">
-                        <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
-                        {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
-                        <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace(/_/g, " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}{(q as any)._subtasks && (q as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(q as any)._subtasks.done}/{(q as any)._subtasks.total}</Badge>}</div>
+            <PendingAffiliationRequests entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
+            <EntityQuestsFilters quests={quests}>
+              {(filtered, viewMode) => (
+                <>
+                  {filtered.length === 0 && <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />}
+                  <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
+                    {filtered.map((q: any) => (
+                      <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+                        {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
+                        <div className="p-4">
+                          <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
+                          {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
+                          <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace(/_/g, " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}{(q as any)._subtasks && (q as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(q as any)._subtasks.done}/{(q as any)._subtasks.total}</Badge>}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </EntityQuestsFilters>
+          </section>
+
+          {/* Services section */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display font-semibold flex items-center gap-2"><Briefcase className="h-4 w-4 text-primary" /> Services ({services.length})</h3>
+              {isMember && (
+                <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
+                  <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> New Service</Button></DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>{editSvcId ? "Edit Service" : "Create Guild Service"}</DialogTitle></DialogHeader>
+                    <div className="space-y-4 mt-2">
+                      <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Coaching Session" maxLength={120} /></div>
+                      <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
+                      <ImageUpload label="Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={e => setSvcDuration(e.target.value)} min={15} max={480} /></div>
+                        <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={e => setSvcPrice(e.target.value)} min={0} step={5} /></div>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
-          </EntityQuestsFilters>
-        </TabsContent>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Location type</label>
+                        <Select value={svcLocationType} onValueChange={v => setSvcLocationType(v as OnlineLocationType)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
+                            <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
+                            <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
+                      <Button onClick={editSvcId ? updateGuildService : createGuildService} disabled={!svcTitle.trim()} className="w-full">{editSvcId ? "Update" : "Create"}</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+            <ServicesList services={services} isAdmin={isAdmin} onToggleActive={async (svc: any) => {
+              const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
+              if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
+            }} onDelete={async (svc: any) => {
+              const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
+              if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: "Service deleted" }); }
+            }} />
+          </section>
 
-        {/* Services */}
-        <TabsContent value="services" className="mt-6 space-y-3">
-          {isMember && (
-            <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
-              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create Service</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>{editSvcId ? "Edit Service" : "Create Guild Service"}</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Coaching Session" maxLength={120} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
-                  <ImageUpload label="Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={e => setSvcDuration(e.target.value)} min={15} max={480} /></div>
-                    <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={e => setSvcPrice(e.target.value)} min={0} step={5} /></div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Location type</label>
-                    <Select value={svcLocationType} onValueChange={v => setSvcLocationType(v as OnlineLocationType)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
-                        <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
-                        <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
-                  <Button onClick={editSvcId ? updateGuildService : createGuildService} disabled={!svcTitle.trim()} className="w-full">{editSvcId ? "Update" : "Create"}</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+          {/* Events section */}
+          {(fc as any).events && (
+            <section>
+              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><CalendarDays className="h-4 w-4 text-primary" /> Events</h3>
+              <GuildEvents guildId={guild.id} guildName={guild.name} isMember={isMember} isAdmin={isAdmin} />
+            </section>
           )}
-          <ServicesList services={services} isAdmin={isAdmin} onToggleActive={async (svc: any) => {
-            const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
-            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
-          }} onDelete={async (svc: any) => {
-            const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
-            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: "Service deleted" }); }
-          }} />
+
+          {/* Partnerships section */}
+          <section>
+            <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Handshake className="h-4 w-4 text-primary" /> Partnerships</h3>
+            <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
+          </section>
         </TabsContent>
 
-        {/* Human Interactions — clustered subtabs */}
-        <TabsContent value="human-interactions" className="mt-6">
+        {/* ═══════════ ACTIVITY TAB (Discussions, Docs, Decisions, Rituals) ═══════════ */}
+        <TabsContent value="activity" className="mt-6">
           <HumanInteractionsCluster
             guild={guild}
             fc={fc}
@@ -800,24 +830,35 @@ export default function GuildDetail() {
           />
         </TabsContent>
 
-        {(fc as any).events && (
-          <TabsContent value="events" className="mt-6">
-            <GuildEvents guildId={guild.id} guildName={guild.name} isMember={isMember} isAdmin={isAdmin} />
-          </TabsContent>
-        )}
+        {/* ═══════════ MORE MENU PAGES ═══════════ */}
+        <TabsContent value="ovn" className="mt-6">
+          <GuildOVNTab guildId={guild.id} guildName={guild.name} isMember={isMember} currentUserId={currentUser.id} />
+        </TabsContent>
 
-        {/* AI Studio — single panel with mode toggle */}
+        <TabsContent value="contribution-map" className="mt-6">
+          <GuildContributionMap guildId={guild.id} />
+        </TabsContent>
+
+        <TabsContent value="living" className="mt-6">
+          <LivingTab linkedType="entity" linkedId={guild.id} />
+        </TabsContent>
+
         {isMember && (
           <TabsContent value="ai" className="mt-6">
-            <AIStudioPanel
-              guild={guild}
-              isAdmin={isAdmin}
-              isMember={isMember}
-            />
+            <AIStudioPanel guild={guild} isAdmin={isAdmin} isMember={isMember} />
           </TabsContent>
         )}
 
-        {/* Matchmaker — separate admin tool */}
+        <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
+          <GraphView centerType="guild" centerId={guild.id} height={700} />
+        </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="agent-settings" className="mt-6">
+            <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
+
         {isAdmin && (
           <TabsContent value="matchmaker" className="mt-6">
             <MatchmakerPanel matchType="guild" guildId={guild.id} />
