@@ -514,6 +514,7 @@ export default function HomeFeed() {
               <MyTaskBoard userId={currentUser.id} />
             </motion.div>
           )}
+          <MilestoneJourney />
           <FollowingActivity />
         </div>
       ) : (
