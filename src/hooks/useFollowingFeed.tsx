@@ -145,14 +145,17 @@ export function useFollowingFeed(filterType?: string) {
       const contextNames = new Map<string, string>();
       const nameFetches: Promise<void>[] = [];
 
-      const tableMap: Record<string, { table: string; nameCol: string }> = {
+      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
+        GUILD_DISCUSSION: { table: "guilds", nameCol: "name" },
         COMPANY: { table: "companies", nameCol: "name" },
         POD: { table: "pods", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
         COURSE: { table: "courses", nameCol: "title" },
         SERVICE: { table: "services", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name" },
+        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        TERRITORY: { table: "territories", nameCol: "name" },
+        EVENT: { table: "guild_events", nameCol: "title" },
       };
 
       for (const [type, ids] of Object.entries(contextGroups)) {
