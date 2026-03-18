@@ -22,6 +22,7 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
+import { MilestoneTracker } from "@/components/home/MilestoneTracker";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
@@ -501,6 +502,7 @@ export default function HomeFeed() {
       {isPiOpen ? (
         <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-5 sm:space-y-6">
           <PathwayCards persona={persona} progress={progress} steps={steps} />
+          <MilestoneTracker />
           {currentUser.id && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -621,6 +623,7 @@ export default function HomeFeed() {
           {currentUser.id &&
           <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-8 space-y-5 sm:space-y-6">
               <PathwayCards persona={persona} progress={progress} steps={steps} />
+              <MilestoneTracker />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <h2 className="text-base font-semibold text-foreground">My Task Board</h2>
