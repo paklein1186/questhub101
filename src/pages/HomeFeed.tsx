@@ -502,6 +502,7 @@ export default function HomeFeed() {
       {isPiOpen ? (
         <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-5 sm:space-y-6">
           <PathwayCards persona={persona} progress={progress} steps={steps} />
+          <MilestoneTracker />
           {currentUser.id && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
