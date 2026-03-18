@@ -173,6 +173,10 @@ export default function ExploreHub() {
           <QuestsSubTabs />
         </TabsContent>
 
+        <TabsContent value="opportunities">
+          <OpportunitiesExplore bare />
+        </TabsContent>
+
         <TabsContent value="services">
           <div className="flex justify-end mb-4">
             <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createService")}</Link></Button>
