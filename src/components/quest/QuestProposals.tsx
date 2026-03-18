@@ -462,6 +462,11 @@ export function QuestProposals({
                     </span>
                   </div>
                   <h4 className="font-semibold mt-1">{proposal.title}</h4>
+                  {proposal.need_id && needsMap[proposal.need_id] && (
+                    <Badge variant="outline" className="text-[10px] mt-1 gap-1">
+                      <Lightbulb className="h-3 w-3" /> {needsMap[proposal.need_id].title}
+                    </Badge>
+                  )}
                   {proposal.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{proposal.description}</p>}
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     {proposal.requested_credits > 0 && (
