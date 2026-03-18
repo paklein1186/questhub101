@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, Heart, Building2, UserPlus, Lightbulb, TrendingUp, Loader2, Mail, HandHeart, Sparkles, RefreshCw } from "lucide-react";
+import { Users, Heart, Building2, UserPlus, Lightbulb, Loader2, Mail, HandHeart, Sparkles, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestProposals } from "@/components/quest/QuestProposals";
-import { FundQuestCard } from "@/components/quest/FundQuestCard";
+
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 import { UserSearchInput } from "@/components/UserSearchInput";
@@ -379,16 +379,6 @@ export function QuestExploreTab({
         {/* External links */}
         {links.length > 0 && (
           <ExternalLinksPanel links={links} onLinksChange={() => {}} canEdit={false} />
-        )}
-
-        {/* Fundraising */}
-        {(quest as any).allow_fundraising && (
-          <div>
-            <h2 className="font-display text-lg font-bold flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-primary" /> Fundraising
-            </h2>
-            <FundQuestCard questId={quest.id} />
-          </div>
         )}
       </section>
     </div>
