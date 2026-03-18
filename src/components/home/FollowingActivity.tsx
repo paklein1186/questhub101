@@ -172,15 +172,18 @@ export function FollowingActivity() {
       const merged: NetworkItem[] = [];
 
       for (const p of posts) {
+        if (!p.context_id || !ORIGIN_TYPES.includes(p.context_type)) {
+          merged.push({ id: p.id, type: "post", created_at: p.created_at, author: profileMap.get(p.author_user_id), content: p.content, context_type: p.context_type, context_id: p.context_id });
+          continue;
+        }
+        const lookupType = p.context_type === "GUILD_DISCUSSION" ? "GUILD" : p.context_type;
+        let ctxName = contextNames.get(`${lookupType}:${p.context_id}`) || undefined;
+        if (p.context_type === "USER" && ctxName) ctxName = `${ctxName}'s wall`;
         merged.push({
-          id: p.id,
-          type: "post",
-          created_at: p.created_at,
-          author: profileMap.get(p.author_user_id),
-          content: p.content,
-          context_type: p.context_type,
-          context_id: p.context_id,
-          contextName: contextNames.get(`${p.context_type}:${p.context_id}`) || undefined,
+          id: p.id, type: "post", created_at: p.created_at,
+          author: profileMap.get(p.author_user_id), content: p.content,
+          context_type: p.context_type, context_id: p.context_id,
+          contextName: ctxName,
         });
       }
 
