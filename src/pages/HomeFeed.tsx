@@ -27,6 +27,7 @@ import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept f
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { MilestoneJourney } from "@/components/home/MilestoneJourney";
 
 
 /* ───────── Persona-specific config ───────── */
@@ -513,6 +514,7 @@ export default function HomeFeed() {
               <MyTaskBoard userId={currentUser.id} />
             </motion.div>
           )}
+          <MilestoneJourney />
           <FollowingActivity />
         </div>
       ) : (
@@ -627,6 +629,7 @@ export default function HomeFeed() {
                 </div>
                 <MyTaskBoard userId={currentUser.id} />
               </div>
+              <MilestoneJourney />
               <FollowingActivity />
             </div>
           }
