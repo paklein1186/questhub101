@@ -169,7 +169,8 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
             relatedEntityId: memoryEntryId,
             territoryId,
           });
-        } catch {}
+        } catch { // ignored
+        }
       }
 
       // Call AI for response

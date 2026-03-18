@@ -102,7 +102,8 @@ export default function PodDetail() {
         p_related_entity_type: "pod",
         p_note: `Pod hosted: ${pod.name}`,
       });
-    } catch {}
+    } catch { // ignored
+    }
   };
 
   const promoteToHost = async (userId: string) => {

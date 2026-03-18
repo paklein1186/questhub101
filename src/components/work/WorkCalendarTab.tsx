@@ -116,13 +116,15 @@ export function WorkCalendarTab() {
     try {
       const stored = localStorage.getItem("ctg-calendar-view-mode");
       if (stored && ["day", "3day", "week", "month"].includes(stored)) return stored as ViewMode;
-    } catch {}
+    } catch { // ignored
+    }
     return "month";
   });
 
   const handleSetViewMode = useCallback((v: ViewMode) => {
     setViewMode(v);
-    try { localStorage.setItem("ctg-calendar-view-mode", v); } catch {}
+    try { localStorage.setItem("ctg-calendar-view-mode", v); } catch { // ignored
+    }
   }, []);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [syncModalOpen, setSyncModalOpen] = useState(false);

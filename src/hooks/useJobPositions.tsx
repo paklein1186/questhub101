@@ -32,7 +32,7 @@ export function useAllJobPositions() {
 
       // Fetch creator profiles separately
       const creatorIds = [...new Set((jobs as any[]).map((j: any) => j.created_by_user_id).filter(Boolean))];
-      let creatorsMap: Record<string, any> = {};
+      const creatorsMap: Record<string, any> = {};
       if (creatorIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")

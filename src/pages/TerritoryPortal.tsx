@@ -378,7 +378,8 @@ export default function TerritoryPortal() {
             if (!isAuthenticated) {
               navigate("/territories");
             } else {
-              window.history.length > 1 ? navigate(-1) : navigate("/territories");
+              const result = window.history.length > 1 ? navigate(-1) : navigate("/territories");
+              void result;
             }
           }}
         />

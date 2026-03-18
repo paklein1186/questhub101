@@ -8,7 +8,8 @@ function getInitial(): GridDensity {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     if (v === "3" || v === "4") return v;
-  } catch {}
+  } catch { // ignored
+  }
   return "3";
 }
 
@@ -17,7 +18,8 @@ export function useGridDensity() {
 
   const setDensity = useCallback((d: GridDensity) => {
     setDensityRaw(d);
-    try { localStorage.setItem(STORAGE_KEY, d); } catch {}
+    try { localStorage.setItem(STORAGE_KEY, d); } catch { // ignored
+    }
   }, []);
 
   const gridClassName = density === "4"

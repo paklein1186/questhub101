@@ -253,7 +253,7 @@ function useActiveTerritories(period: TimePeriod, limit = 10) {
 
       // Build queries — optionally filter by created_at
       let userTerrQ = supabase.from("user_territories" as any).select("territory_id, created_at").in("territory_id", tIds);
-      let questTerrQ = supabase.from("quest_territories").select("territory_id, quests!inner(created_at)").in("territory_id", tIds);
+      const questTerrQ = supabase.from("quest_territories").select("territory_id, quests!inner(created_at)").in("territory_id", tIds);
       let stewardQ = supabase.from("trust_edges")
         .select("to_node_id, created_at")
         .eq("edge_type", "stewardship" as any)

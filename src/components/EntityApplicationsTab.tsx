@@ -81,7 +81,7 @@ export function EntityApplicationsTab({ entityType, entityId, entityName, curren
     }
 
     const userIds: string[] = Array.from(new Set((data || []).map((a: any) => a.applicant_user_id as string)));
-    let profiles: Record<string, any> = {};
+    const profiles: Record<string, any> = {};
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
         .from("profiles_public")

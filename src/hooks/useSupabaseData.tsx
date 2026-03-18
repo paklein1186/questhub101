@@ -115,7 +115,7 @@ export function useQuests() {
       if (error) throw error;
       // Batch-fetch subtask counts
       const questIds = (data || []).map(q => q.id);
-      let subtaskMap: Record<string, { total: number; done: number }> = {};
+      const subtaskMap: Record<string, { total: number; done: number }> = {};
       if (questIds.length > 0) {
         const { data: subtasks } = await supabase
           .from("quest_subtasks" as any)

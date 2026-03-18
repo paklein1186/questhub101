@@ -123,12 +123,14 @@ export function useToggleExcerptUpvote() {
         if (authorUserId && authorUserId !== userId) {
           try {
             await grantXp(authorUserId, { type: XP_EVENT_TYPES.TERRITORY_EXCERPT_UPVOTE_AUTHOR as any, relatedEntityId: excerptId });
-          } catch {}
+          } catch { // ignored
+          }
         }
         // Small XP for curator
         try {
           await grantXp(userId, { type: XP_EVENT_TYPES.TERRITORY_EXCERPT_UPVOTE_CURATOR as any, relatedEntityId: excerptId }, true);
-        } catch {}
+        } catch { // ignored
+        }
       }
     },
     onSuccess: () => {
@@ -173,7 +175,8 @@ export function useCreateExcerpt() {
           relatedEntityId: (data as any)?.id,
           territoryId: vars.territory_id,
         });
-      } catch {}
+      } catch { // ignored
+      }
     },
     onError: (e: any) => {
       toast({ title: "Failed to save excerpt", description: e.message, variant: "destructive" });

@@ -114,7 +114,7 @@ function useUnitChatMessages(threadId: string | undefined) {
         .limit(100);
       if (!msgs?.length) return [];
       const userIds = [...new Set(msgs.filter(m => m.sender_user_id).map(m => m.sender_user_id!))];
-      let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
+      const profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
       if (userIds.length) {
         const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", userIds);
         for (const p of profiles ?? []) profileMap[p.user_id] = { name: p.name, avatar_url: p.avatar_url };

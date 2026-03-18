@@ -921,7 +921,7 @@ export function useMyBookings(userId: string | undefined) {
         if (b.provider_user_id) userIds.add(b.provider_user_id);
       });
       const ids = Array.from(userIds);
-      let profileMap = new Map<string, { name: string; avatar_url: string | null }>();
+      const profileMap = new Map<string, { name: string; avatar_url: string | null }>();
       if (ids.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles_public")

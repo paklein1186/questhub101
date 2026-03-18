@@ -36,7 +36,7 @@ export function GuildKanbanBoard({ guildId, isAdmin, isMember }: GuildKanbanBoar
       if (error) throw error;
       // Fetch subtask counts per quest
       const questIds = (data || []).map(q => q.id);
-      let subtaskCounts: Record<string, { total: number; done: number }> = {};
+      const subtaskCounts: Record<string, { total: number; done: number }> = {};
       if (questIds.length > 0) {
         const { data: subtasks } = await supabase
           .from("quest_subtasks" as any)

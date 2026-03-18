@@ -127,7 +127,8 @@ function VideoEmbed({ attachment }: { attachment: PostAttachment }) {
 function LinkPreview({ attachment }: { attachment: PostAttachment }) {
   const meta = attachment.embed_meta as Record<string, any> | null;
   let hostname = "";
-  try { hostname = new URL(attachment.url).hostname; } catch {}
+  try { hostname = new URL(attachment.url).hostname; } catch { // ignored
+  }
   return (
     <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg border border-border bg-muted/30 overflow-hidden hover:border-primary/30 transition-all">
       <div className="flex gap-3">

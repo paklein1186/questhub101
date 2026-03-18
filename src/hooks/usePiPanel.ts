@@ -38,7 +38,8 @@ function getStoredWidth(): number {
       const n = parseInt(v, 10);
       if (n >= MIN_WIDTH && n <= MAX_WIDTH) return n;
     }
-  } catch {}
+  } catch { // ignored
+  }
   return DEFAULT_WIDTH;
 }
 

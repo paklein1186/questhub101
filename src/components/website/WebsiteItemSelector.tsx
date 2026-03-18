@@ -16,14 +16,14 @@ export function WebsiteItemSelector({ itemType, ownerType, ownerId, selectedIds,
     queryKey: ["website-items", itemType, ownerType, ownerId],
     queryFn: async () => {
       if (itemType === "quest") {
-        let filters: Record<string, string> = { is_deleted: "false" };
+        const filters: Record<string, string> = { is_deleted: "false" };
         if (ownerType === "user") filters["created_by_user_id"] = ownerId;
         if (ownerType === "guild") filters["guild_id"] = ownerId;
         const { data } = await supabase.from("quests").select("id, title").match(filters as any).order("created_at", { ascending: false }).limit(100);
         return (data || []).map((d: any) => ({ id: d.id, name: d.title }));
       }
       if (itemType === "service") {
-        let filters: Record<string, string> = { is_deleted: "false" };
+        const filters: Record<string, string> = { is_deleted: "false" };
         if (ownerType === "user") filters["owner_user_id"] = ownerId;
         if (ownerType === "guild") filters["owner_guild_id"] = ownerId;
         const { data } = await supabase.from("services").select("id, title").match(filters as any).order("created_at", { ascending: false }).limit(100);

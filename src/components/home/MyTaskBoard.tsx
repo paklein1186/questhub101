@@ -172,13 +172,15 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     try {
       const stored = localStorage.getItem(`taskboard-entity-filter-${userId}`);
       if (stored) return new Set(JSON.parse(stored) as string[]);
-    } catch {}
+    } catch { // ignored
+    }
     return new Set<string>();
   });
   const setEntityFilter = (valOrFn: Set<string> | ((prev: Set<string>) => Set<string>)) => {
     setEntityFilterRaw((prev) => {
       const next = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      try { localStorage.setItem(`taskboard-entity-filter-${userId}`, JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem(`taskboard-entity-filter-${userId}`, JSON.stringify([...next])); } catch { // ignored
+      }
       return next;
     });
   };

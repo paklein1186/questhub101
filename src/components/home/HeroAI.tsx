@@ -118,7 +118,7 @@ function sanitizeRoute(route: string | undefined, actionType: string): string {
   if (!route) return FALLBACK_ROUTES[actionType] || "/explore";
 
   // Fix common AI hallucinations
-  let cleaned = route
+  const cleaned = route
     .replace(/^\/home$/, "/")
     .replace(/^\/home\//, "/")
     .replace(/tab=pods/, "tab=entities")

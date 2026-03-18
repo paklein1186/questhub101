@@ -142,7 +142,8 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         p_related_entity_type: "guild_doc",
         p_note: `Doc created: ${docTitle.trim()}`,
       });
-    } catch {}
+    } catch { // ignored
+    }
   };
 
   const togglePin = async (doc: any) => {

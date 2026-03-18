@@ -112,7 +112,7 @@ export async function globalSearch(
   }
 
   // Services
-  let servicesQuery = supabase
+  const servicesQuery = supabase
     .from("services")
     .select("id, title, description, price_amount")
     .eq("is_deleted", false).eq("is_draft", false)

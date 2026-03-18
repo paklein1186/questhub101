@@ -81,7 +81,7 @@ export function GuildEvents({ guildId, guildName, isMember, isAdmin }: GuildEven
         .order("start_at", { ascending: true });
       if (error) throw error;
       const eventIds = (data || []).map((e: any) => e.id);
-      let attendeeCounts: Record<string, number> = {};
+      const attendeeCounts: Record<string, number> = {};
       if (eventIds.length > 0) {
         const { data: attendees } = await supabase
           .from("guild_event_attendees" as any)
