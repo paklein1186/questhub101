@@ -276,8 +276,19 @@ export function QuestExploreTab({
                 </DialogContent>
               </Dialog>
             )}
-          </div>
         </div>
+
+        {/* Needs + Campaigns + Proposals */}
+        {isLoggedIn && (
+          <QuestProposals
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            questStatus={quest.status}
+            missionBudgetMin={(quest as any).mission_budget_min}
+            missionBudgetMax={(quest as any).mission_budget_max}
+            paymentType={(quest as any).payment_type}
+          />
+        )}
 
         {/* Participants compact */}
         <div className="mb-4">
