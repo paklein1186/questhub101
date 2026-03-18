@@ -30,6 +30,7 @@ import ExploreHouses from "./ExploreHouses";
 import JobsExplore from "./JobsExplore";
 import { AddJobDialog } from "@/components/AddJobDialog";
 import AgentsMarketplace from "./AgentsMarketplace";
+import OpportunitiesExplore from "./OpportunitiesExplore";
 
 const VALID_TABS_AUTH = ["entities", "quests", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
