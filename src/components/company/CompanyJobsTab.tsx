@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { Plus, Briefcase, MapPin, FileText, Upload, Trash2, ExternalLink, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

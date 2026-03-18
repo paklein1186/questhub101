@@ -23,6 +23,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 import { Textarea } from "@/components/ui/textarea";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
 

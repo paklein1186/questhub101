@@ -11,6 +11,7 @@ import { useTerritories } from "@/hooks/useSupabaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { logger } from "@/lib/logger";
 
