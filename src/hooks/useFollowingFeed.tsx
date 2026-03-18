@@ -135,7 +135,8 @@ export function useFollowingFeed(filterType?: string) {
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
         if (post.context_id) {
-          const t = post.context_type;
+          // Normalize GUILD_DISCUSSION → GUILD for lookup
+          const t = post.context_type === "GUILD_DISCUSSION" ? "GUILD_DISCUSSION" : post.context_type;
           if (!contextGroups[t]) contextGroups[t] = [];
           if (!contextGroups[t].includes(post.context_id))
             contextGroups[t].push(post.context_id);
@@ -145,27 +146,31 @@ export function useFollowingFeed(filterType?: string) {
       const contextNames = new Map<string, string>();
       const nameFetches: Promise<void>[] = [];
 
-      const tableMap: Record<string, { table: string; nameCol: string }> = {
+      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
+        GUILD_DISCUSSION: { table: "guilds", nameCol: "name" },
         COMPANY: { table: "companies", nameCol: "name" },
         POD: { table: "pods", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
         COURSE: { table: "courses", nameCol: "title" },
         SERVICE: { table: "services", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name" },
+        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        TERRITORY: { table: "territories", nameCol: "name" },
+        EVENT: { table: "guild_events", nameCol: "title" },
       };
 
       for (const [type, ids] of Object.entries(contextGroups)) {
         const cfg = tableMap[type];
         if (!cfg || ids.length === 0) continue;
+        const idCol = cfg.idCol || "id";
         nameFetches.push(
           (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
-            .in(type === "USER" ? "user_id" : "id", ids) as any)
+            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
+            .in(idCol, ids) as any)
             .then(({ data }: any) => {
               (data ?? []).forEach((row: any) => {
-                const key = type === "USER" ? row.user_id : row.id;
+                const key = idCol !== "id" ? row[idCol] : row.id;
                 contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
               });
             })
@@ -183,6 +188,8 @@ export function useFollowingFeed(filterType?: string) {
         COURSE: "/courses/",
         SERVICE: "/services/",
         USER: "/users/",
+        TERRITORY: "/territories/",
+        EVENT: "/events/",
       };
       for (const post of result) {
         if (post.context_id) {
