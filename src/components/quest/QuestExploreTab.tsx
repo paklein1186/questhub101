@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, Heart, Building2, UserPlus, Lightbulb, TrendingUp, Loader2, Mail, HandHeart, Sparkles, RefreshCw } from "lucide-react";
+import { Users, Heart, Building2, UserPlus, Lightbulb, Loader2, Mail, HandHeart, Sparkles, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
