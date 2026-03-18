@@ -96,6 +96,19 @@ export function QuestProposals({
     },
   });
 
+  // Needs (for linking contributions to opportunities)
+  const { data: needs = [] } = useQuery({
+    queryKey: ["quest-needs", questId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_needs" as any)
+        .select("*")
+        .eq("quest_id", questId)
+        .order("created_at") as any;
+      return data ?? [];
+    },
+  });
+
   // Funding entries (linked to campaigns or legacy)
   const { data: funding = [] } = useQuery({
     queryKey: ["quest-funding", questId],
