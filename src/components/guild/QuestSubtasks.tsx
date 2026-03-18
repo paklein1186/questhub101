@@ -478,24 +478,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </Select>
             )}
             {canManage && guildMembers.length > 0 && (
-              <div className="flex items-center gap-1">
-                {guildMembers.map((m: any) => {
-                  const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
-                  return (
-                    <button
-                      key={m.user_id}
-                      onClick={() => toggleAssignee(subtask.id, m.user_id)}
-                      className={`rounded-full ring-2 transition-all ${isAssigned ? "ring-primary" : "ring-transparent opacity-40 hover:opacity-70"}`}
-                      title={m.name}
-                    >
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={m.avatar_url} />
-                        <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
-                      </Avatar>
-                    </button>
-                  );
-                })}
-              </div>
+              <SubtaskAssigneePicker
+                subtask={subtask}
+                guildMembers={guildMembers}
+                onToggle={(userId) => toggleAssignee(subtask.id, userId)}
+              />
             )}
             {!canManage && subtask.assignees?.length > 0 && (
               <div className="flex -space-x-1">
