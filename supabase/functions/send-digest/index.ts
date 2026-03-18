@@ -226,6 +226,20 @@ serve(async (req) => {
           xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
         }
 
+        // ── Skip if there is NO real content to share ──
+        const hasContent =
+          networkPosts.length > 0 ||
+          newQuests.length > 0 ||
+          newEvents.length > 0 ||
+          newGuildMembers > 0 ||
+          xpGained > 0;
+
+        if (!hasContent) {
+          console.log(`⏭️ Skipping digest for ${userId} — no new content since ${since}`);
+          results.push({ userId, status: "skipped-empty" });
+          continue;
+        }
+
         // Build rich context for AI — network-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
