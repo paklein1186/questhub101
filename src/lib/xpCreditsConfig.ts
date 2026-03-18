@@ -244,7 +244,7 @@ export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
 export const COIN_EUR_RATE = 0.04;
 
 /** Fallback rate used when cooperative_settings cannot be fetched */
-export const COINS_EUR_RATE_FALLBACK = 0.04;
+export const COINS_EUR_RATE_FALLBACK = 1;
 
 /** Coins per € (inverse of rate) */
 export const coinsPerEur = (rate: number) => Math.round(1 / rate);
