@@ -162,6 +162,7 @@ import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
 import NaturalSystemPage from "./pages/NaturalSystemPage";
+import OpportunitiesPage from "./pages/OpportunitiesPage";
 
 const queryClient = new QueryClient();
 
@@ -220,6 +221,7 @@ const App = () => (
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />
                 <Route path="/explore/houses" element={<ExploreHouses />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />

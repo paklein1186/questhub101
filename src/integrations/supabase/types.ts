@@ -7242,6 +7242,7 @@ export type Database = {
       }
       quests: {
         Row: {
+          ai_summary: string | null
           allow_fundraising: boolean
           boost_expires_at: string | null
           coin_budget: number
@@ -7310,6 +7311,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          ai_summary?: string | null
           allow_fundraising?: boolean
           boost_expires_at?: string | null
           coin_budget?: number
@@ -7378,6 +7380,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          ai_summary?: string | null
           allow_fundraising?: boolean
           boost_expires_at?: string | null
           coin_budget?: number
