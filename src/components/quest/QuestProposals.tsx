@@ -171,6 +171,7 @@ export function QuestProposals({
       requested_credits: propCurrency !== "FIAT" ? (Number(propCredits) || 0) : 0,
       requested_fiat: propCurrency !== "CREDITS" ? (Number(propFiatAmount) || 0) : 0,
       requested_currency: propCurrency,
+      need_id: propNeedId || null,
       status: "PENDING",
     });
 
