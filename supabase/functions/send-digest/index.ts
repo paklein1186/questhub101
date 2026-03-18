@@ -287,41 +287,47 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a clustered digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief grouped by category.
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a rich, engaging digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief with real content previews that make people want to click.
 
 Your output must be a JSON object:
 {
   "subject": "compelling subject line mentioning a specific guild or activity (max 55 chars)",
   "preheader": "short preview text shown in inbox before opening (max 90 chars)",
   "greeting": "warm 1-line greeting using their name",
-  "clusters": [
+  "featured_cards": [
     {
-      "label": "🏛 Guild Activity",
-      "items": [
-        { "icon": "emoji", "text": "descriptive line about what happened", "link": "/relevant-deep-link" }
-      ]
+      "type": "post|quest|event",
+      "emoji": "relevant emoji",
+      "title": "Bold headline summarizing the content",
+      "teaser": "1-2 sentence preview of the actual content — make it intriguing, quote key phrases from the original post/quest if available",
+      "context_label": "Guild Name or Topic",
+      "author": "Author name if applicable",
+      "link": "/relevant-deep-link",
+      "meta": "optional: date, upvote count, or member count"
     }
   ],
-  "closing": "1 motivational sentence",
+  "stats_bar": [
+    { "emoji": "📝", "label": "new posts", "value": 12 },
+    { "emoji": "🚀", "label": "quests launched", "value": 3 }
+  ],
+  "closing": "1 motivational sentence connecting their interests to the activity",
   "cta_label": "Explore what's new",
   "cta_url": "/explore"
 }
 
-Available cluster categories (use only those that have data):
-- "🏛 Guild Activity" — new posts, decisions, member joins in their guilds
-- "⚡ Quests & Projects" — new quests, quest updates, proposals
-- "📅 Upcoming Events" — events from guilds and followed entities
-- "🏆 Your Progress" — XP gained, achievements, credits received, contributions
-
-Rules:
-- Only include clusters that have items. Max 4 items per cluster. Max 4 clusters total.
-- Subject line should create curiosity: mention a specific guild name or count.
+Guidelines:
+- "featured_cards": Pick the 3-5 MOST interesting items from the data. Mix types (posts, quests, events). Each card should feel like a mini-article preview that creates curiosity.
+  - For posts: quote or paraphrase the most interesting part of the content snippet. Mention who wrote it and in which guild.
+  - For quests: highlight what the quest is about and which guild created it. Use action-oriented language.
+  - For events: mention the date prominently, the guild, and what it's about.
+- "stats_bar": 2-4 aggregate stats shown as a horizontal bar (e.g., "12 new posts · 3 quests launched · 5 new members"). Only include stats > 0.
+- Subject line should create curiosity: mention a specific guild name, person, or topic.
 - Preheader should complement the subject, not repeat it.
 - Use real deep links: /explore, /quests, /guilds, /network, /me, /me?tab=contributions
-- For guild-specific links use /guilds/GUILD_ID format if you have context, otherwise /explore
-- "Your Progress" cluster: summarize XP, achievements, credits in aggregate lines
-- If there's little activity, highlight communities and suggest exploration
-- Keep it punchy — this is a news brief, not a letter
+- For guild-specific links use /guilds/GUILD_ID format if you have the ID in context
+- For quest links use /quests/QUEST_ID if available
+- Keep teasers punchy and intriguing — like a newsletter preview, not a summary
+- If XP was gained, mention it naturally in stats_bar or closing
 - ONLY output valid JSON, no markdown fences`,
               },
               {
