@@ -691,26 +691,6 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
       {/* Embedded reshared post */}
       {post.reshared_post && <EmbeddedPost post={post.reshared_post} />}
 
-      {((post.post_territories && post.post_territories.length > 0) || (post.post_topics && post.post_topics.length > 0)) && (
-        <div className="flex flex-wrap gap-1.5">
-          {(post.post_territories ?? []).map((pt) => (
-            <Link key={pt.territory_id} to={`/territories/${pt.territories?.slug || pt.territory_id}`}>
-              <Badge variant="outline" className="text-[10px] h-5 gap-1 hover:bg-accent transition-colors cursor-pointer">
-                <Globe className="h-2.5 w-2.5" />
-                {pt.territories?.name || "Territory"}
-              </Badge>
-            </Link>
-          ))}
-          {(post.post_topics ?? []).map((pt) => (
-            <Link key={pt.topic_id} to={`/topics/${pt.topics?.slug || pt.topic_id}`}>
-              <Badge variant="outline" className="text-[10px] h-5 gap-1 hover:bg-accent transition-colors cursor-pointer">
-                <Compass className="h-2.5 w-2.5" />
-                {pt.topics?.name || "Topic"}
-              </Badge>
-            </Link>
-          ))}
-        </div>
-      )}
 
       {/* Actions bar */}
       <div className="flex items-center gap-1 pt-1">
