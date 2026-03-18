@@ -131,17 +131,20 @@ export function useFollowingFeed(filterType?: string) {
         }
       }
 
-      // 5. Resolve WHERE the post lives (origin): guild, quest, or user wall
-      // Only resolve meaningful origin types — skip topics, territories, etc.
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "USER"];
+      // 5. Resolve WHERE the post lives (origin)
+      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
+      const lookupTypeMap: Record<string, string> = {
+        GUILD: "GUILD", GUILD_DISCUSSION: "GUILD",
+        QUEST: "QUEST", QUEST_DISCUSSION: "QUEST",
+        USER: "USER", POD: "POD", GUILD_EVENT: "GUILD_EVENT",
+      };
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
         if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          // Both GUILD and GUILD_DISCUSSION resolve from guilds table
-          const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
-          if (!contextGroups[lookupType]) contextGroups[lookupType] = [];
-          if (!contextGroups[lookupType].includes(post.context_id))
-            contextGroups[lookupType].push(post.context_id);
+          const lt = lookupTypeMap[post.context_type] || post.context_type;
+          if (!contextGroups[lt]) contextGroups[lt] = [];
+          if (!contextGroups[lt].includes(post.context_id))
+            contextGroups[lt].push(post.context_id);
         }
       }
 
@@ -152,6 +155,8 @@ export function useFollowingFeed(filterType?: string) {
         GUILD: { table: "guilds", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
         USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        POD: { table: "pods", nameCol: "name" },
+        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
       };
 
       for (const [type, ids] of Object.entries(contextGroups)) {
@@ -195,14 +200,17 @@ export function useFollowingFeed(filterType?: string) {
         GUILD: "/guilds/",
         GUILD_DISCUSSION: "/guilds/",
         QUEST: "/quests/",
+        QUEST_DISCUSSION: "/quests/",
         USER: "/users/",
+        POD: "/pods/",
+        GUILD_EVENT: "/events/",
       };
 
       for (const post of result) {
         if (!post.context_id || !ORIGIN_TYPES.includes(post.context_type)) continue;
 
-        const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
-        let name = contextNames.get(`${lookupType}:${post.context_id}`) || null;
+        const lt = lookupTypeMap[post.context_type] || post.context_type;
+        let name = contextNames.get(`${lt}:${post.context_id}`) || null;
 
         // For discussion posts, append room name if available
         const roomId = (post as any).room_id;

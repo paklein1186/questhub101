@@ -104,27 +104,43 @@ export default function FeedHub() {
         }
       }
 
-      // Resolve origin context names — only meaningful origin types
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "USER"];
+      // Resolve origin context names for all meaningful origin types
+      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
+      
+      // Map context_type → lookup type for DB resolution (some share the same table)
+      const lookupTypeMap: Record<string, string> = {
+        GUILD: "GUILD",
+        GUILD_DISCUSSION: "GUILD",
+        QUEST: "QUEST",
+        QUEST_DISCUSSION: "QUEST",
+        USER: "USER",
+        POD: "POD",
+        GUILD_EVENT: "GUILD_EVENT",
+      };
       const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
         USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        POD: { table: "pods", nameCol: "name" },
+        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
       };
       const linkMap: Record<string, string> = {
         GUILD: "/guilds/",
         GUILD_DISCUSSION: "/guilds/",
         QUEST: "/quests/",
+        QUEST_DISCUSSION: "/quests/",
         USER: "/users/",
+        POD: "/pods/",
+        GUILD_EVENT: "/events/",
       };
 
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
         if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
-          if (!contextGroups[lookupType]) contextGroups[lookupType] = [];
-          if (!contextGroups[lookupType].includes(post.context_id))
-            contextGroups[lookupType].push(post.context_id);
+          const lt = lookupTypeMap[post.context_type] || post.context_type;
+          if (!contextGroups[lt]) contextGroups[lt] = [];
+          if (!contextGroups[lt].includes(post.context_id))
+            contextGroups[lt].push(post.context_id);
         }
       }
 
@@ -169,8 +185,8 @@ export default function FeedHub() {
 
       for (const post of posts) {
         if (!post.context_id || !ORIGIN_TYPES.includes(post.context_type)) continue;
-        const lookupType = post.context_type === "GUILD_DISCUSSION" ? "GUILD" : post.context_type;
-        let name = contextNames.get(`${lookupType}:${post.context_id}`) || null;
+        const lt = lookupTypeMap[post.context_type] || post.context_type;
+        let name = contextNames.get(`${lt}:${post.context_id}`) || null;
 
         // Append room name for discussion posts
         const roomId = (post as any).room_id;
