@@ -35,6 +35,83 @@ interface QuestSubtasksProps {
   questCtgBudget?: number;
 }
 
+function SubtaskAssigneePicker({ subtask, guildMembers, onToggle }: {
+  subtask: any;
+  guildMembers: any[];
+  onToggle: (userId: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const assigned: string[] = subtask.assignee_user_ids || [];
+  const filtered = useMemo(() => {
+    if (!search.trim()) return guildMembers;
+    const q = search.toLowerCase();
+    return guildMembers.filter((m: any) => m.name?.toLowerCase().includes(q));
+  }, [guildMembers, search]);
+
+  return (
+    <div className="flex items-center gap-1">
+      {assigned.length > 0 && (
+        <div className="flex -space-x-1">
+          {assigned.map((uid: string) => {
+            const m = guildMembers.find((g: any) => g.user_id === uid);
+            if (!m) return null;
+            return (
+              <Avatar key={uid} className="h-6 w-6 border-2 border-background">
+                <AvatarImage src={m.avatar_url} />
+                <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
+              </Avatar>
+            );
+          })}
+        </div>
+      )}
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-all"
+            title="Assign members"
+          >
+            <UserPlus className="h-3 w-3 text-muted-foreground" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-2" align="start">
+          <div className="relative mb-2">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search members…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-7 pl-7 text-xs"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto space-y-0.5">
+            {filtered.map((m: any) => {
+              const isAssigned = assigned.includes(m.user_id);
+              return (
+                <button
+                  key={m.user_id}
+                  onClick={() => onToggle(m.user_id)}
+                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-xs hover:bg-accent transition-colors"
+                >
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={m.avatar_url} />
+                    <AvatarFallback className="text-[9px]">{m.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 text-left truncate">{m.name}</span>
+                  {isAssigned && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                </button>
+              );
+            })}
+            {filtered.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-2">No members found</p>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
 const STATUS_COLORS: Record<string, string> = {
   BACKLOG: "bg-muted/60 text-muted-foreground/70",
