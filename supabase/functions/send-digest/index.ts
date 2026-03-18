@@ -604,84 +604,45 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
   // ── Legacy clusters fallback ──
   const clusters = (digest.clusters ?? []).slice(0, 4);
   const clustersHtml = clusters.length > 0 && cards.length === 0 ? clusters.map((cluster: any, idx: number) => {
-    const isProgress = (cluster.label || "").includes("Progress");
-    const bgStyle = isProgress
-      ? "background:hsl(142,40%,96%);border-radius:8px;padding:16px;"
-      : "";
-
     const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
       const linkHtml = item.link
         ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
         : "";
-      return `
-        <tr>
-          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
-          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
-            ${item.text} ${linkHtml}
-          </td>
-        </tr>`;
+      return `<tr><td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td><td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">${item.text} ${linkHtml}</td></tr>`;
     }).join("");
-
-    const divider = idx < clusters.length - 1
-      ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
-      : "";
-
-    return `
-      <div style="${bgStyle}margin-bottom:4px;">
-        <h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;letter-spacing:0.5px;">${cluster.label}</h3>
-        <table role="presentation" style="width:100%;border-collapse:collapse;">
-          ${itemsHtml}
-        </table>
-      </div>
-      ${divider}`;
-  }).join("");
+    const divider = idx < clusters.length - 1 ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />` : "";
+    return `<div style="margin-bottom:4px;"><h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;">${cluster.label}</h3><table role="presentation" style="width:100%;border-collapse:collapse;">${itemsHtml}</table></div>${divider}`;
+  }).join("") : "";
 
   const ctaLabel = digest.cta_label || "Explore what's new";
-  const ctaUrl = (digest.cta_url || "/explore").startsWith("http")
-    ? digest.cta_url
-    : `${BASE_URL}${digest.cta_url || "/explore"}`;
-
+  const ctaUrl = (digest.cta_url || "/explore").startsWith("http") ? digest.cta_url : `${BASE_URL}${digest.cta_url || "/explore"}`;
   const preheader = digest.preheader || "";
 
   return `<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></head>
 <body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}</span>
   <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
-
-    <!-- Header -->
     <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
       <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
     </div>
-
-    <!-- Card -->
     <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
-
-      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hey ${userName},`}</h2>
-
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hi ${userName},`}</h2>
+      ${statsBarHtml}
+      ${cardsHtml}
       ${clustersHtml}
-
       ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:20px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
-
-      <div style="margin-top:28px;">
-        <a href="${ctaUrl}"
-           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
-          ${ctaLabel}
-        </a>
+      <div style="margin-top:28px;text-align:center;">
+        <a href="${ctaUrl}" style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">${ctaLabel}</a>
       </div>
-
       <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
       <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
         You're receiving this because you opted into digests.
         <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
       </p>
     </div>
-
     <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
       © ${new Date().getFullYear()} changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
     </p>
