@@ -158,6 +158,7 @@ export function QuestProposals({
   const [propCredits, setPropCredits] = useState("");
   const [propCurrency, setPropCurrency] = useState<"CREDITS" | "FIAT" | "BOTH">("CREDITS");
   const [propFiatAmount, setPropFiatAmount] = useState("");
+  const [propNeedId, setPropNeedId] = useState<string | null>(null);
 
   const submitProposal = async () => {
     if (!propTitle.trim() || !currentUser.id) return;
