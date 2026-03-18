@@ -138,7 +138,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [confirmDoneId, setConfirmDoneId] = useState<string | null>(null);
-  const [doneCooldowns, setDoneCooldowns] = useState<Map<string, number>>(new Map()); // id -> timestamp when DONE was committed
+  const [doneCooldowns, setDoneCooldowns] = useState<Map<string, number>>(new Map());
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [showDone, setShowDone] = useState(false);
+  const [filterMode, setFilterMode] = useState<"all" | "mine">("all");
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
