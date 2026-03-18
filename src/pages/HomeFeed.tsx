@@ -623,6 +623,7 @@ export default function HomeFeed() {
           {currentUser.id &&
           <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-8 space-y-5 sm:space-y-6">
               <PathwayCards persona={persona} progress={progress} steps={steps} />
+              <MilestoneTracker />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <h2 className="text-base font-semibold text-foreground">My Task Board</h2>
