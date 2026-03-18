@@ -276,6 +276,7 @@ export function QuestExploreTab({
                 </DialogContent>
               </Dialog>
             )}
+          </div>
         </div>
 
         {/* Needs + Campaigns + Proposals */}
