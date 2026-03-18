@@ -22,6 +22,7 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
+import { MilestoneTracker } from "@/components/home/MilestoneTracker";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
