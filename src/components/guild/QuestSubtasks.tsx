@@ -14,11 +14,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Trophy, CheckCircle2, Search, UserPlus } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Trophy, CheckCircle2, Search, UserPlus, LayoutList, Kanban, Eye, EyeOff, User } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { SubtasksKanbanView } from "@/components/guild/SubtasksKanbanView";
 import { logger } from "@/lib/logger";
 
 interface QuestSubtasksProps {
