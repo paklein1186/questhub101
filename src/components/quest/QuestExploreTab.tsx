@@ -380,16 +380,6 @@ export function QuestExploreTab({
         {links.length > 0 && (
           <ExternalLinksPanel links={links} onLinksChange={() => {}} canEdit={false} />
         )}
-
-        {/* Fundraising */}
-        {(quest as any).allow_fundraising && (
-          <div>
-            <h2 className="font-display text-lg font-bold flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-primary" /> Fundraising
-            </h2>
-            <FundQuestCard questId={quest.id} />
-          </div>
-        )}
       </section>
     </div>
   );
