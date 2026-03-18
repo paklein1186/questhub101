@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { useConversations, useConversationMessages, useSendMessage, useCreateConversation, useDeleteMessage, useEditMessage, useAddParticipants } from "@/hooks/useMessages";

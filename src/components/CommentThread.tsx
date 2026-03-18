@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2, ImagePlus } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";

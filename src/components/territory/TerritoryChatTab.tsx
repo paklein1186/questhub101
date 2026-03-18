@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Send, Loader2, Brain, Sparkles, BookOpen, MessageSquare, Paperclip, X, FileText, Image as ImageIcon, Link2 } from "lucide-react";

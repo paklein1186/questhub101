@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { MentionTextarea, extractMentionIds, extractAllMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
 import { ImagePlus, Paperclip, Link2, Send, X, Loader2, Film, Globe, Lock, Shield } from "lucide-react";
