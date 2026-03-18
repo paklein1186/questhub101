@@ -13,7 +13,6 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
-import { logger } from "@/lib/logger";
 
 const CONTRACT_TYPES = [
   { value: "full-time", label: "Full-time" },
@@ -113,7 +112,7 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
         toast({ title: "Info extracted", description: "Review and edit the pre-filled fields." });
       }
     } catch (e) {
-      logger.error("Extraction failed:", e);
+      console.error("Extraction failed:", e);
       toast({ title: "Extraction failed", description: "Fill the form manually.", variant: "destructive" });
     } finally {
       setExtracting(false);

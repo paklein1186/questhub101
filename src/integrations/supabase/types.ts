@@ -7126,35 +7126,6 @@ export type Database = {
           },
         ]
       }
-      quest_update_upvotes: {
-        Row: {
-          created_at: string
-          id: string
-          update_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          update_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          update_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quest_update_upvotes_update_id_fkey"
-            columns: ["update_id"]
-            isOneToOne: false
-            referencedRelation: "quest_updates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       quest_updates: {
         Row: {
           author_id: string
@@ -7171,7 +7142,6 @@ export type Database = {
           title: string
           type: string
           updated_at: string
-          upvote_count: number
           visibility: string
         }
         Insert: {
@@ -7189,7 +7159,6 @@ export type Database = {
           title: string
           type?: string
           updated_at?: string
-          upvote_count?: number
           visibility?: string
         }
         Update: {
@@ -7207,7 +7176,6 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string
-          upvote_count?: number
           visibility?: string
         }
         Relationships: [

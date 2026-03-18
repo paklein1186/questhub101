@@ -60,7 +60,7 @@ export function ServicesList({ services, isAdmin, onToggleActive, onDelete }: Se
             <Link to={`/services/${svc.id}`} className="block">
               {svc.image_url && (
                 <div className={viewMode === "grid" ? "h-32 w-full" : "h-28 w-full"}>
-                  <img src={svc.image_url} alt="Service image" className="w-full h-full object-cover" />
+                  <img src={svc.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="p-4 pb-2">

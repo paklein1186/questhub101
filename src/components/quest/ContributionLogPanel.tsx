@@ -13,7 +13,6 @@ import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ValuePieChart } from "./ValuePieChart";
 import { LogContributionDialog } from "@/components/ocu/LogContributionDialog";
-import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 // ── Contribution type enum (matches DB enum) ──
 type ContributionTypeEnum =
@@ -322,9 +321,9 @@ export function ContributionLogPanel({
           {/* Value Pie */}
           <ValuePieChart questId={questId} />
 
-          <p className="text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+          <p className="text-[10px] text-muted-foreground">
             All contributions are attributed under CC-BY-SA.
-            <CurrencyIcon currency="coins" className="h-3 w-3 inline" /> Coins are distributed proportionally via the OCU pie.
+            🟩 Coins are distributed proportionally via the OCU pie.
             🌱 $CTG is emitted per contribution to the commons.
           </p>
         </>
@@ -351,11 +350,11 @@ export function ContributionLogPanel({
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Total budget</p>
-                <p className="font-bold text-emerald-600">{questCoinBudget} Coins</p>
+                <p className="font-bold text-emerald-600">{questCoinBudget} 🟩</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Contributor pool</p>
-                <p className="font-bold text-emerald-600">{previewContributorPool} Coins</p>
+                <p className="font-bold text-emerald-600">{previewContributorPool} 🟩</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Guild ({guildPercent}%)</p>

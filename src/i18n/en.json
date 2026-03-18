@@ -577,8 +577,7 @@
     "createGuild": { "title": "Create a Guild", "subtitle": "Gather people around a shared intention." },
     "createCompany": { "title": "Create a Traditional Organization", "subtitle": "Bring your organization into the ecosystem." },
     "networkHub": { "title": "My Network", "subtitle": "Your ecosystem at a glance." },
-    "trustGraph": { "title": "Open Trust Graph", "subtitle": "A transparent, human-powered reputation layer for the ecosystem." },
-    "faq": { "title": "FAQ", "subtitle": "Frequently asked questions" }
+    "trustGraph": { "title": "Open Trust Graph", "subtitle": "A transparent, human-powered reputation layer for the ecosystem." }
   },
   "hubs": {
     "vision": { "title": "Vision", "subtitle": "Our philosophy, structure and roadmap." },
@@ -1615,108 +1614,5 @@
     "suggestSearchExistingPrompt": "Search my existing quests, guilds, and services for something similar",
     "suggestDifferent": "Try something different",
     "suggestDifferentPrompt": "Let me try a different approach"
-  },
-  "faqPage": {
-    "headerTitle": "FAQ — changethegame",
-    "headerAlpha": "(Alpha)",
-    "headerSubtitle": "An evolving platform, co-built with its users",
-    "introBannerTitle": "🌱 This is an alpha version",
-    "introBannerText": "You are a co-builder, not just a user. Features evolve based on your feedback. Your contributions shape the DNA of the platform.",
-    "searchPlaceholder": "Search a question...",
-    "noResults": "No questions match your search. Try different keywords.",
-    "ctaTitle": "Help shape changethegame",
-    "ctaText": "This FAQ evolves with you. Suggest improvements, ask questions, contribute.",
-    "ctaButton": "Give feedback",
-    "finalNote": "changethegame is an evolving commons — built with you, not for you. 🌟",
-    "sections": {
-      "core": {
-        "title": "Core",
-        "q1": "What is changethegame?",
-        "a1": ["changethegame is a collaborative platform connecting people, places, and projects working toward regenerative futures.", "It enables coordination of skills, resources, and initiatives across territories — both digital and physical."],
-        "q2": "Is this a finished product?",
-        "a2": ["No — changethegame is currently in alpha.", "Features are evolving. Some elements may be unstable. Your feedback directly shapes the system.", "👉 You are a co-builder, not just a user."],
-        "q3": "Why release an unfinished version?",
-        "a3": ["Because this is a commons-based infrastructure. We believe:", "• Real usage reveals real needs", "• Collective intelligence outperforms closed design", "• Early contributors shape the DNA of the platform"]
-      },
-      "commons-ai-tech": {
-        "title": "Commons, AI & Tech",
-        "q1": "What are \"digital commons\" in changethegame?",
-        "a1": ["Digital commons are shared resources that are openly accessible, co-governed, and non-extractive.", "On changethegame: knowledge, tools, and networks are treated as commons. Value circulates instead of being captured."],
-        "q2": "How does changethegame use AI?",
-        "a2": ["AI acts as a cognitive support layer: navigation assistant, matchmaking engine, and content helper.", "👉 It supports decision-making, not replaces it."],
-        "q3": "What is your approach to AI sobriety?",
-        "a3": ["We apply AI frugality principles:", "• Minimal necessary computation", "• No addictive loops or dark patterns", "• Human-first interaction design", "👉 Intelligence should be meaningful, not excessive."],
-        "q4": "Is changethegame decentralized?",
-        "a4": ["Partially, and progressively. We are exploring decentralized identity, distributed governance, and modular infrastructure.", "👉 We prioritize usefulness first, decentralization second."],
-        "q5": "Will changethegame be open source?",
-        "a5": ["Partially. Some modules will be open. Some infrastructure may remain managed. Commons logic will stay transparent.", "👉 The goal is open value, not ideological purity."]
-      },
-      "value-ownership": {
-        "title": "Value & Ownership",
-        "q1": "How are contributions recognized?",
-        "a1": ["Through multiple layers: reputation (XP), platform credits, and economic opportunities.", "👉 Not all value is financial — but all contributions matter."],
-        "q2": "What is the difference between XP, credits, and tokens?",
-        "a2": ["• XP → reputation & trust", "• Credits → usable within the platform (services, AI, actions)", "• Tokens / shares → long-term value & governance"],
-        "q3": "Can I earn money through the platform?",
-        "a3": ["Yes — indirectly and progressively: through missions, collaborations, and project involvement.", "👉 changethegame is a facilitator of opportunities, not a job marketplace."],
-        "q4": "How are reputations built and validated?",
-        "a4": ["Through contributions, peer interactions, and project involvement.", "Over time a trust graph emerges instead of centralized scoring."],
-        "q5": "What prevents misuse or gaming of the system?",
-        "a5": ["We combine social validation, multi-signal reputation, and progressive trust access.", "👉 Systems are designed to reward consistent contribution over short-term exploitation."],
-        "q6": "How does the shareholding system work?",
-        "a6": ["We explore hybrid ownership models: multi-stakeholder structures, contribution-based access, and long-term alignment mechanisms.", "This may include different share classes, governance rights, and value redistribution.", "⚠️ Still experimental — co-designed with users."],
-        "q7": "Who owns changethegame?",
-        "a7": ["Currently initiated by a core team. Long-term: designed to evolve toward shared ownership structures."],
-        "q8": "Can users influence governance?",
-        "a8": ["Yes — progressively. Feedback loops (now), structured participation (next), governance roles (later).", "👉 Governance is earned and activated, not given instantly."],
-        "q9": "What is the long-term governance vision?",
-        "a9": ["A hybrid model combining commons governance, stakeholder representation, and distributed decision layers.", "👉 Neither purely centralized nor fully decentralized."]
-      },
-      "platform-usage": {
-        "title": "Platform Usage",
-        "q1": "How do I create and manage my profile?",
-        "a1": ["You can create a personal profile, add skills, interests, and projects, and update it dynamically.", "👉 Your profile becomes your interface with the ecosystem."],
-        "q2": "What are \"guilds\" and how do they work?",
-        "a2": ["Guilds are thematic or functional groups organized around skills, topics, or missions.", "They allow coordination, knowledge sharing, and collective action."],
-        "q3": "How can I find or join projects?",
-        "a3": ["Through discovery feeds, recommendations, and direct invitations.", "👉 The platform aims to reduce friction between intent and action."],
-        "q4": "What are \"quests\" or missions?",
-        "a4": ["Quests are action-oriented tasks linked to real needs. They can be individual, collective, or territorial."],
-        "q5": "How does matchmaking between users happen?",
-        "a5": ["Through AI-assisted suggestions, shared interests, and complementary needs.", "👉 Focused on meaningful collaboration, not random networking."]
-      },
-      "data-infra": {
-        "title": "Data & Infrastructure",
-        "q1": "Where is my data stored?",
-        "a1": ["Currently on secured centralized infrastructure. In the future, more distributed approaches will be explored."],
-        "q2": "Is my data secure and private?",
-        "a2": ["Yes. Standard security practices are applied. No sale of personal data.", "👉 Trust is foundational."],
-        "q3": "How interoperable is the platform?",
-        "a3": ["We aim for API connections, modular integrations, and cross-platform compatibility.", "👉 changethegame should be a hub, not a silo."]
-      },
-      "ecosystem-vision": {
-        "title": "Ecosystem & Vision",
-        "q1": "What types of projects or places are supported?",
-        "a1": ["Third places / tiers-lieux, regenerative initiatives, cultural, social, ecological projects, and hybrid physical-digital ecosystems."],
-        "q2": "How does changethegame relate to real-world territories?",
-        "a2": ["It is designed as a coordination layer for places, a tool for territorial collaboration, and a bridge between digital and physical ecosystems.", "👉 Not just a platform — a territorial infrastructure."]
-      },
-      "alpha-disclaimer": {
-        "title": "Alpha Disclaimer",
-        "q1": "What does \"alpha\" mean for my experience?",
-        "a1": ["Things will evolve quickly. Some features may break. Interfaces may change.", "👉 In exchange: you have influence, you shape the system, you are part of the foundation."]
-      }
-    }
-  },
-  "supportPage": {
-    "quickstartTitle": "Quickstart Guides",
-    "quickstartItems": ["How to create your profile", "How to launch a quest", "How to join a guild", "How to offer a service", "How to use AI agents"],
-    "indepthTitle": "In-depth Guides",
-    "indepthItems": ["XP, credits & contribution index", "Pods and collaboration tools", "Guild governance", "Territory activation", "Courses & learning modules", "How AI works and where data goes"],
-    "troubleshootingTitle": "Troubleshooting",
-    "troubleshootingItems": ["I can't create a quest", "My guild doesn't display properly", "My company isn't attached", "Bookings don't open", "Notifications don't appear"],
-    "askTitle": "Ask for Help",
-    "askText": "Stuck? Contact the team for direct support.",
-    "contactLink": "Contact us"
   }
 }

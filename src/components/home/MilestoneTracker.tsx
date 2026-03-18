@@ -14,10 +14,17 @@ export function MilestoneTracker() {
 
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Sort: completed last, then by sort_order
+  // Sort: by phase order then sort_order, completed last within each phase
   const sorted = useMemo(() => {
+    const phaseOrder = ["discover", "contribute", "create", "structure"];
     return [...milestonesWithProgress].sort((a, b) => {
+      // Completed items go to the end
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+      // Then by phase
+      const pa = phaseOrder.indexOf((a as any).phase || "discover");
+      const pb = phaseOrder.indexOf((b as any).phase || "discover");
+      if (pa !== pb) return pa - pb;
+      // Then by sort_order within phase
       return a.sort_order - b.sort_order;
     });
   }, [milestonesWithProgress]);
@@ -77,9 +84,23 @@ export function MilestoneTracker() {
             className="overflow-hidden"
           >
             <div className="px-4 pb-3 space-y-1">
-              {visible.map((m, i) => (
-                <MilestoneRow key={m.id} milestone={m} index={i} />
-              ))}
+              {visible.map((m, i) => {
+                const phase = (m as any).phase || "discover";
+                const prevPhase = i > 0 ? ((visible[i - 1] as any).phase || "discover") : null;
+                const showPhaseHeader = expanded && phase !== prevPhase && !m.isCompleted;
+                const meta = PHASE_META[phase];
+                return (
+                  <div key={m.id}>
+                    {showPhaseHeader && meta && (
+                      <div className={cn("flex items-center gap-2 pt-3 pb-1 text-xs font-semibold", meta.color)}>
+                        <span>{meta.emoji}</span>
+                        <span>{meta.label}</span>
+                      </div>
+                    )}
+                    <MilestoneRow milestone={m} index={i} />
+                  </div>
+                );
+              })}
 
               {/* Show/hide toggle */}
               {hasHidden && !expanded && (
@@ -101,25 +122,34 @@ export function MilestoneTracker() {
   );
 }
 
+// Phase labels and colors
+const PHASE_META: Record<string, { label: string; emoji: string; color: string }> = {
+  discover: { label: "Discover", emoji: "🌱", color: "text-emerald-600" },
+  contribute: { label: "Contribute", emoji: "🔗", color: "text-blue-600" },
+  create: { label: "Create", emoji: "🚀", color: "text-purple-600" },
+  structure: { label: "Structure", emoji: "🏛️", color: "text-amber-600" },
+};
+
 // Map milestone codes to actionable routes
 const MILESTONE_ROUTES: Record<string, string> = {
   complete_profile: "/me?tab=profile",
-  add_spoken_languages: "/me?tab=profile",
-  join_first_guild: "/guilds",
-  join_creative_circle: "/guilds",
-  impact_guild: "/guilds",
+  add_spoken_languages: "/explore",
+  join_first_guild: "/explore?tab=entities",
+  join_creative_circle: "/explore?tab=entities",
+  impact_guild: "/explore?tab=entities",
   create_first_quest: "/quests/create",
   creative_artwork_quest: "/quests/create",
   impact_quest: "/quests/create",
   publish_service: "/services/create",
-  collaborate_pod: "/explore",
+  collaborate_pod: "/explore?tab=quests",
   contribute_territory: "/territories",
   impact_territory_memory: "/territories",
   attend_event: "/explore?tab=events",
-  become_shareholder: "/explore",
-  publish_course: "/courses/create",
-  creative_class: "/courses/create",
+  become_shareholder: "/explore?tab=quests",
+  publish_course: "/explore",
+  creative_class: "/explore",
   host_workshop: "/explore",
+  invite_friend: "/explore",
 };
 
 function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; index: number }) {

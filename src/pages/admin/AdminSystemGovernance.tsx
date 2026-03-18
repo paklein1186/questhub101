@@ -93,7 +93,7 @@ function CooperativeSettings() {
       {/* Coins ← → € Rate */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Coins ← → € Conversion Rate</CardTitle>
+          <CardTitle className="text-sm font-medium">🟩 Coins ← → € Conversion Rate</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-xs text-muted-foreground">

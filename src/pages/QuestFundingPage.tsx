@@ -11,7 +11,7 @@ export default function QuestFundingPage({ embedded }: { embedded?: boolean }) {
       <ContentSection title="Dual-Currency Quest Pools">
         <p>Every Project or Ongoing Mission can hold:</p>
         <ContentList items={[
-          "Coins — fiat-backed mission value. Pre-funded by the creator, raised via campaigns, or both.",
+          "🟩 Coins — fiat-backed mission value. Pre-funded by the creator, raised via campaigns, or both.",
           "🌱 $CTG — contribution token. Fundable into quest escrow as an additional incentive.",
           "Both pools are independent and can coexist on the same quest.",
         ]} />

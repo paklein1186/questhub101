@@ -187,8 +187,6 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             commentAuthorId: comment.author_id,
             commentId,
             commentSnippet: comment.content,
-            targetType,
-            targetId,
           });
         }
       }
@@ -379,15 +377,15 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                 <div className="mt-1 flex gap-2">
                   <Textarea value={editText} onChange={e => setEditText(e.target.value)} className="min-h-[50px] resize-none text-sm flex-1" maxLength={1000} />
                   <div className="flex flex-col gap-1">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Save edit" onClick={() => saveEdit(comment.id)}><Check className="h-3.5 w-3.5" /></Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Cancel edit" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5" /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => saveEdit(comment.id)}><Check className="h-3.5 w-3.5" /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="text-sm mt-1 text-foreground/90">{renderPostContent(comment.content)}</div>
                   {(comment as any).image_url && (
-                    <div className="block mt-2 cursor-pointer" role="button" tabIndex={0} aria-label="View full image" onClick={() => setLightboxSrc((comment as any).image_url)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLightboxSrc((comment as any).image_url); } }}>
+                    <div className="block mt-2 cursor-pointer" onClick={() => setLightboxSrc((comment as any).image_url)}>
                       <img src={(comment as any).image_url} alt="Comment attachment" className="rounded-md max-h-64 max-w-full object-cover border border-border hover:opacity-90 transition-opacity" />
                     </div>
                   )}
@@ -441,7 +439,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                   {replyImagePreview && (
                     <div className="relative inline-block">
                       <img src={replyImagePreview} alt="Preview" className="rounded-md max-h-24 max-w-[160px] object-cover border border-border" />
-                      <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" aria-label="Remove image" onClick={() => clearImage(true)}>
+                      <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" onClick={() => clearImage(true)}>
                         <X className="h-3 w-3" />
                       </Button>
                     </div>
@@ -449,7 +447,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <input ref={replyImageRef} type="file" accept="image/*" className="hidden" onChange={e => { handleImageSelect(e.target.files?.[0] || null, true); }} />
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" aria-label="Add image" onClick={() => replyImageRef.current?.click()}>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => replyImageRef.current?.click()}>
                         <ImagePlus className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -492,7 +490,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             {newCommentImagePreview && (
               <div className="relative inline-block mt-2">
                 <img src={newCommentImagePreview} alt="Preview" className="rounded-md max-h-32 max-w-[200px] object-cover border border-border" />
-                <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" aria-label="Remove image" onClick={() => clearImage(false)}>
+                <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" onClick={() => clearImage(false)}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>

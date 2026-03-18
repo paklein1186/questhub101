@@ -10,7 +10,6 @@ import { ProposePartnershipDialog } from "./ProposePartnershipDialog";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
 
 interface Props {
   entityType: "GUILD" | "COMPANY";
@@ -86,7 +85,7 @@ export function PartnershipsTab({ entityType, entityId, isAdmin }: Props) {
             }
           }
         } catch (e) {
-          logger.warn("[partnership-notif] Failed to notify requesting admins", e);
+          console.warn("[partnership-notif] Failed to notify requesting admins", e);
         }
       }
     } catch {

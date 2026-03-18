@@ -22,7 +22,6 @@ import {
   getHouseLabel,
   getHouseIcon,
 } from "@/lib/universeMapping";
-import { logger } from "@/lib/logger";
 
 interface Props {
   open: boolean;
@@ -279,7 +278,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         }))
       );
     } catch (err) {
-      logger.error("Scrape error:", err);
+      console.error("Scrape error:", err);
       toast({ title: "Could not analyze URL", description: "Check the URL and try again.", variant: "destructive" });
     } finally {
       setScraping(false);
@@ -383,7 +382,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
             }
           }
         } catch (e) {
-          logger.error("Post-signup persist error:", e);
+          console.error("Post-signup persist error:", e);
         }
       }, 1500);
 

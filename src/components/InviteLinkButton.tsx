@@ -10,7 +10,6 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
 
 type EntityType = "guild" | "pod" | "quest" | "company";
 
@@ -94,7 +93,7 @@ export function InviteLinkButton({ entityType, entityId, entityName, excludeUser
       toast({ title: "Email sent!", description: `Invitation sent to ${trimmed}` });
       setTimeout(() => setEmailSent(false), 3000);
     } catch (err) {
-      logger.error("[InviteEmail] Failed:", err);
+      console.error("[InviteEmail] Failed:", err);
       toast({ title: "Failed to send email", description: "Please try again later.", variant: "destructive" });
     } finally {
       setSendingEmail(false);

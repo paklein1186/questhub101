@@ -23,7 +23,6 @@ import { toast } from "sonner";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { logger } from "@/lib/logger";
 
 /* ── Step indicator ── */
 const STEPS = [
@@ -473,7 +472,7 @@ export default function CreateBioregion() {
         const { error: memErr } = await supabase
           .from("bioregion_members" as any)
           .insert(members);
-        if (memErr) logger.error("Failed to add bioregion members:", memErr);
+        if (memErr) console.error("Failed to add bioregion members:", memErr);
       }
 
       // 3. Link natural systems
@@ -487,7 +486,7 @@ export default function CreateBioregion() {
         const { error: nsErr } = await supabase
           .from("natural_system_links")
           .insert(links as any);
-        if (nsErr) logger.error("Failed to link natural systems:", nsErr);
+        if (nsErr) console.error("Failed to link natural systems:", nsErr);
       }
 
       // 4. Add creator as steward via trust edge

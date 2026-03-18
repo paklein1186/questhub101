@@ -14,7 +14,6 @@ import { useBookingById, usePublicProfile } from "@/hooks/useEntityQueries";
 import { useUserRoles } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/logger";
 
 // ─── Jitsi Embed (JaaS – 8x8.vc) ────────────────────────────
 
@@ -118,7 +117,7 @@ function JitsiEmbed({
         script.onerror = () => { setFailed(true); onError(); };
         document.head.appendChild(script);
       } catch (e) {
-        logger.error("JaaS init error:", e);
+        console.error("JaaS init error:", e);
         if (!cancelled) { setFailed(true); onError(); }
       }
     }

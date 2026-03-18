@@ -131,104 +131,54 @@ export function useFollowingFeed(filterType?: string) {
         }
       }
 
-      // 5. Resolve WHERE the post lives (origin)
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
-      const lookupTypeMap: Record<string, string> = {
-        GUILD: "GUILD", GUILD_DISCUSSION: "GUILD",
-        QUEST: "QUEST", QUEST_DISCUSSION: "QUEST",
-        USER: "USER", POD: "POD", GUILD_EVENT: "GUILD_EVENT",
-      };
+      // 5. Fetch context entity names for display
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
-        if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          const lt = lookupTypeMap[post.context_type] || post.context_type;
-          if (!contextGroups[lt]) contextGroups[lt] = [];
-          if (!contextGroups[lt].includes(post.context_id))
-            contextGroups[lt].push(post.context_id);
+        if (post.context_id) {
+          const t = post.context_type;
+          if (!contextGroups[t]) contextGroups[t] = [];
+          if (!contextGroups[t].includes(post.context_id))
+            contextGroups[t].push(post.context_id);
         }
       }
 
       const contextNames = new Map<string, string>();
       const nameFetches: Promise<void>[] = [];
 
-      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
+      const tableMap: Record<string, { table: string; nameCol: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
-        QUEST: { table: "quests", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        COMPANY: { table: "companies", nameCol: "name" },
         POD: { table: "pods", nameCol: "name" },
-        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
+        QUEST: { table: "quests", nameCol: "title" },
+        COURSE: { table: "courses", nameCol: "title" },
+        SERVICE: { table: "services", nameCol: "title" },
+        USER: { table: "profiles", nameCol: "name" },
       };
 
       for (const [type, ids] of Object.entries(contextGroups)) {
         const cfg = tableMap[type];
         if (!cfg || ids.length === 0) continue;
-        const idCol = cfg.idCol || "id";
         nameFetches.push(
           (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
-            .in(idCol, ids) as any)
+            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
+            .in(type === "USER" ? "user_id" : "id", ids) as any)
             .then(({ data }: any) => {
               (data ?? []).forEach((row: any) => {
-                const key = idCol !== "id" ? row[idCol] : row.id;
+                const key = type === "USER" ? row.user_id : row.id;
                 contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
               });
             })
         );
       }
-
-      // Resolve discussion room names for posts with room_id
-      const roomIds = [...new Set(result.map((p: any) => p.room_id).filter(Boolean))];
-      if (roomIds.length > 0) {
-        nameFetches.push(
-          (supabase
-            .from("discussion_rooms" as any)
-            .select("id, name")
-            .in("id", roomIds) as any)
-            .then(({ data }: any) => {
-              (data ?? []).forEach((row: any) => {
-                contextNames.set(`ROOM:${row.id}`, row.name);
-              });
-            })
-        );
-      }
-
       await Promise.all(nameFetches);
 
-      // Attach origin context names and links
-      const linkMap: Record<string, string> = {
-        GUILD: "/guilds/",
-        GUILD_DISCUSSION: "/guilds/",
-        QUEST: "/quests/",
-        QUEST_DISCUSSION: "/quests/",
-        USER: "/users/",
-        POD: "/pods/",
-        GUILD_EVENT: "/events/",
-      };
-
+      // Attach context names to posts for display
       for (const post of result) {
-        if (!post.context_id || !ORIGIN_TYPES.includes(post.context_type)) continue;
-
-        const lt = lookupTypeMap[post.context_type] || post.context_type;
-        let name = contextNames.get(`${lt}:${post.context_id}`) || null;
-
-        // For discussion posts, append room name if available
-        const roomId = (post as any).room_id;
-        if (roomId && name) {
-          const roomName = contextNames.get(`ROOM:${roomId}`);
-          if (roomName && roomName !== "General") {
-            name = `${name} › ${roomName}`;
-          }
+        if (post.context_id) {
+          (post as any).contextName =
+            contextNames.get(`${post.context_type}:${post.context_id}`) || null;
         }
-
-        // For user walls, format as "Name's wall"
-        if (post.context_type === "USER" && name) {
-          name = `${name}'s wall`;
-        }
-
-        (post as any).contextName = name;
-        const prefix = linkMap[post.context_type];
-        if (prefix) (post as any).contextLink = prefix + post.context_id;
       }
 
       return result;

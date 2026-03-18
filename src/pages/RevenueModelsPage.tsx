@@ -111,7 +111,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
   const overviewBoxes = [
     { icon: Landmark, title: t("revenuePage.ownership"), desc: t("revenuePage.ownershipDesc") },
-    { icon: Leaf, title: "Coins", desc: "Fiat-backed. Fund quests, earn from contributions, withdraw to €." },
+    { icon: Leaf, title: "🟩 Coins", desc: "Fiat-backed. Fund quests, earn from contributions, withdraw to €." },
     { icon: Sprout, title: "🌱 $CTG", desc: "Contribution token. Frozen in quest escrow, circulates with demurrage." },
     { icon: Coins, title: "🔷 Platform Credits", desc: "Feature fuel only. Never used for quest compensation." },
     { icon: Star, title: t("revenuePage.xpLabel"), desc: t("revenuePage.xpDesc") },
@@ -200,7 +200,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
         {/* COINS & $CTG */}
         <section>
-          <SectionHeader id="coins-ctg" title="Coins & $CTG — Quest Value Layer" icon={Leaf} />
+          <SectionHeader id="coins-ctg" title="🟩 Coins & 🌱 $CTG — Quest Value Layer" icon={Leaf} />
           <Prose>
             <p>
               Two distinct currencies power quest value flows on changethegame.
@@ -210,7 +210,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 text-sm leading-relaxed">
-              <p className="font-semibold text-foreground">Coins are fiat-backed mission units.</p>
+              <p className="font-semibold text-foreground">🟩 Coins are fiat-backed mission units.</p>
               <p className="text-muted-foreground mt-1">
                 Quest creators pre-fund a Coins pool at creation or top it up anytime.
                 Others can contribute via fundraising campaigns.

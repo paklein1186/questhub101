@@ -140,7 +140,7 @@ export default function PodDetail() {
 
       {pod.image_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
-          <img src={pod.image_url} alt={`${pod.name} image`} className="w-full h-full object-cover" />
+          <img src={pod.image_url} alt="" className="w-full h-full object-cover" />
         </div>
       )}
 

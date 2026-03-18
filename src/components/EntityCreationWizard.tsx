@@ -26,7 +26,6 @@ import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums"
 import { normalizeUrl } from "@/components/SocialLinks";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/logger";
 
 type EntityKind = "guild" | "pod" | "company";
 
@@ -204,7 +203,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
         toast({ title: "Website data imported!", description: `${pagesMsg}${matched || "Review and adjust the pre-filled fields."}` });
       }
     } catch (err) {
-      logger.error("Scrape error:", err);
+      console.error("Scrape error:", err);
       toast({ title: "Could not extract data", description: "You can fill in the details manually.", variant: "destructive" });
     } finally {
       setScraping(false);
@@ -259,7 +258,7 @@ Respond ONLY in this exact JSON format, no markdown:
         }
       }
     } catch (err) {
-      logger.error("AI assist error:", err);
+      console.error("AI assist error:", err);
       toast({ title: "AI assist unavailable", description: "You can fill in the details manually.", variant: "destructive" });
     } finally {
       setAiLoading(false);
@@ -783,8 +782,8 @@ Respond ONLY in this exact JSON format, no markdown:
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader className="shrink-0">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {kind && (() => {
               const Icon = KIND_CONFIG[kind].icon;
@@ -795,7 +794,7 @@ Respond ONLY in this exact JSON format, no markdown:
         </DialogHeader>
 
         {/* Progress dots */}
-        <div className="flex items-center gap-1.5 justify-center shrink-0">
+        <div className="flex items-center gap-1.5 justify-center">
           {activeSteps.map((s, i) => (
             <div
               key={s}
@@ -808,23 +807,21 @@ Respond ONLY in this exact JSON format, no markdown:
           ))}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Navigation — source step has its own buttons */}
         {step !== "kind" && step !== "source" && (
-          <div className="flex items-center justify-between pt-2 shrink-0">
+          <div className="flex items-center justify-between pt-2">
             <Button variant="ghost" size="sm" onClick={goBack} disabled={!canGoBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> {t("common.back")}
             </Button>
@@ -841,7 +838,7 @@ Respond ONLY in this exact JSON format, no markdown:
           </div>
         )}
         {step === "source" && (
-          <div className="flex items-center justify-start pt-2 shrink-0">
+          <div className="flex items-center justify-start pt-2">
             <Button variant="ghost" size="sm" onClick={goBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>

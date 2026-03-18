@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { logger } from "@/lib/logger";
 
 interface AttachmentUploadProps {
   targetType: AttachmentTargetType;
@@ -64,7 +63,7 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
         .from("quest-attachments")
         .upload(path, file, { contentType: file.type || "application/octet-stream" });
       if (uploadError) {
-        logger.error("Upload failed:", uploadError.message);
+        console.error("Upload failed:", uploadError.message);
         continue;
       }
       const { data: urlData } = supabase.storage

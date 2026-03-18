@@ -80,9 +80,9 @@ export function useQuestParticipants(questId: string | undefined) {
 }
 
 // ─── Quest updates ───────────────────────────────────────────
-export function useQuestUpdates(questId: string | undefined, currentUserId?: string) {
+export function useQuestUpdates(questId: string | undefined) {
   return useQuery({
-    queryKey: ["quest-updates", questId, currentUserId],
+    queryKey: ["quest-updates", questId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_updates")
@@ -101,26 +101,7 @@ export function useQuestUpdates(questId: string | undefined, currentUserId?: str
         .select("user_id, name, avatar_url")
         .in("user_id", authorIds);
       const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
-
-      // Fetch current user's upvotes
-      let userUpvotedSet = new Set<string>();
-      if (currentUserId) {
-        const updateIds = (data ?? []).map((u: any) => u.id);
-        if (updateIds.length > 0) {
-          const { data: upvotes } = await supabase
-            .from("quest_update_upvotes" as any)
-            .select("update_id")
-            .eq("user_id", currentUserId)
-            .in("update_id", updateIds);
-          userUpvotedSet = new Set((upvotes ?? []).map((u: any) => u.update_id));
-        }
-      }
-
-      return (data ?? []).map((u: any) => ({
-        ...u,
-        author: profileMap.get(u.author_id),
-        user_upvoted: userUpvotedSet.has(u.id),
-      }));
+      return (data ?? []).map((u: any) => ({ ...u, author: profileMap.get(u.author_id) }));
     },
     enabled: !!questId,
   });

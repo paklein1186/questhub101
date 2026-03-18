@@ -135,41 +135,34 @@ export function FollowingActivity() {
       }
 
       // Fetch context names for posts
-      // Resolve origin context names — only guilds, quests, users
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
-      const lookupTypeMap: Record<string, string> = {
-        GUILD: "GUILD", GUILD_DISCUSSION: "GUILD",
-        QUEST: "QUEST", QUEST_DISCUSSION: "QUEST",
-        USER: "USER", POD: "POD", GUILD_EVENT: "GUILD_EVENT",
-      };
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
-        if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          const lt = lookupTypeMap[post.context_type] || post.context_type;
-          if (!contextGroups[lt]) contextGroups[lt] = [];
-          if (!contextGroups[lt].includes(post.context_id))
-            contextGroups[lt].push(post.context_id);
+        if (post.context_id) {
+          if (!contextGroups[post.context_type]) contextGroups[post.context_type] = [];
+          if (!contextGroups[post.context_type].includes(post.context_id))
+            contextGroups[post.context_type].push(post.context_id);
         }
       }
       const contextNames = new Map<string, string>();
-      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
+      const tableMap: Record<string, { table: string; nameCol: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
-        QUEST: { table: "quests", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
+        COMPANY: { table: "companies", nameCol: "name" },
         POD: { table: "pods", nameCol: "name" },
-        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
+        QUEST: { table: "quests", nameCol: "title" },
+        COURSE: { table: "courses", nameCol: "title" },
+        SERVICE: { table: "services", nameCol: "title" },
+        USER: { table: "profiles", nameCol: "name" },
       };
       await Promise.all(
         Object.entries(contextGroups).map(async ([type, ids]) => {
           const cfg = tableMap[type];
           if (!cfg || ids.length === 0) return;
-          const idCol = cfg.idCol || "id";
           const { data } = await (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
-            .in(idCol, ids) as any);
+            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
+            .in(type === "USER" ? "user_id" : "id", ids) as any);
           (data ?? []).forEach((row: any) => {
-            const key = idCol !== "id" ? row[idCol] : row.id;
+            const key = type === "USER" ? row.user_id : row.id;
             contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
           });
         })
@@ -179,18 +172,15 @@ export function FollowingActivity() {
       const merged: NetworkItem[] = [];
 
       for (const p of posts) {
-        if (!p.context_id || !ORIGIN_TYPES.includes(p.context_type)) {
-          merged.push({ id: p.id, type: "post", created_at: p.created_at, author: profileMap.get(p.author_user_id), content: p.content, context_type: p.context_type, context_id: p.context_id });
-          continue;
-        }
-        const lt = lookupTypeMap[p.context_type] || p.context_type;
-        let ctxName = contextNames.get(`${lt}:${p.context_id}`) || undefined;
-        if (p.context_type === "USER" && ctxName) ctxName = `${ctxName}'s wall`;
         merged.push({
-          id: p.id, type: "post", created_at: p.created_at,
-          author: profileMap.get(p.author_user_id), content: p.content,
-          context_type: p.context_type, context_id: p.context_id,
-          contextName: ctxName,
+          id: p.id,
+          type: "post",
+          created_at: p.created_at,
+          author: profileMap.get(p.author_user_id),
+          content: p.content,
+          context_type: p.context_type,
+          context_id: p.context_id,
+          contextName: contextNames.get(`${p.context_type}:${p.context_id}`) || undefined,
         });
       }
 

@@ -39,7 +39,6 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
-import { logger } from "@/lib/logger";
 
 const STATUS_COLORS: Record<string, string> = {
   BACKLOG: "bg-muted/60 text-muted-foreground/70",
@@ -555,12 +554,12 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     // Also update the underlying entity status for personal_tasks and quest_subtasks
     if (entityType === "personal_task") {
       const { error: ptErr } = await supabase.from("personal_tasks" as any).update({ status: workState } as any).eq("id", entityId);
-      if (ptErr) logger.error("[upsertWorkState] personal_tasks update failed:", ptErr);
-      else logger.debug("[upsertWorkState] personal_tasks updated to", workState, "for", entityId);
+      if (ptErr) console.error("[upsertWorkState] personal_tasks update failed:", ptErr);
+      else console.log("[upsertWorkState] personal_tasks updated to", workState, "for", entityId);
     } else if (entityType === "quest_subtask") {
       const { error: stErr } = await supabase.from("quest_subtasks" as any).update({ status: workState } as any).eq("id", entityId);
-      if (stErr) logger.error("[upsertWorkState] quest_subtasks update failed:", stErr);
-      else logger.debug("[upsertWorkState] quest_subtasks updated to", workState, "for", entityId);
+      if (stErr) console.error("[upsertWorkState] quest_subtasks update failed:", stErr);
+      else console.log("[upsertWorkState] quest_subtasks updated to", workState, "for", entityId);
     }
     // Do NOT update quests.status — quest lifecycle is decoupled
 
@@ -571,8 +570,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       entity_id: entityId,
       work_state: workState,
     } as any, { onConflict: "user_id,entity_type,entity_id" });
-    if (error) logger.error("[upsertWorkState] user_work_items upsert failed:", error);
-    else logger.debug("[upsertWorkState] user_work_items upserted to", workState, "for", entityId);
+    if (error) console.error("[upsertWorkState] user_work_items upsert failed:", error);
+    else console.log("[upsertWorkState] user_work_items upserted to", workState, "for", entityId);
   };
 
   // ── Actions ──
@@ -661,7 +660,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             qc.invalidateQueries({ queryKey: ["contribution-logs"] });
           }
         } catch (e) {
-          logger.warn("[auto-log] contribution log failed", e);
+          console.warn("[auto-log] contribution log failed", e);
         }
       }
 
@@ -745,7 +744,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
       toast({ title: "Task deleted" });
     } catch (err: any) {
-      logger.error("Delete task error:", err);
+      console.error("Delete task error:", err);
       toast({ title: "Failed to delete task", description: err?.message || "Unknown error", variant: "destructive" });
     }
   };
@@ -973,7 +972,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       } as any);
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
     } catch (e) {
-      logger.error("Auto contribution log failed:", e);
+      console.error("Auto contribution log failed:", e);
     }
 
     setConverting(false);
@@ -1437,11 +1436,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Previous page" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Next page" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -1501,11 +1500,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Previous page" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Next page" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>

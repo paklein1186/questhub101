@@ -157,8 +157,8 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
   const preview = computePreview();
   const totalCoins = preview.reduce((s, c) => s + c.coins_amount, 0);
   const totalCtg = preview.reduce((s, c) => s + c.ctg_amount, 0);
-  const overCoins = totalCoins > coinsEscrow + 0.01;
-  const overCtg = totalCtg > ctgEscrow + 0.01;
+  const overCoins = totalCoins > coinsEscrow;
+  const overCtg = totalCtg > ctgEscrow;
 
   const handleConfirm = async () => {
     if (preview.length === 0) return;
@@ -246,7 +246,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         await supabase.from("notifications" as any).insert({
           user_id: r.user_id,
           type: "quest_distribution",
-          title: `💰 You received ${r.amount_coins > 0 ? `${r.amount_coins} Coins` : ""}${r.amount_coins > 0 && r.amount_ctg > 0 ? " + " : ""}${r.amount_ctg > 0 ? `${r.amount_ctg} $CTG` : ""} from quest "${quest.title}"`,
+          title: `💰 You received ${r.amount_coins > 0 ? `🟩 ${r.amount_coins} Coins` : ""}${r.amount_coins > 0 && r.amount_ctg > 0 ? " + " : ""}${r.amount_ctg > 0 ? `🌱 ${r.amount_ctg} $CTG` : ""} from quest "${quest.title}"`,
           link: `/quests/${quest.id}`,
           entity_type: "quest",
           entity_id: quest.id,
@@ -315,7 +315,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">Coins available</p>
+              <p className="text-xs text-muted-foreground">🟩 Coins available</p>
               <p className="text-lg font-bold">{coinsEscrow.toLocaleString()}</p>
               <p className="text-[10px] text-muted-foreground">≈ €{(coinsEscrow * coinsRate).toFixed(2)}</p>
             </div>
@@ -368,7 +368,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <div className="flex flex-wrap gap-2">
                 {coinsEscrow > 0 && (
                   <Button size="sm" variant={currencyMode === "coins" ? "default" : "outline"} className="text-xs h-8" onClick={() => setCurrencyMode("coins")}>
-                    🪙 Coins
+                    🟩 Coins
                   </Button>
                 )}
                 {ctgEscrow > 0 && (
@@ -391,7 +391,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
                     {distMode !== "manual" && <th className="text-right p-2 font-medium">% Share</th>}
-                    {showCoins && <th className="text-right p-2 font-medium">Coins</th>}
+                    {showCoins && <th className="text-right p-2 font-medium">🟩 Coins</th>}
                     {showCtg && <th className="text-right p-2 font-medium">🌱 $CTG</th>}
                   </tr>
                 </thead>
@@ -447,7 +447,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <div className="flex gap-4">
                 {showCoins && (
                   <span className={overCoins ? "text-destructive font-medium" : ""}>
-                    Total Coins: {totalCoins.toLocaleString()} / {coinsEscrow.toLocaleString()}
+                    Total 🟩: {totalCoins.toLocaleString()} / {coinsEscrow.toLocaleString()}
                   </span>
                 )}
                 {showCtg && (
@@ -500,7 +500,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
-                    {showCoins && <th className="text-right p-2 font-medium">Coins</th>}
+                    {showCoins && <th className="text-right p-2 font-medium">🟩 Coins</th>}
                     {showCtg && <th className="text-right p-2 font-medium">🌱 $CTG</th>}
                   </tr>
                 </thead>
@@ -563,7 +563,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
 
       <div className="flex gap-4 text-xs">
         {distribution.currency !== "ctg" && (
-          <span>{recipients.reduce((s: number, r: any) => s + (r.amount_coins ?? 0), 0).toLocaleString()} Coins</span>
+          <span>🟩 {recipients.reduce((s: number, r: any) => s + (r.amount_coins ?? 0), 0).toLocaleString()} Coins</span>
         )}
         {distribution.currency !== "coins" && (
           <span>🌱 {recipients.reduce((s: number, r: any) => s + (r.amount_ctg ?? 0), 0).toLocaleString()} $CTG</span>
@@ -573,7 +573,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
       {myAlloc && (
         <div className="rounded-md bg-primary/5 border border-primary/20 p-2 text-xs">
           <span>You received: </span>
-          {myAlloc.amount_coins > 0 && <span>{myAlloc.amount_coins.toLocaleString()} Coins </span>}
+          {myAlloc.amount_coins > 0 && <span>🟩 {myAlloc.amount_coins.toLocaleString()} Coins </span>}
           {myAlloc.amount_ctg > 0 && <span>🌱 {myAlloc.amount_ctg.toLocaleString()} $CTG</span>}
         </div>
       )}

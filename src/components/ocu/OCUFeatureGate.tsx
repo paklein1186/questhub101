@@ -6,14 +6,12 @@ interface OCUFeatureGateProps {
   isAdmin?: boolean;
   onEnable?: () => void;
   children: ReactNode;
-  /** If true, skip the gate and render children directly (e.g. when contributions already exist) */
-  bypassWhenActive?: boolean;
 }
 
-export function OCUFeatureGate({ quest, isAdmin = false, onEnable, children, bypassWhenActive = false }: OCUFeatureGateProps) {
+export function OCUFeatureGate({ quest, isAdmin = false, onEnable, children }: OCUFeatureGateProps) {
   const ocuEnabled = quest?.ocu_enabled ?? false;
 
-  if (!ocuEnabled && !bypassWhenActive) {
+  if (!ocuEnabled) {
     return <OCUUpgradePrompt canEnable={isAdmin} onEnable={onEnable} />;
   }
 

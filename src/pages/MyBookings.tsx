@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { GiveBackModal } from "@/components/giveback/GiveBackModal";
-import { logger } from "@/lib/logger";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-warning/10 text-warning",
@@ -80,7 +79,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
             deep_link_url: `/bookings/${bookingId}`,
             data: { bookingId, serviceTitle: svc?.title, startDateTime: booking.start_date_time, endDateTime: booking.end_date_time, amount: booking.amount, currency: booking.currency, callUrl: booking.call_url } as any,
           });
-          if (notifErr) logger.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
+          if (notifErr) console.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
           // Email is triggered automatically by DB trigger trg_send_notification_email
         }
       },
@@ -138,7 +137,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                 </p>
               )}
               {b.amount != null && b.amount > 0 && (
-                <p className="text-xs text-muted-foreground mb-1">{Math.round(b.amount / 1).toLocaleString()} Coins (≈ €{b.amount}) — {b.payment_status || "N/A"}</p>
+                <p className="text-xs text-muted-foreground mb-1">🟩 {Math.round(b.amount / 0.04).toLocaleString()} Coins (≈ €{b.amount}) — {b.payment_status || "N/A"}</p>
               )}
               {(b.status === "CONFIRMED" || b.status === "ACCEPTED") && (
                 <Link to={`/call/${b.id}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">

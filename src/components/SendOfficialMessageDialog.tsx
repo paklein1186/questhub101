@@ -6,7 +6,6 @@ import { Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/logger";
 
 interface SendOfficialMessageDialogProps {
   recipientUserId: string;
@@ -111,7 +110,7 @@ export function SendOfficialMessageDialog({
           );
         }
       } catch (err) {
-        logger.error("Error triggering DM notification:", err);
+        console.error("Error triggering DM notification:", err);
       }
 
       toast({

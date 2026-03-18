@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, Send, DollarSign, AlertTriangle, History, Flag } from "lucide-react";
-import { CurrencyIcon } from "@/components/CurrencyIcon";
+import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
 import { OCUFeatureGate } from "./OCUFeatureGate";
-import { ReportConcernDialog } from "./ReportConcernDialog";
 
 interface ContributorSummary {
   user_id: string;
@@ -40,12 +37,11 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { rate: coinsRate } = useCoinsRate();
   const [mode, setMode] = useState<"proportional" | "individual">("proportional");
   const [totalAmount, setTotalAmount] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [individualAmount, setIndividualAmount] = useState("");
-  const [compensationMode, setCompensationMode] = useState<"coins" | "ctg" | "fiat" | "mixed">("coins");
+  const [compensationMode, setCompensationMode] = useState<"coins" | "fiat" | "mixed">("coins");
   const [currency, setCurrency] = useState("EUR");
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -156,33 +152,6 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
-  // Fetch distribution history
-  const { data: compensationHistory = [] } = useQuery({
-    queryKey: ["compensation-history", quest.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("contribution_compensations" as any)
-        .select("*")
-        .eq("quest_id", quest.id)
-        .order("compensated_at", { ascending: false });
-      if (!data || data.length === 0) return [];
-
-      const userIds = [...new Set((data as any[]).flatMap((d: any) => [d.user_id, d.compensated_by].filter(Boolean)))];
-      const { data: profiles } = await supabase
-        .from("profiles_public")
-        .select("user_id, name, avatar_url")
-        .in("user_id", userIds);
-      const pMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
-
-      return (data as any[]).map((d: any) => ({
-        ...d,
-        recipient_name: pMap.get(d.user_id)?.name ?? "Unknown",
-        recipient_avatar: pMap.get(d.user_id)?.avatar_url ?? null,
-        distributor_name: pMap.get(d.compensated_by)?.name ?? "Unknown",
-      }));
-    },
-  });
-
   const totalRemaining = contributors.reduce((s, c) => s + c.remaining, 0);
 
   const getDistributionPreview = () => {
@@ -208,69 +177,21 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     setSubmitting(true);
     try {
       const preview = getDistributionPreview();
-      const isCtgMode = compensationMode === "ctg";
-      const isFiatMode = compensationMode === "fiat";
-
       for (const entry of preview) {
-        const coinAmount = (isFiatMode || isCtgMode) ? 0 : entry.distribution;
-        const ctgAmount = isCtgMode ? entry.distribution : 0;
-
-        // 1. Write compensation record
+        // Write compensation record
         await supabase.from("contribution_compensations" as any).insert({
-          contribution_id: quest.id,
+          contribution_id: quest.id, // use quest_id as grouping key
           quest_id: quest.id,
           user_id: entry.user_id,
-          amount_coins: coinAmount + ctgAmount, // store total distributed
-          amount_fiat: isFiatMode ? entry.distribution : (coinAmount > 0 ? coinAmount * coinsRate : null),
+          amount_coins: compensationMode === "fiat" ? 0 : entry.distribution,
+          amount_fiat: compensationMode === "coins" ? null : entry.distribution,
           compensation_mode: compensationMode,
           currency,
           note: note || null,
           compensated_by: currentUser.id,
         });
 
-        // 2a. Credit recipient wallet (Coins)
-        if (coinAmount > 0) {
-          await supabase.from("coin_transactions" as any).insert({
-            user_id: entry.user_id,
-            amount: coinAmount,
-            type: "QUEST_DISTRIBUTION",
-            quest_id: quest.id,
-            source: `compensation:${quest.id}`,
-          });
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("coins_balance")
-            .eq("user_id", entry.user_id)
-            .single();
-          if (prof) {
-            await supabase.from("profiles").update({
-              coins_balance: Number((prof as any).coins_balance ?? 0) + coinAmount,
-            } as any).eq("user_id", entry.user_id);
-          }
-        }
-
-        // 2b. Credit recipient wallet ($CTG)
-        if (ctgAmount > 0) {
-          await supabase.from("ctg_transactions" as any).insert({
-            user_id: entry.user_id,
-            amount: ctgAmount,
-            type: "QUEST_DISTRIBUTION",
-            related_entity_id: quest.id,
-            related_entity_type: "quest",
-          });
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("ctg_balance")
-            .eq("user_id", entry.user_id)
-            .single();
-          if (prof) {
-            await supabase.from("profiles").update({
-              ctg_balance: Number((prof as any).ctg_balance ?? 0) + ctgAmount,
-            } as any).eq("user_id", entry.user_id);
-          }
-        }
-
-        // 3. Update contribution_logs for this user+quest
+        // Update contribution_logs for this user+quest
         const { data: userLogs } = await supabase
           .from("contribution_logs" as any)
           .select("id, fmv_value, coins_compensated")
@@ -295,56 +216,28 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             .eq("id", log.id);
           remaining -= apply;
         }
+      }
 
-        // 4. Notify recipient
-        await supabase.from("notifications" as any).insert({
-          user_id: entry.user_id,
-          type: "quest_distribution",
-          title: `💰 You received ${coinAmount > 0 ? `${coinAmount} Coins` : ""}${ctgAmount > 0 ? `${coinAmount > 0 ? " + " : ""}${ctgAmount} $CTG` : ""} from quest "${quest.title}"`,
-          link: `/quests/${quest.id}`,
-          entity_type: "quest",
-          entity_id: quest.id,
+      // Log to activity_log if contract is active
+      if (activeContract) {
+        await supabase.from("activity_log").insert({
+          actor_user_id: currentUser.id,
+          action_type: "ocu_distribution",
+          target_type: "quest",
+          target_id: quest.id,
+          target_name: quest.title,
+          metadata: {
+            contract_id: activeContract.id,
+            distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
+            mode: compensationMode,
+            note,
+          },
         });
       }
 
-      // 5. Update quest escrow
-      const totalDistributed = preview.reduce((s, p) => s + p.distribution, 0);
-      if (!isFiatMode && totalDistributed > 0) {
-        const questUpdate: any = {};
-        if (isCtgMode) {
-          const currentCtgEscrow = Number((quest as any).ctg_escrow ?? 0);
-          const newCtg = Math.max(0, currentCtgEscrow - totalDistributed);
-          questUpdate.ctg_escrow = newCtg;
-          if (newCtg <= 0) questUpdate.ctg_escrow_status = "released";
-        } else {
-          const currentEscrow = Number((quest as any).coins_escrow ?? 0);
-          const newEscrow = Math.max(0, currentEscrow - totalDistributed);
-          questUpdate.coins_escrow = newEscrow;
-          if (newEscrow <= 0) questUpdate.coins_escrow_status = "released";
-        }
-        await supabase.from("quests").update(questUpdate as any).eq("id", quest.id);
-      }
-
-      // 6. Activity log
-      await supabase.from("activity_log").insert({
-        actor_user_id: currentUser.id,
-        action_type: "ocu_distribution",
-        target_type: "quest",
-        target_id: quest.id,
-        target_name: quest.title,
-        metadata: {
-          contract_id: activeContract?.id ?? null,
-          distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
-          mode: compensationMode,
-          note,
-        },
-      });
-
       toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
-      qc.invalidateQueries({ queryKey: ["compensation-history", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
-      qc.invalidateQueries({ queryKey: ["quest", quest.id] });
       setConfirmOpen(false);
       setTotalAmount("");
       setIndividualAmount("");
@@ -441,9 +334,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
-                    <th className="text-right p-2 font-medium">
-                      <span className="inline-flex items-center gap-1">Owed <CurrencyIcon currency="coins" className="h-3 w-3" showTooltip /></span>
-                    </th>
+                    <th className="text-right p-2 font-medium">FMV 🟡</th>
                     <th className="text-right p-2 font-medium">Paid</th>
                     <th className="text-right p-2 font-medium">Remaining</th>
                     <th className="p-2 font-medium w-24">Progress</th>
@@ -461,14 +352,9 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                           <span className="font-medium">{c.name}</span>
                         </div>
                       </td>
-                      <td className="p-2 text-right font-medium">
-                        {c.total_fmv > 0
-                          ? <span className="text-primary">{c.total_fmv.toFixed(0)}</span>
-                          : <span className="text-muted-foreground italic">No contributions</span>
-                        }
-                      </td>
-                      <td className="p-2 text-right text-emerald-600">{c.total_compensated > 0 ? c.total_compensated.toFixed(0) : "—"}</td>
-                      <td className="p-2 text-right text-amber-600">{c.remaining > 0 ? c.remaining.toFixed(0) : "—"}</td>
+                      <td className="p-2 text-right text-primary font-medium">{c.total_fmv.toFixed(0)}</td>
+                      <td className="p-2 text-right text-emerald-600">{c.total_compensated.toFixed(0)}</td>
+                      <td className="p-2 text-right text-amber-600">{c.remaining.toFixed(0)}</td>
                       <td className="p-2">
                         <Progress value={c.pct_compensated} className="h-1.5" />
                       </td>
@@ -545,10 +431,9 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                     <SelectItem value="coins" className="text-xs">🪙 Coins (platform)</SelectItem>
-                     <SelectItem value="ctg" className="text-xs">🌱 $CTG</SelectItem>
-                     <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
-                     <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
+                    <SelectItem value="coins" className="text-xs">🟡 Coins (platform)</SelectItem>
+                    <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
+                    <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -582,34 +467,6 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
               </Button>
             </div>
           </>
-        )}
-
-        {/* Distribution History */}
-        {compensationHistory.length > 0 && (
-          <div className="space-y-3 mt-2">
-            <h4 className="text-sm font-semibold flex items-center gap-1.5">
-              <History className="h-4 w-4" /> Distribution History
-            </h4>
-            <div className="rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left p-2 font-medium">Date</th>
-                    <th className="text-left p-2 font-medium">Recipient</th>
-                    <th className="text-left p-2 font-medium">Distributed by</th>
-                    <th className="text-right p-2 font-medium">Amount</th>
-                    <th className="text-left p-2 font-medium">Note</th>
-                    <th className="p-2 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {compensationHistory.map((h: any) => (
-                    <CompensationHistoryRow key={h.id} entry={h} questId={quest.id} questTitle={quest.title} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         )}
 
         {/* Confirm Dialog */}
@@ -672,66 +529,5 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         </Dialog>
       </div>
     </OCUFeatureGate>
-  );
-}
-
-/* ─── Compensation History Row ─── */
-function CompensationHistoryRow({ entry, questId, questTitle }: {
-  entry: any; questId: string; questTitle: string;
-}) {
-  const [reportOpen, setReportOpen] = useState(false);
-  const date = new Date(entry.compensated_at);
-
-  return (
-    <>
-      <tr className="border-b border-border last:border-0 hover:bg-muted/30">
-        <td className="p-2 text-muted-foreground whitespace-nowrap">
-          {date.toLocaleDateString()} <span className="text-[10px]">{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-        </td>
-        <td className="p-2">
-          <div className="flex items-center gap-1.5">
-            <Avatar className="h-4 w-4">
-              <AvatarImage src={entry.recipient_avatar ?? undefined} />
-              <AvatarFallback className="text-[7px]">{entry.recipient_name?.[0]}</AvatarFallback>
-            </Avatar>
-            <span className="font-medium">{entry.recipient_name}</span>
-          </div>
-        </td>
-        <td className="p-2 text-muted-foreground">{entry.distributor_name}</td>
-        <td className="p-2 text-right">
-          <div className="flex items-center justify-end gap-1">
-            {entry.amount_coins > 0 && (
-              <span className="flex items-center gap-0.5">
-                <CurrencyIcon currency="coins" className="h-3 w-3" />
-                {Number(entry.amount_coins).toLocaleString()}
-              </span>
-            )}
-            {entry.amount_fiat > 0 && (
-              <span className="text-muted-foreground ml-1">(€{Number(entry.amount_fiat).toFixed(2)})</span>
-            )}
-          </div>
-        </td>
-        <td className="p-2 text-muted-foreground truncate max-w-[120px]" title={entry.note}>
-          {entry.note || "—"}
-        </td>
-        <td className="p-2">
-          <button
-            onClick={() => setReportOpen(true)}
-            className="text-muted-foreground hover:text-destructive transition-colors"
-            title="Report a concern"
-          >
-            <Flag className="h-3.5 w-3.5" />
-          </button>
-        </td>
-      </tr>
-      <ReportConcernDialog
-        open={reportOpen}
-        onOpenChange={setReportOpen}
-        distributionId={entry.id}
-        questId={questId}
-        questTitle={questTitle}
-        distributionDate={entry.compensated_at}
-      />
-    </>
   );
 }

@@ -5,23 +5,42 @@ export default function SupportPage() {
   const { t } = useTranslation();
   return (
     <ContentPageShell title={t("pages.support.title")} subtitle={t("pages.support.subtitle")}>
-      <ContentSection title={t("supportPage.quickstartTitle")}>
-        <ContentList items={t("supportPage.quickstartItems", { returnObjects: true }) as string[]} />
+      <ContentSection title="Quickstart Guides">
+        <ContentList items={[
+          "How to create your profile",
+          "How to launch a quest",
+          "How to join a guild",
+          "How to offer a service",
+          "How to use AI agents",
+        ]} />
       </ContentSection>
 
-      <ContentSection title={t("supportPage.indepthTitle")}>
-        <ContentList items={t("supportPage.indepthItems", { returnObjects: true }) as string[]} />
+      <ContentSection title="In-depth Guides">
+        <ContentList items={[
+          "XP, credits & contribution index",
+          "Pods and collaboration tools",
+          "Guild governance",
+          "Territory activation",
+          "Courses & learning modules",
+          "How AI works and where data goes",
+        ]} />
       </ContentSection>
 
-      <ContentSection title={t("supportPage.troubleshootingTitle")}>
-        <ContentList items={t("supportPage.troubleshootingItems", { returnObjects: true }) as string[]} />
+      <ContentSection title="Troubleshooting">
+        <ContentList items={[
+          "I can't create a quest",
+          "My guild doesn't display properly",
+          "My company isn't attached",
+          "Bookings don't open",
+          "Notifications don't appear",
+        ]} />
       </ContentSection>
 
-      <ContentSection title={t("supportPage.askTitle")}>
-        <p>{t("supportPage.askText")}</p>
+      <ContentSection title="Ask for Help">
+        <p>Stuck? Contact the team for direct support.</p>
       </ContentSection>
 
-      <ContentCTA links={[{ label: t("supportPage.contactLink"), href: "/contact" }]} />
+      <ContentCTA links={[{ label: "Contact us", href: "/contact" }]} />
     </ContentPageShell>
   );
 }

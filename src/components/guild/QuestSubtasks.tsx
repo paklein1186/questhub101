@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,15 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Trophy, CheckCircle2, Search, UserPlus, LayoutList, Kanban, Eye, EyeOff, User } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
-import { SubtasksKanbanView } from "@/components/guild/SubtasksKanbanView";
-import { logger } from "@/lib/logger";
 
 interface QuestSubtasksProps {
   questId: string;
@@ -30,87 +26,6 @@ interface QuestSubtasksProps {
   questCoinBudget?: number;
   valuePieCalculated?: boolean;
   coinBudget?: number;
-  questRewardXp?: number;
-  questCreditReward?: number;
-  questCoinsBudget?: number;
-  questCtgBudget?: number;
-}
-
-function SubtaskAssigneePicker({ subtask, guildMembers, onToggle }: {
-  subtask: any;
-  guildMembers: any[];
-  onToggle: (userId: string) => void;
-}) {
-  const [search, setSearch] = useState("");
-  const assigned: string[] = subtask.assignee_user_ids || [];
-  const filtered = useMemo(() => {
-    if (!search.trim()) return guildMembers;
-    const q = search.toLowerCase();
-    return guildMembers.filter((m: any) => m.name?.toLowerCase().includes(q));
-  }, [guildMembers, search]);
-
-  return (
-    <div className="flex items-center gap-1">
-      {assigned.length > 0 && (
-        <div className="flex -space-x-1">
-          {assigned.map((uid: string) => {
-            const m = guildMembers.find((g: any) => g.user_id === uid);
-            if (!m) return null;
-            return (
-              <Avatar key={uid} className="h-6 w-6 border-2 border-background">
-                <AvatarImage src={m.avatar_url} />
-                <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
-              </Avatar>
-            );
-          })}
-        </div>
-      )}
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-all"
-            title="Assign members"
-          >
-            <UserPlus className="h-3 w-3 text-muted-foreground" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-56 p-2" align="start">
-          <div className="relative mb-2">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Search members…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-7 pl-7 text-xs"
-              autoFocus
-            />
-          </div>
-          <div className="max-h-48 overflow-y-auto space-y-0.5">
-            {filtered.map((m: any) => {
-              const isAssigned = assigned.includes(m.user_id);
-              return (
-                <button
-                  key={m.user_id}
-                  onClick={() => onToggle(m.user_id)}
-                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-xs hover:bg-accent transition-colors"
-                >
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={m.avatar_url} />
-                    <AvatarFallback className="text-[9px]">{m.name?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <span className="flex-1 text-left truncate">{m.name}</span>
-                  {isAssigned && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                </button>
-              );
-            })}
-            {filtered.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-2">No members found</p>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -121,9 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-const DONE_COOLDOWN_MS = 30_000; // 30 seconds before DONE can be reverted
-
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0, questRewardXp = 0, questCreditReward = 0, questCoinsBudget = 0, questCtgBudget = 0 }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -137,11 +50,6 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [editingTitle, setEditingTitle] = useState("");
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const [confirmDoneId, setConfirmDoneId] = useState<string | null>(null);
-  const [doneCooldowns, setDoneCooldowns] = useState<Map<string, number>>(new Map());
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
-  const [showDone, setShowDone] = useState(false);
-  const [filterMode, setFilterMode] = useState<"all" | "mine">("all");
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
@@ -167,38 +75,26 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     },
   });
 
-  // Fetch quest participants, guild members, and creator for assignee picker
+  // Fetch quest participants (+ creator) for assignee picker
   const { data: guildMembers = [] } = useQuery({
-    queryKey: ["quest-participants-for-subtasks", questId, guildId],
+    queryKey: ["quest-participants-for-subtasks", questId],
     queryFn: async () => {
-      const userIdSet = new Set<string>();
-
-      // Get approved quest participants
+      // Get approved participants
       const { data: parts } = await supabase
         .from("quest_participants")
         .select("user_id")
         .eq("quest_id", questId)
         .eq("status", "APPROVED");
-      (parts || []).forEach((p: any) => userIdSet.add(p.user_id));
-
       // Also get the quest creator
       const { data: quest } = await supabase
         .from("quests")
         .select("created_by_user_id")
         .eq("id", questId)
         .single();
-      if (quest?.created_by_user_id) userIdSet.add(quest.created_by_user_id);
-
-      // Also include guild members if quest belongs to a guild
-      if (guildId) {
-        const { data: gMembers } = await supabase
-          .from("guild_members")
-          .select("user_id")
-          .eq("guild_id", guildId);
-        (gMembers || []).forEach((m: any) => userIdSet.add(m.user_id));
+      const participantIds = (parts || []).map((p: any) => p.user_id);
+      if (quest?.created_by_user_id && !participantIds.includes(quest.created_by_user_id)) {
+        participantIds.push(quest.created_by_user_id);
       }
-
-      const participantIds = [...userIdSet];
       if (participantIds.length === 0) return [];
       const { data: profiles } = await supabase
         .from("profiles_public")
@@ -226,11 +122,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   };
 
   const updateStatus = async (subtaskId: string, status: string) => {
-    const { error } = await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
-    if (error) {
-      console.error("Failed to update subtask status:", error);
-      toast({ title: "Failed to update task status", description: error.message, variant: "destructive" });
-    }
+    await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
@@ -324,7 +216,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
           });
         } catch (e) {
-          logger.error("Failed to log contribution from subtask", e);
+          console.error("Failed to log contribution from subtask", e);
         }
       })();
     }
@@ -367,35 +259,14 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     }
 
-    // Prevent reverting from DONE during cooldown period
-    if (currentStatus === "DONE" && newStatus !== "DONE") {
-      const doneAt = doneCooldowns.get(subtaskId);
-      if (doneAt && Date.now() - doneAt < DONE_COOLDOWN_MS) {
-        const remaining = Math.ceil((DONE_COOLDOWN_MS - (Date.now() - doneAt)) / 1000);
-        toast({ title: `Please wait ${remaining}s before reverting`, description: "This prevents accidental status changes after rewards have been distributed.", variant: "destructive" });
-        return;
-      }
-    }
-
     if (newStatus === "DONE") {
-      // Open confirmation dialog instead of immediate pending
-      setConfirmDoneId(subtaskId);
+      setPendingDone((prev) => new Map(prev).set(subtaskId, currentStatus));
+      const timer = setTimeout(() => commitSubtaskDone(subtaskId), 5000);
+      pendingTimers.current.set(subtaskId, timer);
       return;
     }
 
     updateStatus(subtaskId, newStatus);
-  };
-
-  const confirmAndCommitDone = (subtaskId: string) => {
-    const subtask = subtasks.find((s: any) => s.id === subtaskId);
-    const prevStatus = subtask?.status || "TODO";
-    setConfirmDoneId(null);
-    setPendingDone((prev) => new Map(prev).set(subtaskId, prevStatus));
-    const timer = setTimeout(() => {
-      commitSubtaskDone(subtaskId);
-      setDoneCooldowns((prev) => new Map(prev).set(subtaskId, Date.now()));
-    }, 5000);
-    pendingTimers.current.set(subtaskId, timer);
   };
 
   const toggleAssignee = async (subtaskId: string, userId: string) => {
@@ -447,316 +318,191 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const canEditSubtask = (subtask: any) =>
     canManage || (subtask.assignee_user_ids || []).includes(currentUser.id);
 
-  // Filtered subtasks for list view
-  const filteredSubtasks = useMemo(() => {
-    let filtered = subtasks;
-    if (filterMode === "mine") {
-      filtered = filtered.filter((s: any) => (s.assignee_user_ids || []).includes(currentUser.id));
-    }
-    if (!showDone && viewMode === "list") {
-      filtered = filtered.filter((s: any) => s.status !== "DONE" || pendingDone.has(s.id));
-    }
-    return filtered;
-  }, [subtasks, filterMode, showDone, viewMode, currentUser.id, pendingDone]);
-
-  const hiddenDoneCount = useMemo(() => {
-    let base = filterMode === "mine"
-      ? subtasks.filter((s: any) => (s.assignee_user_ids || []).includes(currentUser.id))
-      : subtasks;
-    return base.filter((s: any) => s.status === "DONE" && !pendingDone.has(s.id)).length;
-  }, [subtasks, filterMode, currentUser.id, pendingDone]);
-
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading subtasks…</p>;
-
-  const confirmSubtask = confirmDoneId ? subtasks.find((s: any) => s.id === confirmDoneId) : null;
-  const hasAnyReward = questRewardXp > 0 || questCreditReward > 0 || questCoinsBudget > 0 || questCtgBudget > 0;
 
   return (
     <div className="space-y-3">
-      {/* Quest-level rewards summary */}
-      {hasAnyReward && (
-        <div className="rounded-lg border border-border bg-muted/30 p-3 flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Trophy className="h-3.5 w-3.5" /> Quest Rewards
-          </div>
-          {questRewardXp > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="xp" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
-              <span className="text-muted-foreground">per participant</span>
-            </div>
-          )}
-          {questCreditReward > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
-              <span className="text-muted-foreground">per participant</span>
-            </div>
-          )}
-          {questCoinsBudget > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="coins" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
-              <span className="text-muted-foreground">budget</span>
-            </div>
-          )}
-          {questCtgBudget > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
-              <span className="text-muted-foreground">budget</span>
-            </div>
-          )}
-          <span className="text-[10px] text-muted-foreground ml-auto">Distributed when quest is completed</span>
-        </div>
-      )}
-
-      {/* Controls bar */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold text-sm flex items-center gap-2">
           Subtasks
           {totalCount > 0 && (
             <Badge variant="secondary" className="text-xs">{doneCount}/{totalCount} done</Badge>
           )}
         </h3>
-        <div className="flex items-center gap-1.5">
-          {/* Filter: all vs mine */}
-          <Button
-            variant={filterMode === "all" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 text-xs gap-1"
-            onClick={() => setFilterMode("all")}
-          >
-            All
-          </Button>
-          <Button
-            variant={filterMode === "mine" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 text-xs gap-1"
-            onClick={() => setFilterMode("mine")}
-          >
-            <User className="h-3 w-3" /> Mine
-          </Button>
-          <div className="w-px h-4 bg-border mx-1" />
-          {/* View toggle */}
-          <Button
-            variant={viewMode === "list" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setViewMode("list")}
-            title="List view"
-          >
-            <LayoutList className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant={viewMode === "kanban" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setViewMode("kanban")}
-            title="Kanban view"
-          >
-            <Kanban className="h-3.5 w-3.5" />
-          </Button>
-        </div>
       </div>
 
-      {/* Kanban view */}
-      {viewMode === "kanban" && (
-        <SubtasksKanbanView
-          subtasks={filterMode === "mine" ? subtasks.filter((s: any) => (s.assignee_user_ids || []).includes(currentUser.id)) : subtasks}
-          pendingDone={pendingDone}
-          onStatusChange={handleSubtaskStatusChange}
-          onUndoDone={undoSubtaskDone}
-          canEditSubtask={canEditSubtask}
-        />
-      )}
+      <div className="space-y-1.5">
+        {subtasks.map((subtask: any) => {
+          const isPending = pendingDone.has(subtask.id);
 
-      {/* List view */}
-      {viewMode === "list" && (
-        <div className="space-y-1.5">
-          {filteredSubtasks.map((subtask: any) => {
-            const isPending = pendingDone.has(subtask.id);
-
-            if (isPending) {
-              return (
-                <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-emerald-500/5 p-2">
-                  <div className="flex-1">
-                    <span className="text-sm text-muted-foreground line-through">{subtask.title}</span>
-                    <span className="block text-[10px] text-amber-600">Contribution automatically logged</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={() => undoSubtaskDone(subtask.id)}
-                  >
-                    <Undo2 className="h-3 w-3" /> Undo
-                  </Button>
-                </div>
-              );
-            }
-
+          if (isPending) {
             return (
-            <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-card p-2 group">
-              <PriorityPicker
-                value={subtask.priority || "NONE"}
-                onChange={(p) => updateSubtaskPriority(subtask.id, p)}
-                disabled={!canEditSubtask(subtask)}
-              />
-              <Checkbox
-                checked={subtask.status === "DONE"}
-                disabled={!canEditSubtask(subtask)}
-                onCheckedChange={(checked) => handleSubtaskStatusChange(subtask.id, checked ? "DONE" : "TODO", subtask.status)}
-              />
-              {editingId === subtask.id && canEditSubtask(subtask) ? (
-                <Input
-                  value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  onBlur={() => updateSubtaskTitle(subtask.id, editingTitle)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") updateSubtaskTitle(subtask.id, editingTitle);
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                  autoFocus
-                  className="flex-1 h-7 text-sm"
-                />
-              ) : (
-                <span
-                  className={`flex-1 text-sm cursor-pointer ${subtask.status === "DONE" ? "line-through text-muted-foreground" : ""}`}
-                  onDoubleClick={() => canEditSubtask(subtask) && startEditing(subtask)}
+              <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-emerald-500/5 p-2">
+                <div className="flex-1">
+                  <span className="text-sm text-muted-foreground line-through">{subtask.title}</span>
+                  <span className="block text-[10px] text-amber-600">Contribution automatically logged</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={() => undoSubtaskDone(subtask.id)}
                 >
-                  {subtask.title}
-                </span>
-              )}
-              {canEditSubtask(subtask) && (
-                <Select value={subtask.status} onValueChange={(v) => handleSubtaskStatusChange(subtask.id, v, subtask.status)}>
-                  <SelectTrigger className="w-[110px] h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map(s => (
-                      <SelectItem key={s} value={s} className="text-xs">{s.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {canManage && guildMembers.length > 0 && (
-                <SubtaskAssigneePicker
-                  subtask={subtask}
-                  guildMembers={guildMembers}
-                  onToggle={(userId) => toggleAssignee(subtask.id, userId)}
-                />
-              )}
-              {!canManage && subtask.assignees?.length > 0 && (
-                <div className="flex -space-x-1">
-                  {subtask.assignees.map((a: any) => (
-                    <Avatar key={a.user_id} className="h-6 w-6 border-2 border-background">
-                      <AvatarImage src={a.avatar_url} />
-                      <AvatarFallback className="text-[10px]">{a.name?.[0]}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-              )}
-              {/* Credit reward indicator */}
-              {canManage ? (
-                <div className="flex items-center gap-0.5" title="Coins — fiat-backed reward for completing this subtask">
-                  <CurrencyIcon currency="coins" className="h-3 w-3" />
-                  <Input
-                    type="number"
-                    min="0"
-                    value={subtask.credit_reward ?? 0}
-                    onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
-                    className="w-14 h-6 text-[10px] text-center p-0"
-                    title="Coins — fiat-backed reward for completing this subtask"
-                  />
-                </div>
-              ) : (subtask.credit_reward ?? 0) > 0 ? (
-                <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
-                  <CurrencyIcon currency="coins" className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
-                </Badge>
-              ) : null}
-              {/* $CTG reward input */}
-              {canManage ? (
-                <div className="flex items-center gap-0.5" title="🌱 $CTG — contribution token reward on completion">
-                  <CurrencyIcon currency="ctg" className="h-3 w-3" />
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.5}
-                    value={subtask.ctg_reward ?? 1.0}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value) || 1.0;
-                      supabase.from("quest_subtasks" as any).update({ ctg_reward: v } as any).eq("id", subtask.id)
-                        .then(() => qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }));
-                    }}
-                    className="w-14 h-6 text-[10px] text-center p-0"
-                    title="🌱 $CTG — contribution token reward on completion"
-                  />
-                </div>
-              ) : (
-                <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
-                  🌱 {subtask.ctg_reward ?? 1.0} $CTG
-                </span>
-              )}
-              {/* $CTG weight input */}
-              {canManage && (
-                <div className="flex items-center gap-0.5" title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)">
-                  <CurrencyIcon currency="weight" className="h-3 w-3" />
-                  <Input
-                    type="number"
-                    min={0.5}
-                    max={5.0}
-                    step={0.5}
-                    value={subtask.contribution_weight ?? 1.0}
-                    onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
-                    className="w-14 h-6 text-[10px] text-center p-0"
-                    title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)"
-                  />
-                </div>
-              )}
-              {/* Estimated WU badge for assignee */}
-              {coinBudget > 0 && (subtask.assignee_user_ids || []).includes(currentUser.id) && (() => {
-                const estWu = (subtask.credit_reward || 1) * (subtask.contribution_weight || 1.0);
-                return (
-                  <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
-                    {estWu.toFixed(1)} wu estimés
-                  </span>
-                );
-              })()}
-              {canManage && (
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <Undo2 className="h-3 w-3" /> Undo
                 </Button>
-              )}
-            </div>
+              </div>
             );
-          })}
+          }
 
-          {/* Show/hide done tasks */}
-          {!showDone && hiddenDoneCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-8 text-xs text-muted-foreground gap-1.5"
-              onClick={() => setShowDone(true)}
-            >
-              <Eye className="h-3.5 w-3.5" /> Show {hiddenDoneCount} completed task{hiddenDoneCount > 1 ? "s" : ""}
-            </Button>
-          )}
-          {showDone && hiddenDoneCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-8 text-xs text-muted-foreground gap-1.5"
-              onClick={() => setShowDone(false)}
-            >
-              <EyeOff className="h-3.5 w-3.5" /> Hide completed tasks
-            </Button>
-          )}
-
-          {filteredSubtasks.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">
-              {filterMode === "mine" ? "No tasks assigned to you" : "No tasks yet"}
-            </p>
-          )}
-        </div>
-      )}
+          return (
+          <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-card p-2 group">
+            <PriorityPicker
+              value={subtask.priority || "NONE"}
+              onChange={(p) => updateSubtaskPriority(subtask.id, p)}
+              disabled={!canEditSubtask(subtask)}
+            />
+            <Checkbox
+              checked={subtask.status === "DONE"}
+              disabled={!canEditSubtask(subtask)}
+              onCheckedChange={(checked) => handleSubtaskStatusChange(subtask.id, checked ? "DONE" : "TODO", subtask.status)}
+            />
+            {editingId === subtask.id && canEditSubtask(subtask) ? (
+              <Input
+                value={editingTitle}
+                onChange={(e) => setEditingTitle(e.target.value)}
+                onBlur={() => updateSubtaskTitle(subtask.id, editingTitle)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") updateSubtaskTitle(subtask.id, editingTitle);
+                  if (e.key === "Escape") setEditingId(null);
+                }}
+                autoFocus
+                className="flex-1 h-7 text-sm"
+              />
+            ) : (
+              <span
+                className={`flex-1 text-sm cursor-pointer ${subtask.status === "DONE" ? "line-through text-muted-foreground" : ""}`}
+                onDoubleClick={() => canEditSubtask(subtask) && startEditing(subtask)}
+              >
+                {subtask.title}
+              </span>
+            )}
+            {canEditSubtask(subtask) && (
+              <Select value={subtask.status} onValueChange={(v) => handleSubtaskStatusChange(subtask.id, v, subtask.status)}>
+                <SelectTrigger className="w-[110px] h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(s => (
+                    <SelectItem key={s} value={s} className="text-xs">{s.replace(/_/g, " ")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {canManage && guildMembers.length > 0 && (
+              <div className="flex items-center gap-1">
+                {guildMembers.map((m: any) => {
+                  const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
+                  return (
+                    <button
+                      key={m.user_id}
+                      onClick={() => toggleAssignee(subtask.id, m.user_id)}
+                      className={`rounded-full ring-2 transition-all ${isAssigned ? "ring-primary" : "ring-transparent opacity-40 hover:opacity-70"}`}
+                      title={m.name}
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={m.avatar_url} />
+                        <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
+                      </Avatar>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {!canManage && subtask.assignees?.length > 0 && (
+              <div className="flex -space-x-1">
+                {subtask.assignees.map((a: any) => (
+                  <Avatar key={a.user_id} className="h-6 w-6 border-2 border-background">
+                    <AvatarImage src={a.avatar_url} />
+                    <AvatarFallback className="text-[10px]">{a.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+            )}
+            {/* Credit reward indicator */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5" title="🟩 Coins — fiat-backed reward for completing this subtask">
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
+                <Input
+                  type="number"
+                  min="0"
+                  value={subtask.credit_reward ?? 0}
+                  onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="🟩 Coins — fiat-backed reward for completing this subtask"
+                />
+              </div>
+            ) : (subtask.credit_reward ?? 0) > 0 ? (
+              <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
+                <CurrencyIcon currency="coins" className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
+              </Badge>
+            ) : null}
+            {/* $CTG reward input */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5" title="🌱 $CTG — contribution token reward on completion">
+                <CurrencyIcon currency="ctg" className="h-3 w-3" />
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={subtask.ctg_reward ?? 1.0}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value) || 1.0;
+                    supabase.from("quest_subtasks" as any).update({ ctg_reward: v } as any).eq("id", subtask.id)
+                      .then(() => qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }));
+                  }}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="🌱 $CTG — contribution token reward on completion"
+                />
+              </div>
+            ) : (
+              <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                🌱 {subtask.ctg_reward ?? 1.0} $CTG
+              </span>
+            )}
+            {/* $CTG weight input */}
+            {canManage && (
+              <div className="flex items-center gap-0.5" title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)">
+                <CurrencyIcon currency="weight" className="h-3 w-3" />
+                <Input
+                  type="number"
+                  min={0.5}
+                  max={5.0}
+                  step={0.5}
+                  value={subtask.contribution_weight ?? 1.0}
+                  onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)"
+                />
+              </div>
+            )}
+            {/* Estimated WU badge for assignee */}
+            {coinBudget > 0 && (subtask.assignee_user_ids || []).includes(currentUser.id) && (() => {
+              const estWu = (subtask.credit_reward || 1) * (subtask.contribution_weight || 1.0);
+              return (
+                <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                  {estWu.toFixed(1)} wu estimés
+                </span>
+              );
+            })()}
+            {canManage && (
+              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            )}
+          </div>
+          );
+        })}
+      </div>
 
       {canManage && (
         <div className="space-y-2">
@@ -815,57 +561,6 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       {totalCount > 0 && doneCount === totalCount && (
         <p className="text-xs text-emerald-600 font-medium">✓ All subtasks completed! Consider marking this quest as completed.</p>
       )}
-
-      {/* Completion confirmation dialog */}
-      <Dialog open={!!confirmDoneId} onOpenChange={(open) => !open && setConfirmDoneId(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Mark as Done?
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Completing this subtask will automatically log a contribution and distribute any associated rewards.
-            </DialogDescription>
-          </DialogHeader>
-          {confirmSubtask && (
-            <div className="space-y-3">
-              <div className="rounded-md border border-border bg-muted/30 p-3">
-                <p className="text-sm font-medium">{confirmSubtask.title}</p>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  {(confirmSubtask.credit_reward ?? 0) > 0 && (
-                    <span className="flex items-center gap-1 text-xs">
-                      <CurrencyIcon currency="coins" className="h-3.5 w-3.5" /> {confirmSubtask.credit_reward} Coins
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" /> {confirmSubtask.ctg_reward ?? 1} $CTG
-                  </span>
-                  <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="xp" className="h-3.5 w-3.5" /> XP
-                  </span>
-                  <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="weight" className="h-3.5 w-3.5" /> ×{confirmSubtask.contribution_weight ?? 1}
-                  </span>
-                </div>
-                {(confirmSubtask.assignee_user_ids?.length ?? 0) > 0 && (
-                  <p className="text-[10px] text-muted-foreground mt-2">
-                    Rewards distributed to {confirmSubtask.assignee_user_ids.length} assignee{confirmSubtask.assignee_user_ids.length > 1 ? "s" : ""}
-                  </p>
-                )}
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                You'll have 5 seconds to undo after confirming. After that, a 30-second cooldown prevents accidental reverts.
-              </p>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => setConfirmDoneId(null)}>Cancel</Button>
-                <Button size="sm" className="gap-1.5" onClick={() => confirmAndCommitDone(confirmDoneId!)}>
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Confirm Completion
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -99,6 +99,7 @@ export function CreateCampaignDialog({
     onOpenChange(false);
   };
 
+  const currencyEmoji = currency === "coins" ? "🟩" : "🌱";
   const currencyLabel = currency === "coins" ? "Coins" : "$CTG";
 
   return (
@@ -106,7 +107,7 @@ export function CreateCampaignDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit" : "New"} {currencyLabel} Campaign
+            {isEditing ? "Edit" : "New"} {currencyEmoji} {currencyLabel} Campaign
           </DialogTitle>
           <DialogDescription>
             {currency === "coins"

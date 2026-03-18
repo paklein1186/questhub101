@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { logger } from "@/lib/logger";
 
 // ─── Notification Preferences ───────────────────────────────
 
@@ -243,7 +242,7 @@ interface NotificationStore {
   preferences: NotificationPreferences;
   updatePreferences: (prefs: Partial<NotificationPreferences>) => void;
   notifyComment: (params: { commentAuthorId: string; targetType: CommentTargetType; targetId: string; commentId: string; commentSnippet: string; }) => void;
-  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; targetType?: string; targetId?: string; }) => void;
+  notifyUpvote: (params: { upvoterId: string; commentAuthorId: string; commentId: string; commentSnippet: string; }) => void;
   notifyQuestUpdate: (params: { questId: string; questUpdateId: string; updateTitle: string; }) => void;
   notifyBooking: (params: { bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string; serviceId?: string; requesterId?: string; }) => void;
   notifyGuildMemberAdded: (params: { guildId: string; userId: string }) => void;
@@ -285,8 +284,8 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "milestone": return `/me/milestones`;
     case "TERRITORY": return `/territories/${targetId}`;
     case "FEED_POST": return `/feed?post=${targetId}`;
-    case "COMMENT": return `/notifications`;
-    default: return "/";
+    case "COMMENT": return `/notifications`; // comments don't have standalone pages
+    default: return `/notifications`;
   }
 }
 
@@ -337,12 +336,12 @@ async function insertNotification(params: {
       data: params.data as any || null,
     });
     if (error) {
-      logger.error("[Notifications] Insert failed:", error.message);
+      console.error("[Notifications] Insert failed:", error.message);
       return false;
     }
     return true;
   } catch (err) {
-    logger.error("[Notifications] Insert exception:", err);
+    console.error("[Notifications] Insert exception:", err);
     return false;
   }
 }
@@ -492,7 +491,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       .update({ is_read: true })
       .eq("id", id)
       .eq("user_id", userId);
-    if (error) logger.error("[Notifications] markAsRead failed:", error.message);
+    if (error) console.error("[Notifications] markAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
@@ -506,7 +505,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       .update({ is_read: true })
       .eq("user_id", userId)
       .eq("is_read", false);
-    if (error) logger.error("[Notifications] markAllAsRead failed:", error.message);
+    if (error) console.error("[Notifications] markAllAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
@@ -638,17 +637,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   // ── Trigger: Comment upvote ──
 
-  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet, targetType, targetId }: any) => {
+  const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
     if (commentAuthorId === upvoterId) return;
     const actorName = await resolveActorName(upvoterId);
-    const cleanSnippet = stripMentionTokens((commentSnippet || "").slice(0, 60));
-    const deepLink = targetType && targetId ? buildNotifDeepLink(targetType, targetId) : "/notifications";
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
-      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${cleanSnippet}"`,
+      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
-      deepLinkUrl: deepLink,
-      data: { targetType, targetId, commentId },
+      deepLinkUrl: "/notifications",
     });
   }, [addNotification, resolveActorName]);
 
@@ -672,7 +668,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      logger.error("[Notifications] notifyQuestUpdate error:", err);
+      console.error("[Notifications] notifyQuestUpdate error:", err);
     }
   }, [userId, addNotification]);
 
@@ -776,7 +772,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         }
       }
     } catch (err) {
-      logger.error("[Notifications] notifyGuildQuestCreated error:", err);
+      console.error("[Notifications] notifyGuildQuestCreated error:", err);
     }
   }, [userId, addNotification]);
 
@@ -817,7 +813,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      logger.error("[Notifications] notifyPodMessage error:", err);
+      console.error("[Notifications] notifyPodMessage error:", err);
     }
   }, [addNotification]);
 
@@ -937,7 +933,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         deepLinkUrl: deepLink,
       });
     } catch (err) {
-      logger.error("[Notifications] notifyDecisionCreated error:", err);
+      console.error("[Notifications] notifyDecisionCreated error:", err);
     }
   }, []);
 
@@ -957,7 +953,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         deepLinkUrl: deepLink,
       });
     } catch (err) {
-      logger.error("[Notifications] notifyRitualCreated error:", err);
+      console.error("[Notifications] notifyRitualCreated error:", err);
     }
   }, []);
 
@@ -1004,7 +1000,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         if (uniqueIds.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
     } catch (err) {
-      logger.error("[Notifications] notifyBulkMention error:", err);
+      console.error("[Notifications] notifyBulkMention error:", err);
     }
   }, [addNotification]);
 
@@ -1030,7 +1026,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      logger.error("[Notifications] notifyFollowersQuestCreated error:", err);
+      console.error("[Notifications] notifyFollowersQuestCreated error:", err);
     }
   }, [userId, addNotification]);
 
@@ -1073,7 +1069,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         await addNotification({ userId: f.follower_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: resolvedBody, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: resolvedLink });
       }
     } catch (err) {
-      logger.error("[Notifications] notifyFollowedEntityNewPost:", err);
+      console.error("[Notifications] notifyFollowedEntityNewPost:", err);
     }
   }, [userId, addNotification]);
 

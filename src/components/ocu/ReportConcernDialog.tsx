@@ -115,7 +115,7 @@ export function ReportConcernDialog({
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="coins">Coins</SelectItem>
+                  <SelectItem value="coins">🟩 Coins</SelectItem>
                   <SelectItem value="ctg">🌱 $CTG</SelectItem>
                   <SelectItem value="both">Both</SelectItem>
                 </SelectContent>

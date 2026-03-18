@@ -24,7 +24,7 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      {/* Coins → fiat-backed mission currency */}
+      {/* 🟩 Coins → fiat-backed mission currency */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Link

@@ -104,107 +104,56 @@ export default function FeedHub() {
         }
       }
 
-      // Resolve origin context names for all meaningful origin types
-      const ORIGIN_TYPES = ["GUILD", "GUILD_DISCUSSION", "QUEST", "QUEST_DISCUSSION", "USER", "POD", "GUILD_EVENT"];
-      
-      // Map context_type → lookup type for DB resolution (some share the same table)
-      const lookupTypeMap: Record<string, string> = {
-        GUILD: "GUILD",
-        GUILD_DISCUSSION: "GUILD",
-        QUEST: "QUEST",
-        QUEST_DISCUSSION: "QUEST",
-        USER: "USER",
-        POD: "POD",
-        GUILD_EVENT: "GUILD_EVENT",
-      };
-      const tableMap: Record<string, { table: string; nameCol: string; idCol?: string }> = {
+      // Fetch context names
+      const tableMap: Record<string, { table: string; nameCol: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
+        COMPANY: { table: "companies", nameCol: "name" },
         QUEST: { table: "quests", nameCol: "title" },
-        USER: { table: "profiles", nameCol: "name", idCol: "user_id" },
-        POD: { table: "pods", nameCol: "name" },
-        GUILD_EVENT: { table: "guild_events", nameCol: "title" },
-      };
-      const linkMap: Record<string, string> = {
-        GUILD: "/guilds/",
-        GUILD_DISCUSSION: "/guilds/",
-        QUEST: "/quests/",
-        QUEST_DISCUSSION: "/quests/",
-        USER: "/users/",
-        POD: "/pods/",
-        GUILD_EVENT: "/events/",
+        TERRITORY: { table: "territories", nameCol: "name" },
+        USER: { table: "profiles", nameCol: "name" },
       };
 
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
-        if (post.context_id && ORIGIN_TYPES.includes(post.context_type)) {
-          const lt = lookupTypeMap[post.context_type] || post.context_type;
-          if (!contextGroups[lt]) contextGroups[lt] = [];
-          if (!contextGroups[lt].includes(post.context_id))
-            contextGroups[lt].push(post.context_id);
+        if (post.context_id) {
+          const t = post.context_type;
+          if (!contextGroups[t]) contextGroups[t] = [];
+          if (!contextGroups[t].includes(post.context_id)) contextGroups[t].push(post.context_id);
         }
       }
 
       const contextNames = new Map<string, string>();
-      const nameFetches: Promise<void>[] = [];
+      const contextLinks = new Map<string, string>();
+      const linkMap: Record<string, string> = {
+        GUILD: "/guilds/",
+        COMPANY: "/companies/",
+        QUEST: "/quests/",
+        TERRITORY: "/territories/",
+        USER: "/users/",
+      };
 
-      for (const [type, ids] of Object.entries(contextGroups)) {
-        const cfg = tableMap[type];
-        if (!cfg || ids.length === 0) continue;
-        const idCol = cfg.idCol || "id";
-        nameFetches.push(
-          (supabase
+      await Promise.all(
+        Object.entries(contextGroups).map(async ([type, ids]) => {
+          const cfg = tableMap[type];
+          if (!cfg || ids.length === 0) return;
+          const { data } = await (supabase
             .from(cfg.table as any)
-            .select(`id, ${cfg.nameCol}${idCol !== "id" ? `, ${idCol}` : ""}`)
-            .in(idCol, ids) as any)
-            .then(({ data }: any) => {
-              (data ?? []).forEach((row: any) => {
-                const key = idCol !== "id" ? row[idCol] : row.id;
-                contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
-              });
-            })
-        );
-      }
-
-      // Resolve discussion room names
-      const roomIds = [...new Set(posts.map((p: any) => p.room_id).filter(Boolean))];
-      if (roomIds.length > 0) {
-        nameFetches.push(
-          (supabase
-            .from("discussion_rooms" as any)
-            .select("id, name")
-            .in("id", roomIds) as any)
-            .then(({ data }: any) => {
-              (data ?? []).forEach((row: any) => {
-                contextNames.set(`ROOM:${row.id}`, row.name);
-              });
-            })
-        );
-      }
-
-      await Promise.all(nameFetches);
+            .select(`id, ${cfg.nameCol}${type === "USER" ? ", user_id" : ""}`)
+            .in(type === "USER" ? "user_id" : "id", ids) as any);
+          (data ?? []).forEach((row: any) => {
+            const key = type === "USER" ? row.user_id : row.id;
+            contextNames.set(`${type}:${key}`, row[cfg.nameCol]);
+            if (linkMap[type]) contextLinks.set(`${type}:${key}`, linkMap[type] + key);
+          });
+        })
+      );
 
       for (const post of posts) {
-        if (!post.context_id || !ORIGIN_TYPES.includes(post.context_type)) continue;
-        const lt = lookupTypeMap[post.context_type] || post.context_type;
-        let name = contextNames.get(`${lt}:${post.context_id}`) || null;
-
-        // Append room name for discussion posts
-        const roomId = (post as any).room_id;
-        if (roomId && name) {
-          const roomName = contextNames.get(`ROOM:${roomId}`);
-          if (roomName && roomName !== "General") {
-            name = `${name} › ${roomName}`;
-          }
+        if (post.context_id) {
+          const k = `${post.context_type}:${post.context_id}`;
+          (post as any).contextName = contextNames.get(k) || null;
+          (post as any).contextLink = contextLinks.get(k) || null;
         }
-
-        // Format user walls
-        if (post.context_type === "USER" && name) {
-          name = `${name}'s wall`;
-        }
-
-        (post as any).contextName = name;
-        const prefix = linkMap[post.context_type];
-        if (prefix) (post as any).contextLink = prefix + post.context_id;
       }
 
       return posts;

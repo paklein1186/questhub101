@@ -19,7 +19,6 @@ import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
 import { HarvestWindowBanner } from "@/components/ctg/HarvestWindowBanner";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
@@ -112,7 +111,6 @@ import JobsPage from "./pages/JobsPage";
 import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
-import FaqPage from "./pages/FaqPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import SupportPage from "./pages/SupportPage";
 
@@ -196,7 +194,6 @@ const App = () => (
             <PiFloatingButton />
             <BugReportBubble />
             <HarvestWindowBanner />
-              <ErrorBoundary label="App">
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
@@ -249,7 +246,6 @@ const App = () => (
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/cookies" element={<CookiesPage />} />
                 <Route path="/about" element={<AboutPage />} />
-                <Route path="/faq" element={<FaqPage />} />
                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/security" element={<SecurityPage />} />
@@ -321,7 +317,7 @@ const App = () => (
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/shares" element={<RequireAuth><SharesPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
-                <Route path="/admin" element={<RequireAuth><ErrorBoundary label="Admin"><Suspense fallback={null}><AdminLayout /></Suspense></ErrorBoundary></RequireAuth>}>
+                <Route path="/admin" element={<RequireAuth><Suspense fallback={null}><AdminLayout /></Suspense></RequireAuth>}>
                   <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
                   <Route path="community/users" element={<Suspense fallback={null}><AdminCommunityUsers /></Suspense>} />
                   <Route path="community/guilds" element={<Suspense fallback={null}><AdminCommunityGuilds /></Suspense>} />
@@ -367,7 +363,6 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              </ErrorBoundary>
             </BrowserRouter>
             </PiPanelProvider>
             </ChatBubbleProvider>

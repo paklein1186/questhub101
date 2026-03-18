@@ -196,13 +196,13 @@ export default function CompanyDetail() {
 
       {company.banner_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
-          <img src={company.banner_url} alt={`${company.name} banner`} className="w-full h-full object-cover" />
+          <img src={company.banner_url} alt="" className="w-full h-full object-cover" />
         </div>
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center gap-4 mb-3">
-          {company.logo_url && <img src={company.logo_url} alt={`${company.name} logo`} className="h-14 w-14 rounded-xl" />}
+          {company.logo_url && <img src={company.logo_url} alt="" className="h-14 w-14 rounded-xl" />}
           <div className="flex-1">
             <h1 className="font-display text-3xl font-bold">{company.name}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

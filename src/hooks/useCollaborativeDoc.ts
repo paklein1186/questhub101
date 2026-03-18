@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import * as Y from "yjs";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { logger } from "@/lib/logger";
 
 /** Lightweight Yjs provider that syncs via Supabase Realtime broadcast */
 class SupabaseRealtimeProvider {
@@ -35,7 +34,7 @@ class SupabaseRealtimeProvider {
           const update = new Uint8Array(payload.update);
           Y.applyUpdate(this.doc, update, "remote");
         } catch (e) {
-          logger.warn("Failed to apply Yjs update:", e);
+          console.warn("Failed to apply Yjs update:", e);
         }
       })
       .on("broadcast", { event: "awareness" }, ({ payload }) => {

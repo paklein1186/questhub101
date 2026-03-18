@@ -11,6 +11,7 @@ export interface Milestone {
   code: string;
   title: string;
   description: string | null;
+  subtitle: string | null;
   reward_type: "XP" | "CREDITS" | "BADGE" | "NONE";
   reward_amount: number;
   persona_visibility: "ALL" | "CREATIVE" | "IMPACT" | "HYBRID";
@@ -19,6 +20,7 @@ export interface Milestone {
   is_enabled: boolean;
   sort_order: number;
   icon: string;
+  phase: "discover" | "contribute" | "create" | "structure";
 }
 
 export interface UserMilestone {

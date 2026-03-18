@@ -22,13 +22,11 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
-import { MilestoneTracker } from "@/components/home/MilestoneTracker";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
-import { logger } from "@/lib/logger";
 
 
 /* ───────── Persona-specific config ───────── */
@@ -336,7 +334,7 @@ export default function HomeFeed() {
       if (error) throw error;
       setResult(data);
     } catch (e: any) {
-      logger.error(e);
+      console.error(e);
       toast.error(e?.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -397,7 +395,7 @@ export default function HomeFeed() {
       // Release the stream immediately — we only needed the permission grant
       stream.getTracks().forEach((t) => t.stop());
     } catch (e: any) {
-      logger.error("[STT] Microphone permission denied:", e);
+      console.error("[STT] Microphone permission denied:", e);
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
         toast.error("Microphone permission denied. Please allow access in your browser settings, or open the app in a new tab.");
       } else {
@@ -415,7 +413,7 @@ export default function HomeFeed() {
     let finalTranscript = "";
 
     recognition.onstart = () => {
-      logger.debug("[STT] Recognition started");
+      console.log("[STT] Recognition started");
       isListeningRef.current = true;
       setIsListening(true);
     };
@@ -434,7 +432,7 @@ export default function HomeFeed() {
     };
 
     recognition.onend = () => {
-      logger.debug("[STT] Recognition ended, wasListening:", isListeningRef.current);
+      console.log("[STT] Recognition ended, wasListening:", isListeningRef.current);
       if (isListeningRef.current && !finalTranscript.trim()) {
         // Auto-restart if user hasn't spoken yet (browser timeout)
         try {recognition.start();} catch (_) {/* ignore */}
@@ -449,7 +447,7 @@ export default function HomeFeed() {
     };
 
     recognition.onerror = (event: any) => {
-      logger.error("[STT] Error:", event.error);
+      console.error("[STT] Error:", event.error);
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         isListeningRef.current = false;
         setIsListening(false);
@@ -468,7 +466,7 @@ export default function HomeFeed() {
     try {
       recognition.start();
     } catch (e: any) {
-      logger.error("[STT] Start failed:", e);
+      console.error("[STT] Start failed:", e);
       toast.error("Failed to start voice capture. Try opening the app in a new tab.");
     }
   };
@@ -502,7 +500,6 @@ export default function HomeFeed() {
       {isPiOpen ? (
         <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-5 sm:space-y-6">
           <PathwayCards persona={persona} progress={progress} steps={steps} />
-          <MilestoneTracker />
           {currentUser.id && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -623,7 +620,6 @@ export default function HomeFeed() {
           {currentUser.id &&
           <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-8 space-y-5 sm:space-y-6">
               <PathwayCards persona={persona} progress={progress} steps={steps} />
-              <MilestoneTracker />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <h2 className="text-base font-semibold text-foreground">My Task Board</h2>

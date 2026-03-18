@@ -8,7 +8,6 @@ const FOOTER_LINKS = [
   { labelKey: "footer.ecosystem", href: "/ecosystem" },
   { labelKey: "footer.legal", href: "/legal" },
   { labelKey: "footer.about", href: "/about" },
-  { labelKey: "footer.faq", href: "/faq", fallbackLabel: "FAQ" },
 ];
 
 export function SiteFooter() {
@@ -36,7 +35,7 @@ export function SiteFooter() {
               to={link.href}
               className="text-xs sm:text-sm font-semibold text-primary hover:text-secondary transition-colors duration-200"
             >
-              {t(link.labelKey, { defaultValue: (link as any).fallbackLabel || link.labelKey })}
+              {t(link.labelKey)}
             </Link>
           ))}
         </nav>

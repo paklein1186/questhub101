@@ -12,7 +12,6 @@ import {
   type XpEventType,
   type CreditTxType,
 } from "@/lib/xpCreditsConfig";
-import { logger } from "@/lib/logger";
 
 // ─── Grant XP ────────────────────────────────────────────────
 
@@ -55,7 +54,7 @@ export function useXpCredits() {
       });
 
       if (error) {
-        logger.error("grant_user_xp error:", error.message);
+        console.error("grant_user_xp error:", error.message);
         return;
       }
 
@@ -82,7 +81,7 @@ export function useXpCredits() {
       });
 
       if (error) {
-        logger.error("grant_user_credits error:", error.message);
+        console.error("grant_user_credits error:", error.message);
         return;
       }
 
@@ -121,7 +120,7 @@ export function useXpCredits() {
             variant: "destructive",
           });
         } else {
-          logger.error("spend_user_credits error:", error.message);
+          console.error("spend_user_credits error:", error.message);
         }
         return false;
       }

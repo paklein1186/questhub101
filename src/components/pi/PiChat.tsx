@@ -14,7 +14,6 @@ import { PiActionPaths } from "@/components/assistant/PiActionPaths";
 import { useUserEntities } from "@/hooks/useUserEntities";
 import { PiActionCard, XpToast } from "@/components/pi/PiActionCard";
 import { toast } from "sonner";
-import { logger } from "@/lib/logger";
 
 type SuggestedAction = {
   title: string;
@@ -170,7 +169,7 @@ export function PiChat({ className }: PiChatProps) {
 
         if (data?.actions?.length) processActions(data.actions);
       } catch (e) {
-        logger.error("Greeting error:", e);
+        console.error("Greeting error:", e);
       } finally {
         setIsLoading(false);
       }
@@ -271,7 +270,7 @@ export function PiChat({ className }: PiChatProps) {
         }, 500);
       }
     } catch (e: any) {
-      logger.error("Pi error:", e);
+      console.error("Pi error:", e);
       const errMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -346,7 +345,7 @@ export function PiChat({ className }: PiChatProps) {
         setMessages((prev) => [...prev, confirmMsg]);
       }
     } catch (e: any) {
-      logger.error("Action execution error:", e);
+      console.error("Action execution error:", e);
       // Revert to ready state
       setMessages((prev) =>
         prev.map((m) =>

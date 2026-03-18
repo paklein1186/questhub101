@@ -226,20 +226,6 @@ serve(async (req) => {
           xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
         }
 
-        // ── Skip if there is NO real content to share ──
-        const hasContent =
-          networkPosts.length > 0 ||
-          newQuests.length > 0 ||
-          newEvents.length > 0 ||
-          newGuildMembers > 0 ||
-          xpGained > 0;
-
-        if (!hasContent) {
-          console.log(`⏭️ Skipping digest for ${userId} — no new content since ${since}`);
-          results.push({ userId, status: "skipped-empty" });
-          continue;
-        }
-
         // Build rich context for AI — network-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
@@ -287,47 +273,41 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a rich, engaging digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief with real content previews that make people want to click.
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a clustered digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief grouped by category.
 
 Your output must be a JSON object:
 {
   "subject": "compelling subject line mentioning a specific guild or activity (max 55 chars)",
   "preheader": "short preview text shown in inbox before opening (max 90 chars)",
   "greeting": "warm 1-line greeting using their name",
-  "featured_cards": [
+  "clusters": [
     {
-      "type": "post|quest|event",
-      "emoji": "relevant emoji",
-      "title": "Bold headline summarizing the content",
-      "teaser": "1-2 sentence preview of the actual content — make it intriguing, quote key phrases from the original post/quest if available",
-      "context_label": "Guild Name or Topic",
-      "author": "Author name if applicable",
-      "link": "/relevant-deep-link",
-      "meta": "optional: date, upvote count, or member count"
+      "label": "🏛 Guild Activity",
+      "items": [
+        { "icon": "emoji", "text": "descriptive line about what happened", "link": "/relevant-deep-link" }
+      ]
     }
   ],
-  "stats_bar": [
-    { "emoji": "📝", "label": "new posts", "value": 12 },
-    { "emoji": "🚀", "label": "quests launched", "value": 3 }
-  ],
-  "closing": "1 motivational sentence connecting their interests to the activity",
+  "closing": "1 motivational sentence",
   "cta_label": "Explore what's new",
   "cta_url": "/explore"
 }
 
-Guidelines:
-- "featured_cards": Pick the 3-5 MOST interesting items from the data. Mix types (posts, quests, events). Each card should feel like a mini-article preview that creates curiosity.
-  - For posts: quote or paraphrase the most interesting part of the content snippet. Mention who wrote it and in which guild.
-  - For quests: highlight what the quest is about and which guild created it. Use action-oriented language.
-  - For events: mention the date prominently, the guild, and what it's about.
-- "stats_bar": 2-4 aggregate stats shown as a horizontal bar (e.g., "12 new posts · 3 quests launched · 5 new members"). Only include stats > 0.
-- Subject line should create curiosity: mention a specific guild name, person, or topic.
+Available cluster categories (use only those that have data):
+- "🏛 Guild Activity" — new posts, decisions, member joins in their guilds
+- "⚡ Quests & Projects" — new quests, quest updates, proposals
+- "📅 Upcoming Events" — events from guilds and followed entities
+- "🏆 Your Progress" — XP gained, achievements, credits received, contributions
+
+Rules:
+- Only include clusters that have items. Max 4 items per cluster. Max 4 clusters total.
+- Subject line should create curiosity: mention a specific guild name or count.
 - Preheader should complement the subject, not repeat it.
 - Use real deep links: /explore, /quests, /guilds, /network, /me, /me?tab=contributions
-- For guild-specific links use /guilds/GUILD_ID format if you have the ID in context
-- For quest links use /quests/QUEST_ID if available
-- Keep teasers punchy and intriguing — like a newsletter preview, not a summary
-- If XP was gained, mention it naturally in stats_bar or closing
+- For guild-specific links use /guilds/GUILD_ID format if you have context, otherwise /explore
+- "Your Progress" cluster: summarize XP, achievements, credits in aggregate lines
+- If there's little activity, highlight communities and suggest exploration
+- Keep it punchy — this is a news brief, not a letter
 - ONLY output valid JSON, no markdown fences`,
               },
               {
@@ -556,7 +536,7 @@ function buildDigestFromTemplate(
       </p>
     </div>
     <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
-      © ${new Date().getFullYear()} changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
     </p>
   </div>
 </body>
@@ -564,87 +544,89 @@ function buildDigestFromTemplate(
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
-  // ── Stats bar ──
-  const statsBar = (digest.stats_bar ?? [])
-    .filter((s: any) => s.value > 0)
-    .map((s: any) => `<span style="white-space:nowrap;">${s.emoji} <strong>${s.value}</strong> ${s.label}</span>`)
-    .join(`<span style="color:hsl(250,18%,80%);margin:0 8px;">·</span>`);
-
-  const statsBarHtml = statsBar
-    ? `<div style="background:hsl(250,30%,97%);border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:14px;color:hsl(250,12%,30%);text-align:center;line-height:1.8;">${statsBar}</div>`
-    : "";
-
-  // ── Featured cards (new rich format) ──
-  const cards = (digest.featured_cards ?? []).slice(0, 5);
-  const cardsHtml = cards.map((card: any) => {
-    const typeColors: Record<string, string> = { post: "hsl(262,83%,58%)", quest: "hsl(25,95%,53%)", event: "hsl(142,60%,40%)" };
-    const typeLabels: Record<string, string> = { post: "POST", quest: "QUEST", event: "EVENT" };
-    const accentColor = typeColors[card.type] || "hsl(262,83%,58%)";
-    const typeLabel = typeLabels[card.type] || "UPDATE";
-    const linkUrl = card.link?.startsWith("http") ? card.link : `${BASE_URL}${card.link || "/explore"}`;
-    const metaLine = card.meta ? `<p style="font-size:12px;color:hsl(250,12%,56%);margin:6px 0 0;">${card.meta}</p>` : "";
-    const authorLine = card.author ? `<span style="font-weight:600;">${card.author}</span> · ` : "";
-
-    return `
-      <a href="${linkUrl}" style="text-decoration:none;display:block;margin-bottom:16px;">
-        <div style="border:1px solid hsl(250,18%,90%);border-radius:10px;overflow:hidden;">
-          <div style="border-left:4px solid ${accentColor};padding:16px 18px;">
-            <div style="margin-bottom:8px;">
-              <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accentColor};">${card.emoji || ""} ${typeLabel}</span>
-              <span style="font-size:12px;color:hsl(250,12%,56%);margin-left:8px;">${card.context_label || ""}</span>
-            </div>
-            <p style="font-size:16px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 6px;line-height:1.3;">${card.title}</p>
-            <p style="font-size:14px;color:hsl(250,12%,36%);margin:0;line-height:1.5;">${authorLine}${card.teaser || ""}</p>
-            ${metaLine}
-          </div>
-        </div>
-      </a>`;
-  }).join("");
-
-  // ── Legacy clusters fallback ──
   const clusters = (digest.clusters ?? []).slice(0, 4);
-  const clustersHtml = clusters.length > 0 && cards.length === 0 ? clusters.map((cluster: any, idx: number) => {
+
+  const clustersHtml = clusters.map((cluster: any, idx: number) => {
+    const isProgress = (cluster.label || "").includes("Progress");
+    const bgStyle = isProgress
+      ? "background:hsl(142,40%,96%);border-radius:8px;padding:16px;"
+      : "";
+
     const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
       const linkHtml = item.link
         ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
         : "";
-      return `<tr><td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td><td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">${item.text} ${linkHtml}</td></tr>`;
+      return `
+        <tr>
+          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
+          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
+            ${item.text} ${linkHtml}
+          </td>
+        </tr>`;
     }).join("");
-    const divider = idx < clusters.length - 1 ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />` : "";
-    return `<div style="margin-bottom:4px;"><h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;">${cluster.label}</h3><table role="presentation" style="width:100%;border-collapse:collapse;">${itemsHtml}</table></div>${divider}`;
-  }).join("") : "";
+
+    const divider = idx < clusters.length - 1
+      ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
+      : "";
+
+    return `
+      <div style="${bgStyle}margin-bottom:4px;">
+        <h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;letter-spacing:0.5px;">${cluster.label}</h3>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          ${itemsHtml}
+        </table>
+      </div>
+      ${divider}`;
+  }).join("");
 
   const ctaLabel = digest.cta_label || "Explore what's new";
-  const ctaUrl = (digest.cta_url || "/explore").startsWith("http") ? digest.cta_url : `${BASE_URL}${digest.cta_url || "/explore"}`;
+  const ctaUrl = (digest.cta_url || "/explore").startsWith("http")
+    ? digest.cta_url
+    : `${BASE_URL}${digest.cta_url || "/explore"}`;
+
   const preheader = digest.preheader || "";
 
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
 <body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}</span>
   <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header -->
     <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
       <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
     </div>
+
+    <!-- Card -->
     <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
-      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hi ${userName},`}</h2>
-      ${statsBarHtml}
-      ${cardsHtml}
+
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hey ${userName},`}</h2>
+
       ${clustersHtml}
+
       ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:20px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
-      <div style="margin-top:28px;text-align:center;">
-        <a href="${ctaUrl}" style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">${ctaLabel}</a>
+
+      <div style="margin-top:28px;">
+        <a href="${ctaUrl}"
+           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+          ${ctaLabel}
+        </a>
       </div>
+
       <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
       <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
         You're receiving this because you opted into digests.
         <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
       </p>
     </div>
+
     <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
-      © ${new Date().getFullYear()} changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
     </p>
   </div>
 </body>

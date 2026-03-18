@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useCallback } from "react";
-import { logger } from "@/lib/logger";
 
 export interface Conversation {
   id: string;
@@ -285,7 +284,7 @@ export function useSendMessage() {
             content,
           }),
         }
-      ).catch((err) => logger.error("DM notification error:", err));
+      ).catch((err) => console.error("DM notification error:", err));
 
       return msg;
     },
@@ -350,7 +349,7 @@ export function useDeleteMessage() {
             : url; // New format: path is stored directly
           await supabase.storage.from("dm-attachments").remove([storagePath]);
         } catch (e) {
-          logger.error("Failed to delete attachment from storage:", e);
+          console.error("Failed to delete attachment from storage:", e);
         }
       }
 

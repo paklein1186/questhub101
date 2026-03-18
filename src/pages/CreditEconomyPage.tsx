@@ -83,7 +83,7 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-4 text-sm leading-relaxed">
           <p className="font-semibold text-foreground">ℹ️ Platform Credits are feature fuel — they never enter quest compensation.</p>
           <p className="text-muted-foreground mt-1">
-            Quest pools are funded in Coins (fiat-backed) and/or $CTG.
+            Quest pools are funded in 🟩 Coins (fiat-backed) and/or 🌱 $CTG.
             Coins are withdrawable to real € via Stripe Connect.
           </p>
         </div>

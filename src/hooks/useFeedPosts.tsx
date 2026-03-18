@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
 
 export interface FeedPost {
   id: string;
@@ -320,7 +319,7 @@ export function useCreatePost() {
             }
           }
         } catch (notifErr) {
-          logger.error("[PostNotification] Error:", notifErr);
+          console.error("[PostNotification] Error:", notifErr);
         }
       };
       // Don't await — let notifications happen in background

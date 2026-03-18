@@ -108,18 +108,12 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
   const [tags, setTags] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Location state
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [geocoding, setGeocoding] = useState(false);
-
   const { data: territory } = useQuery({
     queryKey: ["territory-admin-meta", territoryId],
     queryFn: async () => {
       const { data } = await supabase
         .from("territories")
-        .select("summary, stats, latitude, longitude")
+        .select("summary, stats")
         .eq("id", territoryId)
         .single();
       return data;
@@ -131,60 +125,26 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
       setSummary((territory as any).summary ?? "");
       setImageUrls((territory as any).stats?.images ?? []);
       setTags(((territory as any).stats?.tags ?? []).join(", "));
-      setLatitude((territory as any).latitude != null ? String((territory as any).latitude) : "");
-      setLongitude((territory as any).longitude != null ? String((territory as any).longitude) : "");
     }
   }, [territory]);
-
-  const handleGeocode = async () => {
-    const code = postalCode.trim();
-    if (!code) return;
-    setGeocoding(true);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(code)}&format=json&limit=1`,
-      );
-      const results = await res.json();
-      if (results.length > 0) {
-        setLatitude(results[0].lat);
-        setLongitude(results[0].lon);
-        toast({ title: `Coordinates resolved from postal code "${code}"` });
-      } else {
-        toast({ title: "No results for this postal code", variant: "destructive" });
-      }
-    } catch {
-      toast({ title: "Geocoding failed", variant: "destructive" });
-    } finally {
-      setGeocoding(false);
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updatePayload: Record<string, unknown> = {
-        summary,
-        stats: {
-          ...(territory as any)?.stats,
-          images: imageUrls,
-          tags: tags.split(",").map((t: string) => t.trim()).filter(Boolean),
-        },
-        updated_at: new Date().toISOString(),
-      };
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
-      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-        updatePayload.latitude = lat;
-        updatePayload.longitude = lng;
-      }
-
       const { error } = await supabase
         .from("territories")
-        .update(updatePayload as any)
+        .update({
+          summary,
+          stats: {
+            ...(territory as any)?.stats,
+            images: imageUrls,
+            tags: tags.split(",").map((t: string) => t.trim()).filter(Boolean),
+          },
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", territoryId);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["territory-detail", territoryId] });
-      qc.invalidateQueries({ queryKey: ["territory-admin-meta", territoryId] });
       toast({ title: "Portal updated" });
     } catch (e: any) {
       toast({ title: "Save failed", description: e.message, variant: "destructive" });
@@ -236,61 +196,6 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* ── Location ── */}
-      <div className="space-y-2 rounded-lg border border-border/60 p-3">
-        <Label className="text-xs font-medium flex items-center gap-1.5">
-          <Compass className="h-3.5 w-3.5 text-primary" /> Location
-        </Label>
-        <p className="text-[11px] text-muted-foreground">
-          Set coordinates via postal code or manually. This enables the territory map.
-        </p>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Postal code (e.g. 13001)"
-            value={postalCode}
-            onChange={e => setPostalCode(e.target.value)}
-            className="text-sm"
-            onKeyDown={e => { if (e.key === "Enter") handleGeocode(); }}
-          />
-          <Button size="sm" variant="outline" onClick={handleGeocode} disabled={geocoding || !postalCode.trim()}>
-            {geocoding ? "…" : "Resolve"}
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <Label className="text-[10px] text-muted-foreground">Latitude</Label>
-            <Input
-              placeholder="43.2965"
-              value={latitude}
-              onChange={e => setLatitude(e.target.value)}
-              className="text-sm"
-              type="number"
-              step="any"
-              min={-90}
-              max={90}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[10px] text-muted-foreground">Longitude</Label>
-            <Input
-              placeholder="5.3698"
-              value={longitude}
-              onChange={e => setLongitude(e.target.value)}
-              className="text-sm"
-              type="number"
-              step="any"
-              min={-180}
-              max={180}
-            />
-          </div>
-        </div>
-        {latitude && longitude && (
-          <p className="text-[10px] text-emerald-600 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" /> Coordinates set: {parseFloat(latitude).toFixed(4)}, {parseFloat(longitude).toFixed(4)}
-          </p>
         )}
       </div>
 
