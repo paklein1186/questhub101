@@ -375,7 +375,7 @@ export default function PublicBooking() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium">{fmtDate(weekStart)} – {fmtDate(weekEnd)}</span>
-              <Button variant="ghost" size="icon" disabled={weekOffset >= 3} onClick={() => setWeekOffset(w => w + 1)}>
+              <Button variant="ghost" size="icon" disabled={weekOffset >= 8} onClick={() => setWeekOffset(w => w + 1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
