@@ -43,8 +43,8 @@ const ACTION_PATHS: ActionPath[] = [
       { label: "Discover guilds", type: "navigate", route: "/explore?tab=entities" },
       { label: "My territory", type: "navigate", route: "/territories" },
       { label: "Meet people", type: "navigate", route: "/explore/users" },
-      { label: "Events & rituals", type: "navigate", route: "/explore?tab=events" },
-      { label: "Courses & learning", type: "navigate", route: "/courses/explore" },
+      { label: "Events & rituals", type: "prompt", prompt: "I want to find upcoming events, rituals, or workshops in my territory or guilds. What's happening soon?" },
+      { label: "Courses & learning", type: "navigate", route: "/explore?tab=courses" },
       { label: "Global search", type: "navigate", route: "/search" },
     ],
   },
@@ -55,7 +55,7 @@ const ACTION_PATHS: ActionPath[] = [
     actions: [
       { label: "My guilds", type: "navigate", route: "/me/guilds" },
       { label: "Direct message", type: "navigate", route: "/inbox" },
-      { label: "Trust Graph", type: "navigate", route: "/trust-graph" },
+      { label: "Trust Graph", type: "navigate", route: "/network" },
       { label: "My follows", type: "navigate", route: "/me/following" },
       { label: "Propose partnership", type: "prompt", prompt: "I want to propose a collaboration or partnership between two guilds or entities on the platform. Which entities should be connected?" },
     ],
@@ -79,7 +79,7 @@ const ACTION_PATHS: ActionPath[] = [
     label: "Impact",
     actions: [
       { label: "My contributions", type: "navigate", route: "/me?tab=contributions" },
-      { label: "Value Pie & rewards", type: "navigate", route: "/work?tab=pie" },
+      { label: "Value Pie & rewards", type: "navigate", route: "/work?tab=quests" },
       { label: "Territory indicators", type: "prompt", prompt: "I want to view and update the natural system indicators for my territory. Which living system should I open?" },
       { label: "XP & level", type: "navigate", route: "/me/xp" },
       { label: "Milestones", type: "navigate", route: "/me/milestones" },

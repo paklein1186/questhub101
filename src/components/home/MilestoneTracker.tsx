@@ -132,24 +132,52 @@ const PHASE_META: Record<string, { label: string; emoji: string; color: string }
 
 // Map milestone codes to actionable routes
 const MILESTONE_ROUTES: Record<string, string> = {
+  // Phase 1: Discover
   complete_profile: "/me?tab=profile",
-  add_spoken_languages: "/explore",
+  explore_guilds: "/explore?tab=entities",
   join_first_guild: "/explore?tab=entities",
+  first_comment: "/feed",
+  // Phase 2: Contribute
+  respond_opportunity: "/explore?tab=quests",
+  add_knowledge: "/territories",
+  join_event: "/explore?tab=services",
+  help_or_resource: "/explore?tab=quests",
+  complete_subtask: "/work",
+  log_contribution: "/work",
+  fund_quest: "/explore?tab=quests",
+  follow_quest: "/explore?tab=quests",
+  // Phase 3: Create
+  create_quest: "/quests/new",
+  publish_service: "/services/new",
+  invite_collaborator: "/me/guilds",
+  post_update: "/work",
+  create_event: "/me/guilds",
+  create_course: "/courses/new",
+  open_fundraising: "/work",
+  set_availability: "/me/availability",
+  // Phase 4: Structure
+  create_guild: "/explore?tab=entities",
+  become_admin: "/me/guilds",
+  governance_vote: "/me/guilds",
+  setup_contract: "/work",
+  configure_exit: "/me/guilds",
+  create_partnership: "/me/guilds",
+  // Legacy codes (backward compat)
+  add_spoken_languages: "/explore?tab=entities",
   join_creative_circle: "/explore?tab=entities",
   impact_guild: "/explore?tab=entities",
-  create_first_quest: "/quests/create",
-  creative_artwork_quest: "/quests/create",
-  impact_quest: "/quests/create",
-  publish_service: "/services/create",
+  create_first_quest: "/quests/new",
+  creative_artwork_quest: "/quests/new",
+  impact_quest: "/quests/new",
   collaborate_pod: "/explore?tab=quests",
   contribute_territory: "/territories",
   impact_territory_memory: "/territories",
-  attend_event: "/explore?tab=events",
-  become_shareholder: "/explore?tab=quests",
-  publish_course: "/explore",
-  creative_class: "/explore",
-  host_workshop: "/explore",
-  invite_friend: "/explore",
+  attend_event: "/explore?tab=services",
+  become_shareholder: "/shares",
+  publish_course: "/courses/new",
+  creative_class: "/courses/new",
+  host_workshop: "/me/guilds",
+  invite_friend: "/me/guilds",
 };
 
 function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; index: number }) {
