@@ -6913,6 +6913,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          need_id: string | null
           proposer_id: string
           proposer_type: string
           quest_id: string
@@ -6928,6 +6929,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          need_id?: string | null
           proposer_id: string
           proposer_type?: string
           quest_id: string
@@ -6943,6 +6945,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          need_id?: string | null
           proposer_id?: string
           proposer_type?: string
           quest_id?: string
@@ -6955,6 +6958,13 @@ export type Database = {
           upvotes_count?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "quest_proposals_need_id_fkey"
+            columns: ["need_id"]
+            isOneToOne: false
+            referencedRelation: "quest_needs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quest_proposals_quest_id_fkey"
             columns: ["quest_id"]
