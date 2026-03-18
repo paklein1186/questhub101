@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 
 export function MilestoneTracker() {
   const { t } = useTranslation();
-  const { milestonesWithProgress, completedCount, totalCount } = useMilestones();
+  const { milestones: milestonesWithProgress, completedCount, totalCount } = useMilestones();
   const [expanded, setExpanded] = useState(false);
 
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
