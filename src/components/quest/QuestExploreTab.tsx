@@ -188,28 +188,11 @@ export function QuestExploreTab({
         </section>
       )}
 
-      {/* ═══ 3. Opportunities (Needs + Proposals) ═══ */}
-      {isLoggedIn && (
-        <section>
-          <h2 className="font-display text-lg font-bold flex items-center gap-2 mb-4">
-            <Lightbulb className="h-5 w-5 text-primary" /> Opportunities
-          </h2>
-          <QuestProposals
-            questId={quest.id}
-            questOwnerId={quest.created_by_user_id}
-            questStatus={quest.status}
-            missionBudgetMin={(quest as any).mission_budget_min}
-            missionBudgetMax={(quest as any).mission_budget_max}
-            paymentType={(quest as any).payment_type}
-          />
-        </section>
-      )}
-
-      {/* ═══ 4. I want to help (Participants + Invite) ═══ */}
+      {/* ═══ 3. Opportunities & I want to help ═══ */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
-            <HandHeart className="h-5 w-5 text-primary" /> I want to help
+            <Lightbulb className="h-5 w-5 text-primary" /> Opportunities
           </h2>
           <div className="flex items-center gap-2">
             <Link to={`/opportunities?quest=${quest.id}`}>
@@ -295,6 +278,18 @@ export function QuestExploreTab({
             )}
           </div>
         </div>
+
+        {/* Needs + Campaigns + Proposals */}
+        {isLoggedIn && (
+          <QuestProposals
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            questStatus={quest.status}
+            missionBudgetMin={(quest as any).mission_budget_min}
+            missionBudgetMax={(quest as any).mission_budget_max}
+            paymentType={(quest as any).payment_type}
+          />
+        )}
 
         {/* Participants compact */}
         <div className="mb-4">

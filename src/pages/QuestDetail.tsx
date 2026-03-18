@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb, Shield, PieChart } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
-import { FundQuestCard } from "@/components/quest/FundQuestCard";
+
 import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -762,12 +762,6 @@ export default function QuestDetail() {
           </div>
         )}
 
-        {/* Fund this Quest — public campaign contributions */}
-        {(quest as any).allow_fundraising && (
-          <div className="mb-4">
-            <FundQuestCard questId={quest.id} />
-          </div>
-        )}
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
           {/* Hosts display */}
