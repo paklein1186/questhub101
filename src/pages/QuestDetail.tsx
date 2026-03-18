@@ -29,7 +29,6 @@ import { DraftBanner } from "@/components/DraftBanner";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useLastTab } from "@/hooks/useLastTab";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +56,9 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
+import { QuestExploreTab } from "@/components/quest/QuestExploreTab";
+import { QuestWorkTab } from "@/components/quest/QuestWorkTab";
+import { QuestActivityTab } from "@/components/quest/QuestActivityTab";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
@@ -85,7 +87,6 @@ import { QuestLivingTab } from "@/components/living/QuestLivingTab";
 import { ExternalLinksPanel, type ExternalLinkItem } from "@/components/guild/ExternalLinksPanel";
 import { Leaf } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
-import { logger } from "@/lib/logger";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -210,9 +211,9 @@ export default function QuestDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);
   const { data: participants } = useQuestParticipants(id);
+  const { data: updates } = useQuestUpdates(id);
   const { data: questPods } = usePodsForQuest(id);
   const currentUser = useCurrentUser();
-  const { data: updates } = useQuestUpdates(id, currentUser?.id);
   const { toast } = useToast();
   const qc = useQueryClient();
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
@@ -331,18 +332,12 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
-  const [updateSort, setUpdateSort] = useState<"recent" | "upvoted">("recent");
-  const { getLastTab: getLastQuestTab, saveLastTab: saveLastQuestTab } = useLastTab("quest");
-  const urlTab = searchParams.get("tab");
-  const activeTab = urlTab || getLastQuestTab(id, "overview");
-  const setActiveTab = (v: string) => {
-    saveLastQuestTab(id, v);
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      if (v === "overview") next.delete("tab"); else next.set("tab", v);
-      return next;
-    }, { replace: true });
-  };
+  const activeTab = searchParams.get("tab") || "explore";
+  const setActiveTab = (v: string) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "explore") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
 
   const [podOpen, setPodOpen] = useState(false);
@@ -490,16 +485,6 @@ export default function QuestDetail() {
     toast({ title: currentPinned ? "Unpinned" : "Pinned!" });
   };
 
-  const toggleUpdateUpvote = async (updateId: string, currentlyUpvoted: boolean) => {
-    if (!currentUser?.id) return;
-    if (currentlyUpvoted) {
-      await supabase.from("quest_update_upvotes" as any).delete().eq("update_id", updateId).eq("user_id", currentUser.id);
-    } else {
-      await supabase.from("quest_update_upvotes" as any).insert({ update_id: updateId, user_id: currentUser.id } as any);
-    }
-    qc.invalidateQueries({ queryKey: ["quest-updates", id] });
-  };
-
   const createPod = async () => {
     if (!podName.trim()) return;
     const { data: pod, error } = await supabase.from("pods").insert({ name: podName.trim(), description: podDesc.trim() || null, image_url: podImageUrl || null, type: "QUEST_POD" as any, quest_id: quest.id, creator_id: currentUser.id, start_date: podStart || null, end_date: podEnd || null }).select().single();
@@ -629,7 +614,7 @@ export default function QuestDetail() {
         _quest_id: quest.id,
       });
       if (refundError) {
-        logger.error("Refund error:", refundError.message);
+        console.error("Refund error:", refundError.message);
         toast({ title: "Refund failed", description: refundError.message, variant: "destructive" });
       } else {
         const result = refundResult?.[0] || refundResult;
@@ -681,7 +666,7 @@ export default function QuestDetail() {
 
       {quest.cover_image_url && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-          <img src={quest.cover_image_url} alt={`Cover image for ${quest.title}`} className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
+          <img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
         </div>
       )}
 
@@ -707,52 +692,6 @@ export default function QuestDetail() {
           </div>
         </div>
 
-        {/* Prominent Budget Indicators */}
-        {(Number((quest as any).coins_budget ?? 0) > 0 || Number((quest as any).ctg_budget ?? 0) > 0 || Number((quest as any).coins_escrow ?? 0) > 0 || Number((quest as any).ctg_escrow ?? 0) > 0) && (
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            {Number((quest as any).coins_escrow ?? (quest as any).coins_budget ?? 0) > 0 && (() => {
-              const escrow = Number((quest as any).coins_escrow ?? 0);
-              const budget = Number((quest as any).coins_budget ?? 0);
-              const display = escrow > 0 ? escrow : budget;
-              const pct = budget > 0 ? Math.round((escrow / budget) * 100) : 100;
-              return (
-                <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
-                  <CurrencyIcon currency="coins" className="h-5 w-5" />
-                  <div>
-                    <p className="text-sm font-bold">{display.toLocaleString()} Coins</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      ≈ €{(display * coinsRate).toFixed(2)} {escrow > 0 && escrow < budget ? `• ${pct}% remaining` : "in escrow"}
-                    </p>
-                  </div>
-                </div>
-              );
-            })()}
-            {Number((quest as any).ctg_escrow ?? (quest as any).ctg_budget ?? 0) > 0 && (() => {
-              const escrow = Number((quest as any).ctg_escrow ?? 0);
-              const budget = Number((quest as any).ctg_budget ?? 0);
-              const display = escrow > 0 ? escrow : budget;
-              return (
-                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5">
-                  <CurrencyIcon currency="ctg" className="h-5 w-5" />
-                  <div>
-                    <p className="text-sm font-bold">{display.toLocaleString()} $CTG</p>
-                    <p className="text-[10px] text-muted-foreground">❄️ Frozen in escrow</p>
-                  </div>
-                </div>
-              );
-            })()}
-            {quest.credit_reward > 0 && (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5">
-                <CurrencyIcon currency="ctg" className="h-4 w-4" />
-                <div>
-                  <p className="text-sm font-bold">+{quest.credit_reward} $CTG</p>
-                  <p className="text-[10px] text-muted-foreground">per participant</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Mission Budget & Economy Bar */}
         {((quest as any).mission_budget_min || (quest as any).mission_budget_max || quest.credit_reward > 0 || (quest as any).credit_budget > 0) && (
           <div className="rounded-lg border border-border bg-muted/30 p-4 mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -760,7 +699,7 @@ export default function QuestDetail() {
               <div>
                 <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
                 <p className="text-lg font-bold">
-                  {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
+                  🟩 {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
                 </p>
                 <p className="text-[10px] text-muted-foreground">≈ €{(quest as any).mission_budget_min ?? 0} – €{(quest as any).mission_budget_max ?? 0} • {(quest as any).payment_type || "INVOICE"}</p>
               </div>
@@ -785,7 +724,7 @@ export default function QuestDetail() {
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {Number((quest as any).coins_budget ?? 0) > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Coins Pool</p>
+                <p className="text-xs text-muted-foreground font-medium">🟩 Coins Pool</p>
                 <p className="text-lg font-bold">{Number((quest as any).coins_escrow ?? 0).toLocaleString()} Coins</p>
                 <p className="text-[10px] text-muted-foreground">≈ €{(Number((quest as any).coins_escrow ?? 0) * coinsRate).toFixed(2)} in escrow</p>
               </div>
@@ -842,7 +781,7 @@ export default function QuestDetail() {
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge>
           {quest.price_fiat > 0 && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — {toCoins(quest.price_fiat / 100).toLocaleString()} Coins (≈ €{(quest.price_fiat / 100).toFixed(2)})</Badge>
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins (≈ €{(quest.price_fiat / 100).toFixed(2)})</Badge>
           )}
           {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
             <Badge variant="secondary" className="capitalize">Free</Badge>
@@ -887,7 +826,7 @@ export default function QuestDetail() {
                 if (!isLoggedIn) { setAuthPromptAction("join this quest"); setAuthPromptOpen(true); return; }
                 joinQuest();
               }}>
-                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — {toCoins(quest.price_fiat / 100).toLocaleString()} Coins</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
+                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
@@ -1118,22 +1057,15 @@ export default function QuestDetail() {
         </Dialog>
       </motion.div>
 
-      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this quest"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
+      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "explore") { setAuthPromptAction("explore this quest"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         <div className="flex items-center gap-1">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            {isLoggedIn && <TabsTrigger value="proposals">Contributions</TabsTrigger>}
-            {isLoggedIn && <TabsTrigger value="subtasks">Subtasks{subtaskCounts && subtaskCounts.total > 0 ? ` (${subtaskCounts.open}/${subtaskCounts.total})` : ""}</TabsTrigger>}
-            <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
-            <TabsTrigger value="discussion">Discussion</TabsTrigger>
-            {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
-            {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
-            {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
-            {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
-            <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
-            {(quest as any).ocu_enabled && <TabsTrigger value="pie"><PieChart className="h-3.5 w-3.5 mr-1" /> Pie</TabsTrigger>}
-            {(quest as any).ocu_enabled && <TabsTrigger value="contract"><FileText className="h-3.5 w-3.5 mr-1" /> Contract</TabsTrigger>}
+            <TabsTrigger value="explore">Explore</TabsTrigger>
+            {isLoggedIn && <TabsTrigger value="work"><ListChecks className="h-3.5 w-3.5 mr-1" /> Work</TabsTrigger>}
+            <TabsTrigger value="activity"><MessageCircle className="h-3.5 w-3.5 mr-1" /> Activity</TabsTrigger>
           </TabsList>
+
+          {/* ─── Contextual More Menu ─── */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-9 px-2.5">
@@ -1142,12 +1074,45 @@ export default function QuestDetail() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setActiveTab("pods")}>
-                <CircleDot className="h-4 w-4 mr-2" /> Pods ({(questPods || []).length})
+              {/* Living — show if quest has territory links or always for owners */}
+              <DropdownMenuItem onClick={() => setActiveTab("living")}>
+                <Leaf className="h-4 w-4 mr-2" /> Living
               </DropdownMenuItem>
+
+              {/* Agents — show for participants */}
+              {isLoggedIn && isParticipant && (
+                <DropdownMenuItem onClick={() => setActiveTab("agents")}>
+                  <Bot className="h-4 w-4 mr-2" /> Agents
+                </DropdownMenuItem>
+              )}
+
+              {/* Chat & AI */}
+              {isLoggedIn && (
+                <DropdownMenuItem onClick={() => setActiveTab("ai-chat")}>
+                  <Bot className="h-4 w-4 mr-2" /> Chat & AI
+                </DropdownMenuItem>
+              )}
+
+              {/* Trust — only when completed */}
+              {quest.status === "COMPLETED" && (
+                <DropdownMenuItem onClick={() => setActiveTab("trust")}>
+                  <Shield className="h-4 w-4 mr-2" /> Trust
+                </DropdownMenuItem>
+              )}
+
+              {/* Pods — show if any exist or for owners */}
+              {((questPods || []).length > 0 || isOwner) && (
+                <DropdownMenuItem onClick={() => setActiveTab("pods")}>
+                  <CircleDot className="h-4 w-4 mr-2" /> Pods ({(questPods || []).length})
+                </DropdownMenuItem>
+              )}
+
+              {/* Documents */}
               <DropdownMenuItem onClick={() => setActiveTab("documents")}>
                 <FileText className="h-4 w-4 mr-2" /> Documents
               </DropdownMenuItem>
+
+              {/* Owner-only tools */}
               {isOwner && (
                 <>
                   <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
@@ -1167,7 +1132,6 @@ export default function QuestDetail() {
                       className="text-orange-600 focus:text-orange-600"
                       onClick={async () => {
                         if (!confirm("Cancel this quest? Credit contributions will be refunded.")) return;
-                        // Trigger refund if credit-funded
                         if ((quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
                           await supabase.rpc("refund_quest_funding" as any, { _quest_id: quest.id });
                         }
@@ -1196,335 +1160,85 @@ export default function QuestDetail() {
           </DropdownMenu>
         </div>
 
-        <TabsContent value="overview" className="mt-6 space-y-6">
-          {/* Top trusted participants */}
-          <TopTrustedMembers
-            memberIds={(participants || []).map((p: any) => p.user_id)}
-            relevantTags={(quest.quest_topics || []).map((qt: any) => qt.topics?.name).filter(Boolean)}
-          />
-
-          {/* Co-hosts management */}
-          {(quest.guild_id || quest.company_id) && resolvedHosts && (
-            <QuestCoHostsManager
-              questId={quest.id}
-              primaryEntityType={quest.guild_id ? "GUILD" : quest.company_id ? "COMPANY" : undefined}
-              primaryEntityId={quest.guild_id || quest.company_id || undefined}
-              hosts={resolvedHosts}
-              canManage={isOwner}
-            />
-          )}
-
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
-            {canPostUpdate && (
-              <Dialog open={inviteOpen} onOpenChange={(o) => { setInviteOpen(o); if (!o) setInviteEmail(""); }}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Invite a participant</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-2">
-                    {/* Existing user search */}
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Search existing members</label>
-                      <UserSearchInput
-                        onSelect={async (user) => {
-                          const already = (participants || []).some((p: any) => p.user_id === user.user_id);
-                          if (already) { toast({ title: "Already a participant" }); return; }
-                          const { error } = await supabase.from("quest_participants").insert({
-                            quest_id: quest.id, user_id: user.user_id, role: "COLLABORATOR", status: "ACCEPTED",
-                          });
-                          if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
-                          sendInviteNotification({ invitedUserId: user.user_id, inviterName: currentUser.name, entityType: "quest", entityId: quest.id, entityName: quest.title });
-                          setInviteOpen(false);
-                          qc.invalidateQueries({ queryKey: ["quest-participants", id] });
-                          toast({ title: `${user.display_name || "User"} invited!` });
-                        }}
-                        placeholder="Search by name…"
-                        excludeUserIds={(participants || []).map((p: any) => p.user_id)}
-                      />
-                    </div>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                      <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">or invite by email</span></div>
-                    </div>
-
-                    {/* Email invite */}
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Invite someone new via email</label>
-                      <form
-                        className="flex gap-2"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          const email = inviteEmail.trim().toLowerCase();
-                          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                            toast({ title: "Please enter a valid email", variant: "destructive" });
-                            return;
-                          }
-                          setInviteEmailSending(true);
-                          try {
-                            const { data, error } = await supabase.functions.invoke("invite-quest-email", {
-                              body: { email, questId: quest.id, questTitle: quest.title, inviterName: currentUser.name },
-                            });
-                            if (error) throw error;
-                            if (data?.error) {
-                              toast({ title: data.error, variant: "destructive" });
-                            } else if (data?.type === "existing_user") {
-                              qc.invalidateQueries({ queryKey: ["quest-participants", id] });
-                              toast({ title: "User found and added as participant!" });
-                              setInviteOpen(false);
-                            } else {
-                              toast({ title: data?.emailSent ? "Invitation email sent!" : "Invite recorded (email delivery pending)" });
-                              setInviteOpen(false);
-                            }
-                          } catch (err: any) {
-                            toast({ title: err.message || "Failed to send invite", variant: "destructive" });
-                          } finally {
-                            setInviteEmailSending(false);
-                            setInviteEmail("");
-                          }
-                        }}
-                      >
-                        <Input
-                          type="email"
-                          placeholder="colleague@example.com"
-                          value={inviteEmail}
-                          onChange={(e) => setInviteEmail(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button type="submit" size="sm" disabled={inviteEmailSending}>
-                          {inviteEmailSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-4 w-4 mr-1" /> Send</>}
-                        </Button>
-                      </form>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {(participants || []).map((p: any) => (
-              <Link key={p.id} to={`/users/${p.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                <Avatar className="h-9 w-9"><AvatarImage src={p.user?.avatar_url} /><AvatarFallback>{p.user?.name?.[0]}</AvatarFallback></Avatar>
-                <div><p className="text-sm font-medium">{p.user?.name}</p><div className="flex gap-1.5"><Badge variant="secondary" className="text-[10px] capitalize">{p.role.toLowerCase()}</Badge><Badge variant="outline" className="text-[10px] capitalize">{p.status.toLowerCase()}</Badge></div></div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Quest Followers (excluding participants) */}
-          <QuestFollowersSection questId={quest.id} participantUserIds={(participants || []).map((p: any) => p.user_id)} />
-
-          {/* Attached Entities (hosts) */}
-          {resolvedHosts && resolvedHosts.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Hosted by</h3>
-              <div className="flex flex-wrap gap-3">
-                {resolvedHosts.map((host) => (
-                  <Link
-                    key={host.id}
-                    to={host.entity_type === "GUILD" ? `/guilds/${host.entity_id}` : `/companies/${host.entity_id}`}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={host.logo_url ?? undefined} />
-                      <AvatarFallback>{host.name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{host.name}</p>
-                      <Badge variant="outline" className="text-[10px] capitalize">{host.role === "PRIMARY" ? "Host" : "Co-host"}</Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="proposals" className="mt-6">
-          <QuestProposals
-            questId={quest.id}
-            questOwnerId={quest.created_by_user_id}
-            questStatus={quest.status}
-            missionBudgetMin={(quest as any).mission_budget_min}
-            missionBudgetMax={(quest as any).mission_budget_max}
-            paymentType={(quest as any).payment_type}
+        {/* ═══════════ EXPLORE TAB ═══════════ */}
+        <TabsContent value="explore">
+          <QuestExploreTab
+            quest={quest}
+            participants={participants || []}
+            resolvedHosts={resolvedHosts}
+            topics={topics}
+            territories={territories}
+            currentUser={currentUser}
+            isOwner={isOwner}
+            isParticipant={isParticipant}
+            isCollaborator={isCollaborator}
+            isLoggedIn={isLoggedIn}
+            canPostUpdate={canPostUpdate}
           />
         </TabsContent>
 
-        <TabsContent value="subtasks" className="mt-6 space-y-6">
-          <QuestSubtasks
-            questId={quest.id}
-            questOwnerId={quest.created_by_user_id}
-            guildId={quest.guild_id}
-            canManage={isOwner || isCollaborator}
-            questRewardXp={quest.reward_xp ?? 0}
-            questCreditReward={quest.credit_reward ?? 0}
-            questCoinsBudget={Number((quest as any).coins_budget ?? 0)}
-            questCtgBudget={Number((quest as any).credit_budget ?? 0)}
-          />
-          <ContributionLogPanel
-            questId={quest.id}
-            questOwnerId={quest.created_by_user_id}
-            guildId={quest.guild_id}
-            territoryId={territories.length > 0 ? territories[0].id : null}
-            isCoHost={isCollaborator}
+        {/* ═══════════ WORK TAB ═══════════ */}
+        <TabsContent value="work">
+          <QuestWorkTab
+            quest={quest}
+            participants={participants || []}
+            territories={territories}
+            currentUser={currentUser}
+            isOwner={isOwner}
+            isParticipant={isParticipant}
+            isCollaborator={isCollaborator}
             isGuildAdmin={isGuildAdmin}
           />
-
-          {/* OCU Section — bypass gate if quest already has budget or contributions */}
-          <OCUFeatureGate
-            quest={quest}
-            isAdmin={isOwner || isGuildAdmin}
-            bypassWhenActive={Number((quest as any).coins_budget ?? 0) > 0 || Number((quest as any).ctg_budget ?? 0) > 0}
-            onEnable={async () => {
-              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
-              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
-            }}
-          >
-            <OCUContributionsList
-              quest={quest}
-              isAdmin={isOwner || isGuildAdmin}
-              onEnableOCU={() => {}}
-            />
-            <DistributeCompensation
-              quest={quest}
-              isAdmin={isOwner || isGuildAdmin}
-              onEnableOCU={() => {}}
-            />
-            <DistributionPanel
-              quest={quest}
-              isAdmin={isOwner || isGuildAdmin}
-              isParticipant={isParticipant}
-              onEnableOCU={() => {}}
-            />
-          </OCUFeatureGate>
         </TabsContent>
 
-        {/* ── Contribution Pie ── */}
-        <TabsContent value="pie" className="mt-6">
-          <QuestPiePanel
+        {/* ═══════════ ACTIVITY TAB ═══════════ */}
+        <TabsContent value="activity">
+          <QuestActivityTab
             quest={quest}
-            isAdmin={isOwner || isGuildAdmin}
-            onEnableOCU={async () => {
-              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
-              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            updates={updates || []}
+            participants={participants || []}
+            topics={topics}
+            territories={territories}
+            currentUser={currentUser}
+            isOwner={isOwner}
+            isParticipant={isParticipant}
+            canPostUpdate={canPostUpdate}
+            qfc={qfc}
+            onOpenUpdateDialog={() => {
+              setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL");
+              setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUpdateOpen(true);
             }}
+            onEditUpdate={openEditUpdate}
+            onDeleteUpdate={deleteUpdate}
+            onTogglePin={togglePin}
           />
         </TabsContent>
 
-        {/* ── Contract ── */}
-        <TabsContent value="contract" className="mt-6">
-          <ContractTab
-            quest={quest}
-            isAdmin={isOwner || isGuildAdmin}
-            onEnableOCU={async () => {
-              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
-              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
-            }}
+        {/* ═══════════ MORE MENU PAGES ═══════════ */}
+        <TabsContent value="living" className="mt-6">
+          <QuestLivingTab
+            linkedType="quest"
+            linkedId={quest.id}
+            defaultTerritoryId={territories?.[0]?.id}
+            isOwner={isOwner}
           />
         </TabsContent>
 
-        <TabsContent value="updates" className="mt-6 space-y-4">
-          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">Share progress, milestones, and calls-to-action with your community.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex rounded-md border border-border overflow-hidden">
-                <button
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${updateSort === "recent" ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:bg-muted"}`}
-                  onClick={() => setUpdateSort("recent")}
-                >
-                  Most Recent
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${updateSort === "upvoted" ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:bg-muted"}`}
-                  onClick={() => setUpdateSort("upvoted")}
-                >
-                  <Heart className="h-3 w-3 inline mr-1" />Most Upvoted
-                </button>
-              </div>
-              {canPostUpdate && (
-                <Button size="sm" onClick={() => { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUpdateOpen(true); }}>
-                  <Send className="h-4 w-4 mr-1" /> Create Update
-                </Button>
-              )}
-            </div>
-          </div>
-          {(updates || []).length === 0 && <div className="text-center py-10"><p className="text-muted-foreground">No updates yet.</p>{canPostUpdate && <p className="text-sm text-muted-foreground mt-1">Share your first progress update.</p>}</div>}
-          {[...(updates || [])]
-            .sort((a: any, b: any) => {
-              // Pinned always first
-              if (a.pinned && !b.pinned) return -1;
-              if (!a.pinned && b.pinned) return 1;
-              if (updateSort === "upvoted") return (b.upvote_count ?? 0) - (a.upvote_count ?? 0);
-              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            })
-            .map((update: any, i: number) => {
-            const Icon = updateIcons[update.type] || MessageCircle;
-            const isUpdateAuthor = currentUser.id === update.author_id;
-            const canEdit = isUpdateAuthor || isOwner;
-            return (
-              <motion.div key={update.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`rounded-xl border bg-card p-5 space-y-3 ${update.pinned ? "border-primary/40 bg-primary/5" : "border-border"}`}>
-                <div className="flex items-start gap-3">
-                  {update.author && (
-                    <Link to={`/users/${update.author.user_id}`}>
-                      <Avatar className="h-9 w-9"><AvatarImage src={update.author.avatar_url} /><AvatarFallback>{update.author.name?.[0]}</AvatarFallback></Avatar>
-                    </Link>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm flex-wrap">
-                      {update.author && <Link to={`/users/${update.author.user_id}`} className="font-medium hover:text-primary">{update.author.name}</Link>}
-                      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-[10px] capitalize">{update.type.toLowerCase().replace(/_/g, " ")}</Badge>
-                      {update.pinned && <Badge className="text-[10px] bg-primary/10 text-primary border-0">📌 Pinned</Badge>}
-                      {update.visibility && update.visibility !== "PUBLIC" && (
-                        <Badge variant="outline" className="text-[10px] capitalize">{update.visibility === "FOLLOWERS" ? "Followers" : "Internal"}</Badge>
-                      )}
-                      <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}</span>
-                    </div>
-                    <h4 className="font-display font-semibold mt-1">{update.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
-                    {update.image_url && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.image_url} alt={`Image for update: ${update.title}`} className="w-full h-auto" /></div>}
-                    <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
-                    {/* Upvote button */}
-                    <div className="mt-2 flex items-center gap-2">
-                      <button
-                        onClick={() => toggleUpdateUpvote(update.id, update.user_upvoted)}
-                        className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                          update.user_upvoted
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground hover:border-primary/50 hover:text-primary"
-                        }`}
-                      >
-                        <Heart className={`h-3.5 w-3.5 ${update.user_upvoted ? "fill-primary" : ""}`} />
-                        {(update.upvote_count ?? 0) > 0 && <span className="font-medium">{update.upvote_count}</span>}
-                        {!update.upvote_count && <span>Like</span>}
-                      </button>
-                    </div>
-                  </div>
-                  {canEdit && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditUpdate(update)}><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
-                        {isOwner && <DropdownMenuItem onClick={() => togglePin(update.id, update.pinned)}>{update.pinned ? "Unpin" : "📌 Pin"}</DropdownMenuItem>}
-                        <DropdownMenuItem className="text-destructive" onClick={() => deleteUpdate(update.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-                {update.comments_enabled !== false && (
-                  <div className="ml-12 pt-3 border-t border-border">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Comments on this update</p>
-                    <CommentThread targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+        {isParticipant && (
+          <TabsContent value="agents" className="mt-6">
+            <UnitAgentsTab unitType="quest" unitId={quest.id} unitName={quest.title} isAdmin={isOwner} />
+          </TabsContent>
+        )}
+
+        <TabsContent value="ai-chat" className="mt-6">
+          <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
         </TabsContent>
+
+        {quest.status === "COMPLETED" && (
+          <TabsContent value="trust" className="mt-6">
+            <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
+          </TabsContent>
+        )}
 
         <TabsContent value="pods" className="mt-6 space-y-3">
           {(questPods || []).length === 0 && <p className="text-muted-foreground">No pods yet. Create one above!</p>}
@@ -1532,7 +1246,7 @@ export default function QuestDetail() {
             const memberCount = (pod.pod_members || []).length;
             return (
               <Link key={pod.id} to={`/pods/${pod.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                {pod.image_url && <div className="h-28 w-full"><img src={pod.image_url} alt={`${pod.name} pod`} className="w-full h-full object-cover" /></div>}
+                {pod.image_url && <div className="h-28 w-full"><img src={pod.image_url} alt="" className="w-full h-full object-cover" /></div>}
                 <div className="p-4">
                   <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{pod.name}</h4><span className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount}</span></div>
                   <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{pod.description}</p>
@@ -1546,23 +1260,6 @@ export default function QuestDetail() {
           <QuestExternalLinks questId={quest.id} isOwner={isOwner} />
           <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
           {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
-        </TabsContent>
-
-        <TabsContent value="discussion" className="mt-6 space-y-6">
-          <GuildDiscussionTab
-            guildId={quest.guild_id || quest.id}
-            guildName={guild?.name || quest.title}
-            isAdmin={isOwner}
-            isMember={isParticipant || false}
-            canPost={isOwner || isParticipant || false}
-            initialTerritoryIds={territories.map((t: any) => t.id)}
-            initialTopicIds={topics.map((t: any) => t.id)}
-            scopeType="QUEST"
-            scopeId={quest.id}
-            membership={isOwner ? { role: "ADMIN" } : isParticipant ? { role: "MEMBER" } : undefined}
-            currentUserId={currentUser.id}
-          />
-          <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
 
         {isOwner && (
@@ -1593,38 +1290,6 @@ export default function QuestDetail() {
             }} />
           </TabsContent>
         )}
-
-        <TabsContent value="ai-chat" className="mt-6">
-          <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
-        </TabsContent>
-
-        {isParticipant && (
-          <TabsContent value="agents" className="mt-6">
-            <UnitAgentsTab unitType="quest" unitId={quest.id} unitName={quest.title} isAdmin={isOwner} />
-          </TabsContent>
-        )}
-
-        {qfc.rituals && (
-          <TabsContent value="rituals" className="mt-6">
-            <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
-          </TabsContent>
-        )}
-
-        {quest.status === "COMPLETED" && (
-          <TabsContent value="trust" className="mt-6">
-            <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
-          </TabsContent>
-        )}
-
-        <TabsContent value="living" className="mt-6">
-          <QuestLivingTab
-            linkedType="quest"
-            linkedId={quest.id}
-            defaultTerritoryId={territories?.[0]?.id}
-            isOwner={isOwner}
-          />
-        </TabsContent>
-        
       </Tabs>
       <PiContextSetter contextType="quest" contextId={id} />
     </PageShell>
