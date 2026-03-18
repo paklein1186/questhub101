@@ -226,7 +226,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   };
 
   const updateStatus = async (subtaskId: string, status: string) => {
-    await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
+    const { error } = await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
+    if (error) {
+      console.error("Failed to update subtask status:", error);
+      toast({ title: "Failed to update task status", description: error.message, variant: "destructive" });
+    }
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
