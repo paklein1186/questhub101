@@ -564,9 +564,46 @@ function buildDigestFromTemplate(
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
-  const clusters = (digest.clusters ?? []).slice(0, 4);
+  // ── Stats bar ──
+  const statsBar = (digest.stats_bar ?? [])
+    .filter((s: any) => s.value > 0)
+    .map((s: any) => `<span style="white-space:nowrap;">${s.emoji} <strong>${s.value}</strong> ${s.label}</span>`)
+    .join(`<span style="color:hsl(250,18%,80%);margin:0 8px;">·</span>`);
 
-  const clustersHtml = clusters.map((cluster: any, idx: number) => {
+  const statsBarHtml = statsBar
+    ? `<div style="background:hsl(250,30%,97%);border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:14px;color:hsl(250,12%,30%);text-align:center;line-height:1.8;">${statsBar}</div>`
+    : "";
+
+  // ── Featured cards (new rich format) ──
+  const cards = (digest.featured_cards ?? []).slice(0, 5);
+  const cardsHtml = cards.map((card: any) => {
+    const typeColors: Record<string, string> = { post: "hsl(262,83%,58%)", quest: "hsl(25,95%,53%)", event: "hsl(142,60%,40%)" };
+    const typeLabels: Record<string, string> = { post: "POST", quest: "QUEST", event: "EVENT" };
+    const accentColor = typeColors[card.type] || "hsl(262,83%,58%)";
+    const typeLabel = typeLabels[card.type] || "UPDATE";
+    const linkUrl = card.link?.startsWith("http") ? card.link : `${BASE_URL}${card.link || "/explore"}`;
+    const metaLine = card.meta ? `<p style="font-size:12px;color:hsl(250,12%,56%);margin:6px 0 0;">${card.meta}</p>` : "";
+    const authorLine = card.author ? `<span style="font-weight:600;">${card.author}</span> · ` : "";
+
+    return `
+      <a href="${linkUrl}" style="text-decoration:none;display:block;margin-bottom:16px;">
+        <div style="border:1px solid hsl(250,18%,90%);border-radius:10px;overflow:hidden;">
+          <div style="border-left:4px solid ${accentColor};padding:16px 18px;">
+            <div style="margin-bottom:8px;">
+              <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accentColor};">${card.emoji || ""} ${typeLabel}</span>
+              <span style="font-size:12px;color:hsl(250,12%,56%);margin-left:8px;">${card.context_label || ""}</span>
+            </div>
+            <p style="font-size:16px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 6px;line-height:1.3;">${card.title}</p>
+            <p style="font-size:14px;color:hsl(250,12%,36%);margin:0;line-height:1.5;">${authorLine}${card.teaser || ""}</p>
+            ${metaLine}
+          </div>
+        </div>
+      </a>`;
+  }).join("");
+
+  // ── Legacy clusters fallback ──
+  const clusters = (digest.clusters ?? []).slice(0, 4);
+  const clustersHtml = clusters.length > 0 && cards.length === 0 ? clusters.map((cluster: any, idx: number) => {
     const isProgress = (cluster.label || "").includes("Progress");
     const bgStyle = isProgress
       ? "background:hsl(142,40%,96%);border-radius:8px;padding:16px;"
