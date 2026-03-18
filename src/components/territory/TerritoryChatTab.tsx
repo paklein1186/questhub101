@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Send, Loader2, Brain, Sparkles, BookOpen, MessageSquare, Paperclip, X, FileText, Image as ImageIcon, Link2 } from "lucide-react";
@@ -87,7 +88,8 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
     setAttachment(null);
   };
 
-  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string; size: number }> => {
+  const uploadFile = async (rawFile: File): Promise<{ url: string; name: string; type: string; size: number }> => {
+    const file = await compressImage(rawFile);
     const safeName = sanitizeFileName(file.name);
     const path = `${userId}/${Date.now()}-${safeName}`;
     const { error } = await supabase.storage.from("territory-chat").upload(path, file);

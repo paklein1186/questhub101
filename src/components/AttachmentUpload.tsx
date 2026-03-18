@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { Paperclip, X, FileText, Image, Film, Music, File, Upload, Heart, Trash2, Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,8 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || !currentUser.id) return;
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = await compressImage(rawFile);
       const safeName = file.name
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-zA-Z0-9._-]/g, "-");

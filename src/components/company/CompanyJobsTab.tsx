@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { Plus, Briefcase, MapPin, FileText, Upload, Trash2, ExternalLink, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,9 +68,10 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    file = await compressImage(file);
     const safeName = file.name
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9._-]/g, "-");

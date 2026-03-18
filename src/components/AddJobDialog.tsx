@@ -11,6 +11,7 @@ import { useTerritories } from "@/hooks/useSupabaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { logger } from "@/lib/logger";
 
@@ -161,9 +162,10 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    file = await compressImage(file);
     const safeName = file.name
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9._-]/g, "-");

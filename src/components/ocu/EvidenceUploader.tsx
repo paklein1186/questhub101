@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2 } from "lucide-react";
@@ -17,9 +18,9 @@ export function EvidenceUploader({ onUpload, questId, accept = "image/*,applicat
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
+  const handleFile = async (rawFile: File) => {
     if (!currentUser.id) return;
-    if (file.size > maxSizeMb * 1024 * 1024) {
+    if (rawFile.size > maxSizeMb * 1024 * 1024) {
       setError(`File too large (max ${maxSizeMb}MB)`);
       return;
     }
@@ -27,6 +28,7 @@ export function EvidenceUploader({ onUpload, questId, accept = "image/*,applicat
     setUploading(true);
     setError(null);
 
+    const file = await compressImage(rawFile);
     const ext = file.name.split(".").pop() ?? "bin";
     const path = `${questId}/${crypto.randomUUID()}.${ext}`;
 

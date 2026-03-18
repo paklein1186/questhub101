@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { MentionTextarea, extractMentionIds, extractAllMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
 import { ImagePlus, Paperclip, Link2, Send, X, Loader2, Film, Globe, Lock, Shield } from "lucide-react";
@@ -162,8 +163,8 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
     fetchLinkPreview(linkUrl.trim());
   };
 
-  const uploadFile = async (file: File): Promise<string> => {
-    // Sanitize filename: remove non-ASCII chars, spaces → dashes
+  const uploadFile = async (rawFile: File): Promise<string> => {
+    const file = await compressImage(rawFile);
     const ext = file.name.split(".").pop() ?? "bin";
     const safeName = file.name
       .replace(/\.[^/.]+$/, "")

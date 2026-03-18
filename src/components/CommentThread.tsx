@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { compressImage } from "@/lib/compressImage";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2, ImagePlus } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -141,8 +142,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     }
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const uploadImage = async (rawFile: File): Promise<string | null> => {
+    const file = await compressImage(rawFile);
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
     const path = `${currentUser.id}/${Date.now()}-${safeName}`;
     const { error } = await supabase.storage.from("comment-images").upload(path, file, { contentType: file.type });
