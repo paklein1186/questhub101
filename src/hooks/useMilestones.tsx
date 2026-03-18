@@ -54,7 +54,11 @@ export function useMilestones() {
         .select("*")
         .eq("is_enabled", true)
         .order("sort_order");
-      return (data ?? []) as Milestone[];
+      return (data ?? []).map((d: any) => ({
+        ...d,
+        subtitle: d.subtitle ?? null,
+        phase: d.phase ?? "discover",
+      })) as Milestone[];
     },
     staleTime: 300_000,
   });
