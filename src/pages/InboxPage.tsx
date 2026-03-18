@@ -259,9 +259,10 @@ export default function InboxPage() {
     const uploadedFiles: { url: string; name: string; type: string; size: number }[] = [];
     for (const att of currentAttachments) {
       try {
-        const safeName = sanitizeFileName(att.file.name);
+        const compressed = await compressImage(att.file);
+        const safeName = sanitizeFileName(compressed.name);
         const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${safeName}`;
-        const { error } = await supabase.storage.from("dm-attachments").upload(path, att.file);
+        const { error } = await supabase.storage.from("dm-attachments").upload(path, compressed);
         if (error) throw error;
         // Store the storage path (not public URL) since bucket is private
         uploadedFiles.push({ url: path, name: att.file.name, type: att.file.type, size: att.file.size });

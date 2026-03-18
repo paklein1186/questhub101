@@ -87,7 +87,8 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
     setAttachment(null);
   };
 
-  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string; size: number }> => {
+  const uploadFile = async (rawFile: File): Promise<{ url: string; name: string; type: string; size: number }> => {
+    const file = await compressImage(rawFile);
     const safeName = sanitizeFileName(file.name);
     const path = `${userId}/${Date.now()}-${safeName}`;
     const { error } = await supabase.storage.from("territory-chat").upload(path, file);

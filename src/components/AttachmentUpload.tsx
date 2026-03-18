@@ -53,7 +53,8 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || !currentUser.id) return;
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = await compressImage(rawFile);
       const safeName = file.name
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-zA-Z0-9._-]/g, "-");

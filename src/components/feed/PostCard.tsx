@@ -278,7 +278,8 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
     );
   };
 
-  const uploadEditFile = async (file: File): Promise<string> => {
+  const uploadEditFile = async (rawFile: File): Promise<string> => {
+    const file = await compressImage(rawFile);
     const ext = file.name.split(".").pop() ?? "bin";
     const safeName = file.name
       .replace(/\.[^/.]+$/, "")

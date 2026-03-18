@@ -141,8 +141,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     }
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const uploadImage = async (rawFile: File): Promise<string | null> => {
+    const file = await compressImage(rawFile);
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
     const path = `${currentUser.id}/${Date.now()}-${safeName}`;
     const { error } = await supabase.storage.from("comment-images").upload(path, file, { contentType: file.type });

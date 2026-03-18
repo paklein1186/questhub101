@@ -42,11 +42,12 @@ export function ImageUpload({
   }, [focalPoint]);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
+      file = await compressImage(file);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop() ?? "jpg";

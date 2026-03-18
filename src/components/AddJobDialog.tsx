@@ -161,9 +161,10 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    file = await compressImage(file);
     const safeName = file.name
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9._-]/g, "-");
