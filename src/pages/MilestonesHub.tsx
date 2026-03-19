@@ -21,7 +21,7 @@ const SUGGESTED_ACTIONS: Record<string, { label: string; to: string }> = {
   create_first_quest: { label: "Create a quest", to: "/quests/new" },
   publish_service: { label: "Create a service", to: "/services/new" },
   collaborate_pod: { label: "Explore pods", to: "/explore?tab=pods" },
-  contribute_territory: { label: "Explore territories", to: "/explore/houses" },
+  contribute_territory: { label: "Explore territories", to: "/network?tab=territories" },
   attend_event: { label: "Find events", to: "/calendar" },
   publish_course: { label: "Create a course", to: "/courses/new" },
   join_creative_circle: { label: "Browse circles", to: "/explore?tab=guilds" },
