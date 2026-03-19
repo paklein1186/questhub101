@@ -199,8 +199,10 @@ export default function AgentDetail() {
                       {agent.name}
                       {agent.is_featured && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
                     </h1>
-                    <Badge variant="outline" className="text-xs">{agent.category}</Badge>
-                  </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-xs">{agent.category}</Badge>
+                      <AgentSourceBadge agentSource={(agent as any).agent_source} healthStatus={(agent as any).health_status} size="lg" />
+                    </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
                 <div className="flex flex-wrap gap-1 mb-4">

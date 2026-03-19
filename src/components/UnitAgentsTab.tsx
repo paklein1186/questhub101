@@ -128,7 +128,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
                   <Badge variant="outline" className="text-[10px] mt-0.5">
                     {ua.agents?.category}
                   </Badge>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                  <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                     {ua.agents?.description}
                   </p>
                 </div>
