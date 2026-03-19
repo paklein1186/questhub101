@@ -12,6 +12,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PLAN_ORDER, ECONOMY_LABELS, PLAN_MIGRATION_MAP, LEGACY_PLAN_CODES } from "@/lib/xpCreditsConfig";
+import { useAgentQuota } from "@/hooks/useAgentQuota";
 
 interface PlanRow {
   id: string;
