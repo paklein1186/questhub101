@@ -606,13 +606,18 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
               <div>
                 <Label>Hire price (one-time, credits)</Label>
                 <Input type="number" value={hirePrice} onChange={e => setHirePrice(e.target.value)} min="0" placeholder="0 = free to hire" />
+                {parseInt(hirePrice) > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ≈ <span className="font-medium text-foreground">€{(parseInt(hirePrice) || 0).toFixed(2)}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Usage price (per message, credits)</Label>
                 <Input type="number" value={usagePrice} onChange={e => setUsagePrice(e.target.value)} min="0" />
                 {parseInt(usagePrice) > 0 && (
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    You earn <span className="font-medium text-foreground">80%</span> = <span className="font-medium text-foreground">{((parseInt(usagePrice) || 0) * 0.8).toFixed(1)} credits</span> per msg
+                    ≈ <span className="font-medium text-foreground">€{(parseInt(usagePrice) || 0).toFixed(2)}</span>/msg · You earn <span className="font-medium text-foreground">80%</span> = <span className="font-medium text-foreground">€{((parseInt(usagePrice) || 0) * 0.8).toFixed(2)}</span> per msg
                   </p>
                 )}
               </div>
