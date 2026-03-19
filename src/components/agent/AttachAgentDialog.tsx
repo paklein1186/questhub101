@@ -42,8 +42,7 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
         .from("guild_members")
         .select("guild_id, guilds(id, name)")
         .eq("user_id", userId)
-        .in("role", ["admin", "owner"])
-        .limit(20);
+        .eq("role", "ADMIN");
       let results = (data || []).map((gm: any) => gm.guilds).filter(Boolean);
       if (search.trim()) {
         const s = search.trim().toLowerCase();
@@ -57,13 +56,13 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
     queryKey: ["my-territories-for-attach", userId, search],
     enabled: open && tab === "territory",
     queryFn: async () => {
+      // Use territories where user is creator or admin via company membership
       const { data } = await supabase
-        .from("territory_members")
-        .select("territory_id, territories(id, name)")
-        .eq("user_id", userId)
-        .in("role", ["admin", "steward"])
+        .from("territories")
+        .select("id, name")
+        .eq("created_by_user_id", userId)
         .limit(20);
-      let results = (data || []).map((tm: any) => tm.territories).filter(Boolean);
+      let results = data || [];
       if (search.trim()) {
         const s = search.trim().toLowerCase();
         results = results.filter((t: any) => t.name?.toLowerCase().includes(s));
@@ -76,10 +75,9 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
 
   const attach = async (targetId: string) => {
     setAttaching(targetId);
-    const unitType = tab === "territory" ? "pod" : tab;
     const { error } = await supabase.from("unit_agents" as any).insert({
       agent_id: agentId,
-      unit_type: unitType,
+      unit_type: tab,
       unit_id: targetId,
       admitted_by_user_id: userId,
     } as any);
