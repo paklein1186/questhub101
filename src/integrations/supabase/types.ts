@@ -4940,9 +4940,11 @@ export type Database = {
           id: string
           is_enabled: boolean
           persona_visibility: string
+          phase: string
           reward_amount: number | null
           reward_type: string
           sort_order: number
+          subtitle: string | null
           title: string
           trigger_config: Json | null
           trigger_type: string
@@ -4956,9 +4958,11 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           persona_visibility?: string
+          phase?: string
           reward_amount?: number | null
           reward_type?: string
           sort_order?: number
+          subtitle?: string | null
           title: string
           trigger_config?: Json | null
           trigger_type?: string
@@ -4972,9 +4976,11 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           persona_visibility?: string
+          phase?: string
           reward_amount?: number | null
           reward_type?: string
           sort_order?: number
+          subtitle?: string | null
           title?: string
           trigger_config?: Json | null
           trigger_type?: string
