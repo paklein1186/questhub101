@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, Plus, Trash2, Send, Loader2, Sparkles, Search, Zap, ArrowLeft } from "lucide-react";
+import { Bot, Plus, Trash2, Send, Loader2, Sparkles, Search, Zap, ArrowLeft, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
