@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, CheckCircle, Circle, ArrowRight,
-  Sparkles, ChevronDown, ChevronUp,
+  Sparkles, ChevronDown, ChevronUp, Loader2,
 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
@@ -15,13 +15,29 @@ import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones
 import { MILESTONE_ROUTES, PHASE_META } from "@/lib/milestoneRoutes";
 import { cn } from "@/lib/utils";
 
-function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
+function MilestoneCard({
+  m,
+  onComplete,
+}: {
+  m: MilestoneWithProgress;
+  onComplete?: (code: string) => Promise<void>;
+}) {
   const action = MILESTONE_ROUTES[m.code];
+  const [completing, setCompleting] = useState(false);
+
+  const handleTick = async () => {
+    if (m.isCompleted || completing || !onComplete) return;
+    setCompleting(true);
+    await onComplete(m.code);
+    setCompleting(false);
+  };
 
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       className={cn(
         "rounded-xl border p-4 transition-all",
         m.isCompleted
@@ -37,13 +53,27 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
             {m.isCompleted ? (
               <CheckCircle className="h-4 w-4 text-primary shrink-0" />
             ) : (
-              <Circle className="h-4 w-4 text-muted-foreground/30 shrink-0" />
+              <button
+                onClick={handleTick}
+                disabled={completing}
+                className="shrink-0 group relative"
+                title="Mark as completed"
+              >
+                {completing ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <>
+                    <Circle className="h-4 w-4 text-muted-foreground/30 group-hover:hidden" />
+                    <CheckCircle className="h-4 w-4 text-primary/50 hidden group-hover:block" />
+                  </>
+                )}
+              </button>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>
-          {(m as any).subtitle && (
+          {m.subtitle && (
             <p className="text-[10px] text-muted-foreground/70 italic mt-0.5">
-              {(m as any).subtitle}
+              {m.subtitle}
             </p>
           )}
 
@@ -79,7 +109,7 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
 }
 
 export default function MilestonesHub() {
-  const { milestones, completedCount, totalCount } = useMilestones();
+  const { milestones, completedCount, totalCount, completeMilestone } = useMilestones();
   const [showCompleted, setShowCompleted] = useState(false);
 
   const phaseOrder = ["discover", "contribute", "create", "structure"];
@@ -168,9 +198,11 @@ export default function MilestonesHub() {
                 </span>
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
+              <AnimatePresence mode="popLayout">
                 {items.map((m) => (
-                  <MilestoneCard key={m.id} m={m} />
+                  <MilestoneCard key={m.id} m={m} onComplete={completeMilestone} />
                 ))}
+              </AnimatePresence>
               </div>
             </section>
           );
@@ -210,7 +242,7 @@ export default function MilestonesHub() {
           ) : showCompleted ? (
             <div className="grid gap-3 sm:grid-cols-2">
               {completed.map((m) => (
-                <MilestoneCard key={m.id} m={m} />
+                <MilestoneCard key={m.id} m={m} onComplete={completeMilestone} />
               ))}
             </div>
           ) : null}
