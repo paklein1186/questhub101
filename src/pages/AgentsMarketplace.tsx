@@ -203,6 +203,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
   const [skills, setSkills] = useState("");
   const [costPerUse, setCostPerUse] = useState("5");
   const [category, setCategory] = useState("general");
+  const [billingCurrency, setBillingCurrency] = useState<"free" | "credits" | "coins">("credits");
   const [saving, setSaving] = useState(false);
 
   // Source mode
