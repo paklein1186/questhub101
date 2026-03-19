@@ -21,7 +21,7 @@ export function useAgentQuota() {
         .from("user_subscriptions")
         .select("subscription_plans(monthly_agent_interactions)")
         .eq("user_id", user!.id)
-        .eq("status", "active")
+        .eq("status", "ACTIVE")
         .limit(1)
         .maybeSingle();
 
