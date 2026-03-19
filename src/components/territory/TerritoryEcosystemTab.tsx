@@ -252,21 +252,35 @@ function useHierarchicalPeople(descendantIds: string[] | undefined) {
     queryFn: async () => {
       const ids = descendantIds!;
 
-      // Get user → territory mappings
-      const { data: utData } = await supabase
-        .from("user_territories")
-        .select("user_id, territory_id")
-        .in("territory_id", ids);
+      // Get user → territory mappings from user_territories AND stewards (trust_edges)
+      const [utRes, stewardRes] = await Promise.all([
+        supabase
+          .from("user_territories")
+          .select("user_id, territory_id")
+          .in("territory_id", ids),
+        supabase
+          .from("trust_edges" as any)
+          .select("from_node_id, to_node_id")
+          .in("to_node_id", ids)
+          .eq("edge_type", "stewardship")
+          .eq("status", "active"),
+      ]);
 
-      if (!utData?.length) return [] as TerritoryPerson[];
-
-      // Dedupe users, keep first territory_id mapping
+      // Merge both sources, dedupe users
       const userTerritoryMap = new Map<string, string>();
-      for (const ut of utData) {
+      for (const ut of (utRes.data ?? [])) {
         if (!userTerritoryMap.has(ut.user_id)) {
           userTerritoryMap.set(ut.user_id, ut.territory_id);
         }
       }
+      for (const edge of (stewardRes.data ?? []) as any[]) {
+        if (!userTerritoryMap.has(edge.from_node_id)) {
+          userTerritoryMap.set(edge.from_node_id, edge.to_node_id);
+        }
+      }
+
+      if (userTerritoryMap.size === 0) return [] as TerritoryPerson[];
+
       const userIds = [...userTerritoryMap.keys()];
 
       // Fetch profiles + topics in parallel
