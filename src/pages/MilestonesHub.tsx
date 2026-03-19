@@ -198,9 +198,11 @@ export default function MilestonesHub() {
                 </span>
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
+              <AnimatePresence mode="popLayout">
                 {items.map((m) => (
-                  <MilestoneCard key={m.id} m={m} />
+                  <MilestoneCard key={m.id} m={m} onComplete={completeMilestone} />
                 ))}
+              </AnimatePresence>
               </div>
             </section>
           );
