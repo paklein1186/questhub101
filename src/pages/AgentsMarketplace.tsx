@@ -251,11 +251,12 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
       description: description.trim() || null,
       system_prompt: agentSource === "platform" ? systemPrompt.trim() : `External agent (${agentSource})`,
       skills: skills.split(",").map(s => s.trim()).filter(Boolean),
-      cost_per_use: parseInt(costPerUse) || 5,
+      cost_per_use: billingCurrency === "free" ? 0 : (parseInt(costPerUse) || 5),
       category,
       creator_user_id: userId,
       is_published: true,
       agent_source: agentSource,
+      billing_currency: billingCurrency,
     };
 
     if (agentSource === "webhook") {
