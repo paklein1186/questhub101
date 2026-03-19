@@ -350,7 +350,7 @@ export function QuestProposals({
         <h3 className="font-display font-semibold flex items-center gap-2 text-sm">
           <Lightbulb className="h-4 w-4 text-primary" /> What this quest needs
         </h3>
-        <QuestNeedsManager questId={questId} questOwnerId={questOwnerId} readOnly />
+        <QuestNeedsManager questId={questId} questOwnerId={questOwnerId} />
       </div>
 
       {/* ── Funding Campaigns ──────────────────────────── */}

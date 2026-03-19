@@ -134,8 +134,8 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
     <div className="space-y-3">
       {!readOnly && isOwner && (
         <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={openCreate}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Need
+          <Button size="sm" variant="default" onClick={openCreate}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add Opportunity
           </Button>
         </div>
       )}
@@ -191,9 +191,9 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Need" : "Add a Need"}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Opportunity" : "Add an Opportunity"}</DialogTitle>
             <DialogDescription>
-              Describe what this quest requires from the community.
+              Describe what this quest needs from the community.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -244,7 +244,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={saveNeed} disabled={saving || !form.title.trim()}>
               {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              {editingId ? "Update" : "Add Need"}
+              {editingId ? "Update" : "Add Opportunity"}
             </Button>
           </DialogFooter>
         </DialogContent>
