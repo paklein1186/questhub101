@@ -209,16 +209,16 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                     <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                   </div>
                 )}
-                {isHired && (
-                  <div className="absolute top-3 left-3">
-                    <Badge className="text-[10px] bg-primary/10 text-primary border-primary/30">
-                      <CheckCircle className="h-3 w-3 mr-1" /> Hired
-                    </Badge>
-                  </div>
-                )}
                 <div className="flex items-start gap-3 mb-3 mt-1">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="h-6 w-6 text-primary" />
+                  <div className="relative h-12 w-12 shrink-0">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-6 w-6 text-primary" />
+                    </div>
+                    {isHired && (
+                      <Badge className="absolute -top-2 -left-2 text-[10px] bg-primary/10 text-primary border-primary/30 px-1.5 py-0 whitespace-nowrap">
+                        <CheckCircle className="h-3 w-3 mr-0.5" /> Hired
+                      </Badge>
+                    )}
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
