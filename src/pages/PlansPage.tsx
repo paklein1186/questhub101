@@ -43,6 +43,7 @@ interface PlanRow {
   territory_intelligence_enabled: boolean;
   memory_engine_enabled: boolean;
   broadcast_enabled: boolean;
+  monthly_agent_interactions: number;
 }
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
