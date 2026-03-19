@@ -27,7 +27,7 @@ const SUGGESTED_ACTIONS: Record<string, { label: string; to: string }> = {
   join_creative_circle: { label: "Browse circles", to: "/explore?tab=guilds" },
   creative_artwork_quest: { label: "Start a creative quest", to: "/quests/new" },
   creative_class: { label: "Publish a course", to: "/courses/new" },
-  impact_territory_memory: { label: "Explore territories", to: "/explore/houses" },
+  impact_territory_memory: { label: "Explore territories", to: "/network?tab=territories" },
   impact_quest: { label: "Create an impact quest", to: "/quests/new" },
   impact_guild: { label: "Join an impact guild", to: "/explore?tab=guilds" },
   host_workshop: { label: "Create an event", to: "/calendar" },
