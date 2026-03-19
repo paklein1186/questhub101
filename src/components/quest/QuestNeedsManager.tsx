@@ -244,7 +244,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={saveNeed} disabled={saving || !form.title.trim()}>
               {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              {editingId ? "Update" : "Add Need"}
+              {editingId ? "Update" : "Add Opportunity"}
             </Button>
           </DialogFooter>
         </DialogContent>
