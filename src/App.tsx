@@ -289,6 +289,7 @@ const App = () => (
                 <Route path="/agents" element={<AgentsMarketplace />} />
                 <Route path="/agents/webhook-spec" element={<WebhookSpecPage />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
+                <Route path="/my-agents" element={<RequireAuth><MyAgents /></RequireAuth>} />
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
                 <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
                 <Route path="/site/:websiteSlug/:pageSlug" element={<PublicWebsite />} />
