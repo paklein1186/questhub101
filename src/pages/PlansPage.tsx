@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Building2, Sparkles, Eye, ArrowRight, TrendingDown } from "lucide-react";
+import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Building2, Sparkles, Eye, ArrowRight, TrendingDown, Bot } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PLAN_ORDER, ECONOMY_LABELS, PLAN_MIGRATION_MAP, LEGACY_PLAN_CODES } from "@/lib/xpCreditsConfig";
+import { useAgentQuota } from "@/hooks/useAgentQuota";
 
 interface PlanRow {
   id: string;
@@ -42,6 +43,7 @@ interface PlanRow {
   territory_intelligence_enabled: boolean;
   memory_engine_enabled: boolean;
   broadcast_enabled: boolean;
+  monthly_agent_interactions: number;
 }
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
@@ -70,6 +72,7 @@ export default function PlansPage() {
   const { t } = useTranslation();
   const { session } = useAuth();
   const { plan: currentPlan, refresh } = usePlanLimits();
+  const agentQuota = useAgentQuota();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<PlanRow[]>([]);
@@ -231,6 +234,13 @@ export default function PlansPage() {
                     {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3 w-3" />} label="Create companies" highlight />}
                     {plan.partnership_proposals_enabled && <PlanFeature label="Partnership proposals" highlight />}
                     {plan.ai_agents_enabled && <PlanFeature label="AI Agents" highlight />}
+                    {plan.monthly_agent_interactions > 0 && (
+                      <PlanFeature
+                        icon={<Bot className="h-3 w-3" />}
+                        label={`${plan.monthly_agent_interactions} agent interactions/mo${isCurrentPlan ? ` — Used ${agentQuota.used}/${plan.monthly_agent_interactions}` : ""}`}
+                        highlight
+                      />
+                    )}
                     {plan.territory_intelligence_enabled && <PlanFeature label="Territory intelligence" highlight />}
                     {plan.fundraising_tools_enabled && <PlanFeature label="Fundraising tools" highlight />}
                     {plan.memory_engine_enabled && <PlanFeature label="Memory engine" highlight />}
