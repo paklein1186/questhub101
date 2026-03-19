@@ -371,7 +371,10 @@ function AgentChat({ agentId, agentName, costPerUse, billingCurrency, userId, ag
       <div className="p-4 border-b border-border flex items-center gap-2">
         <Bot className="h-5 w-5 text-primary" />
         <span className="font-semibold">{agentName}</span>
-        <Badge variant="secondary" className="text-[10px] ml-auto"><Zap className="h-3 w-3 mr-0.5" />{costPerUse} credits/msg</Badge>
+        <Badge variant="secondary" className="text-[10px] ml-auto">
+          <Zap className="h-3 w-3 mr-0.5" />
+          {billingCurrency === "free" ? "Free" : `${costPerUse} ${billingCurrency}/msg`}
+        </Badge>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
