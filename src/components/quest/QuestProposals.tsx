@@ -137,6 +137,20 @@ export function QuestProposals({
 
   const profileMap = Object.fromEntries(proposerProfiles.map((p: any) => [p.user_id, p]));
 
+  // Quest needs for linking contributions
+  const { data: questNeeds = [] } = useQuery({
+    queryKey: ["quest-needs", questId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_needs" as any)
+        .select("id, title, status")
+        .eq("quest_id", questId)
+        .in("status", ["open", "in_progress"])
+        .order("created_at", { ascending: false }) as any;
+      return data ?? [];
+    },
+  });
+
   // ── Submit Proposal ─────────────────────────────────────
   const [expandedComments, setExpandedComments] = useState<string | null>(null);
   const [propOpen, setPropOpen] = useState(false);
@@ -145,6 +159,7 @@ export function QuestProposals({
   const [propCredits, setPropCredits] = useState("");
   const [propCurrency, setPropCurrency] = useState<"CREDITS" | "FIAT" | "BOTH">("CREDITS");
   const [propFiatAmount, setPropFiatAmount] = useState("");
+  const [propNeedId, setPropNeedId] = useState<string>("");
 
   const submitProposal = async () => {
     if (!propTitle.trim() || !currentUser.id) return;
