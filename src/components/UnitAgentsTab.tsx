@@ -131,6 +131,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
                   <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                     {ua.agents?.description}
+                  </p>
                 </div>
                 {isAdmin && (
                   <Button
