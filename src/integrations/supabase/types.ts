@@ -7604,30 +7604,46 @@ export type Database = {
       }
       revenue_share_records: {
         Row: {
+          agent_id: string | null
           amount: number
           beneficiary_id: string | null
           beneficiary_type: Database["public"]["Enums"]["billing_entity_type"]
           created_at: string
+          currency: string | null
           id: string
-          usage_record_id: string
+          share_pct: number | null
+          usage_record_id: string | null
         }
         Insert: {
+          agent_id?: string | null
           amount?: number
           beneficiary_id?: string | null
           beneficiary_type: Database["public"]["Enums"]["billing_entity_type"]
           created_at?: string
+          currency?: string | null
           id?: string
-          usage_record_id: string
+          share_pct?: number | null
+          usage_record_id?: string | null
         }
         Update: {
+          agent_id?: string | null
           amount?: number
           beneficiary_id?: string | null
           beneficiary_type?: Database["public"]["Enums"]["billing_entity_type"]
           created_at?: string
+          currency?: string | null
           id?: string
-          usage_record_id?: string
+          share_pct?: number | null
+          usage_record_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "revenue_share_records_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "revenue_share_records_usage_record_id_fkey"
             columns: ["usage_record_id"]

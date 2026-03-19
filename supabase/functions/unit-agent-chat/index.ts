@@ -160,6 +160,8 @@ Respond helpfully based on this context. If you don't know something specific ab
 
     // ─── Hybrid billing ───────────────────────────────────────────
     const billingCurrency = agent.billing_currency || "credits";
+    let chargedAmount = 0;
+    let paymentType = "free";
 
     if (billingCurrency !== "free") {
       let usedPlan = false;
@@ -197,11 +199,14 @@ Respond helpfully based on this context. If you don't know something specific ab
             .update({ agent_interactions_this_month: currentCount + 1 })
             .eq("id", user.id);
           usedPlan = true;
+          paymentType = "plan";
         }
       }
 
       if (!usedPlan) {
+        chargedAmount = agent.cost_per_use;
         if (billingCurrency === "coins") {
+          paymentType = "coins";
           const { error: spendErr } = await adminClient.rpc("spend_user_coins", {
             _amount: agent.cost_per_use,
             _type: "AGENT_USE",
@@ -215,6 +220,7 @@ Respond helpfully based on this context. If you don't know something specific ab
             }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         } else {
+          paymentType = "credits";
           const { error: spendErr } = await adminClient.rpc("spend_user_credits", {
             _amount: agent.cost_per_use,
             _type: "AGENT_USE",
@@ -229,6 +235,56 @@ Respond helpfully based on this context. If you don't know something specific ab
           }
         }
       }
+    }
+
+    // ─── Revenue sharing (unit agent: 60% creator, 25% host guild, 15% platform) ──
+    if (chargedAmount > 0 && (paymentType === "credits" || paymentType === "coins")) {
+      const balanceField = paymentType === "coins" ? "coins_balance" : "credits_balance";
+      const creatorShare = Math.round(chargedAmount * 60) / 100;
+      const guildShare = Math.round(chargedAmount * 25) / 100;
+
+      // Grant to creator
+      const { data: creatorProfile } = await adminClient
+        .from("profiles")
+        .select(balanceField)
+        .eq("id", agent.creator_user_id)
+        .single();
+      if (creatorProfile) {
+        await adminClient.from("profiles")
+          .update({ [balanceField]: (creatorProfile as any)[balanceField] + creatorShare })
+          .eq("id", agent.creator_user_id);
+      }
+
+      // Grant to host guild (only for guild unit type)
+      if (unitType === "guild" && guildShare > 0) {
+        const { data: guild } = await adminClient
+          .from("guilds")
+          .select(balanceField)
+          .eq("id", unitId)
+          .single();
+        if (guild) {
+          await adminClient.from("guilds")
+            .update({ [balanceField]: (guild as any)[balanceField] + guildShare })
+            .eq("id", unitId);
+        }
+      }
+
+      // Log revenue shares
+      const shares = [
+        { beneficiary_type: "user", beneficiary_id: agent.creator_user_id, share_pct: 60, amount: creatorShare },
+        { beneficiary_type: "guild", beneficiary_id: unitType === "guild" ? unitId : null, share_pct: 25, amount: guildShare },
+        { beneficiary_type: "platform", beneficiary_id: null, share_pct: 15, amount: Math.round(chargedAmount * 15) / 100 },
+      ];
+      await adminClient.from("revenue_share_records").insert(
+        shares.map(s => ({
+          agent_id: agentId,
+          beneficiary_type: s.beneficiary_type,
+          beneficiary_id: s.beneficiary_id,
+          share_pct: s.share_pct,
+          amount: s.amount,
+          currency: paymentType,
+        }))
+      );
     }
 
     // Increment usage

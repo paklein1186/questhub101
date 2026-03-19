@@ -95,9 +95,10 @@ serve(async (req) => {
 
     // ─── Hybrid billing ───────────────────────────────────────────
     const billingCurrency = agent.billing_currency || "credits";
+    let chargedAmount = 0;
+    let paymentType = "free"; // free | plan | credits | coins
 
     if (billingCurrency !== "free") {
-      // Check plan-based free interactions
       let usedPlan = false;
 
       const { data: profile } = await adminClient
@@ -107,7 +108,6 @@ serve(async (req) => {
         .single();
 
       if (profile) {
-        // Reset counter if new month
         const monthStart = new Date();
         monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
         let currentCount = profile.agent_interactions_this_month || 0;
@@ -119,7 +119,6 @@ serve(async (req) => {
             .eq("id", user.id);
         }
 
-        // Check plan quota
         const { data: sub } = await adminClient
           .from("user_subscriptions")
           .select("subscription_plans(monthly_agent_interactions)")
@@ -135,11 +134,14 @@ serve(async (req) => {
             .update({ agent_interactions_this_month: currentCount + 1 })
             .eq("id", user.id);
           usedPlan = true;
+          paymentType = "plan";
         }
       }
 
       if (!usedPlan) {
+        chargedAmount = agent.cost_per_use;
         if (billingCurrency === "coins") {
+          paymentType = "coins";
           const { error: spendErr } = await adminClient.rpc("spend_user_coins", {
             _amount: agent.cost_per_use,
             _type: "AGENT_USE",
@@ -153,6 +155,7 @@ serve(async (req) => {
             }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         } else {
+          paymentType = "credits";
           const { error: spendErr } = await adminClient.rpc("spend_user_credits", {
             _amount: agent.cost_per_use,
             _type: "AGENT_USE",
@@ -167,6 +170,57 @@ serve(async (req) => {
           }
         }
       }
+    }
+
+    // ─── Revenue sharing (hired agent: 75% creator, 15% platform, 10% commons) ──
+    if (chargedAmount > 0 && (paymentType === "credits" || paymentType === "coins")) {
+      const balanceField = paymentType === "coins" ? "coins_balance" : "credits_balance";
+      const creatorShare = Math.round(chargedAmount * 75) / 100;
+      const commonsShare = Math.round(chargedAmount * 10) / 100;
+
+      // Grant to creator
+      await adminClient.from("profiles")
+      // Grant to creator
+      const { data: creatorProfile } = await adminClient
+        .from("profiles")
+        .select(balanceField)
+        .eq("id", agent.creator_user_id)
+        .single();
+      if (creatorProfile) {
+        await adminClient.from("profiles")
+          .update({ [balanceField]: (creatorProfile as any)[balanceField] + creatorShare })
+          .eq("id", agent.creator_user_id);
+      }
+
+      // Commons pool
+      if (commonsShare > 0) {
+        const { data: setting } = await adminClient
+          .from("cooperative_settings")
+          .select("value")
+          .eq("key", "ctg_commons_wallet")
+          .maybeSingle();
+        const currentPool = setting ? Number((setting.value as any)?.amount || 0) : 0;
+        await adminClient.from("cooperative_settings")
+          .update({ value: { amount: currentPool + commonsShare }, updated_at: new Date().toISOString() })
+          .eq("key", "ctg_commons_wallet");
+      }
+
+      // Log revenue shares
+      const shares = [
+        { beneficiary_type: "user", beneficiary_id: agent.creator_user_id, share_pct: 75, amount: creatorShare },
+        { beneficiary_type: "platform", beneficiary_id: null, share_pct: 15, amount: Math.round(chargedAmount * 15) / 100 },
+        { beneficiary_type: "user", beneficiary_id: null, share_pct: 10, amount: commonsShare },
+      ];
+      await adminClient.from("revenue_share_records").insert(
+        shares.map(s => ({
+          agent_id: agentId,
+          beneficiary_type: s.beneficiary_type,
+          beneficiary_id: s.beneficiary_id,
+          share_pct: s.share_pct,
+          amount: s.amount,
+          currency: paymentType,
+        }))
+      );
     }
 
     // Increment usage count
