@@ -446,55 +446,73 @@ export type Database = {
       }
       agents: {
         Row: {
+          agent_source: string
           avatar_url: string | null
           category: string
           cost_per_use: number
           created_at: string
           creator_user_id: string
           description: string | null
+          external_llm_config: Json | null
+          external_webhook_url: string | null
+          health_status: string
           id: string
           is_featured: boolean
           is_published: boolean
+          last_health_check_at: string | null
           name: string
           skills: string[] | null
           system_prompt: string
           territory_id: string | null
           updated_at: string
           usage_count: number
+          webhook_secret: string | null
         }
         Insert: {
+          agent_source?: string
           avatar_url?: string | null
           category?: string
           cost_per_use?: number
           created_at?: string
           creator_user_id: string
           description?: string | null
+          external_llm_config?: Json | null
+          external_webhook_url?: string | null
+          health_status?: string
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          last_health_check_at?: string | null
           name: string
           skills?: string[] | null
           system_prompt: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
+          webhook_secret?: string | null
         }
         Update: {
+          agent_source?: string
           avatar_url?: string | null
           category?: string
           cost_per_use?: number
           created_at?: string
           creator_user_id?: string
           description?: string | null
+          external_llm_config?: Json | null
+          external_webhook_url?: string | null
+          health_status?: string
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          last_health_check_at?: string | null
           name?: string
           skills?: string[] | null
           system_prompt?: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
+          webhook_secret?: string | null
         }
         Relationships: [
           {
