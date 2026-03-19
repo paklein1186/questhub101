@@ -121,25 +121,116 @@ serve(async (req) => {
       .update({ last_used_at: new Date().toISOString() })
       .eq("id", hire.id);
 
-    // Call Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    // ─── Route based on agent_source ───────────────────────────────
+    let aiResponse: Response;
+    const chatMessages = messages.map((m: any) => ({ role: m.role, content: m.content }));
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: agent.system_prompt },
-          ...messages.map((m: any) => ({ role: m.role, content: m.content })),
-        ],
-        stream: true,
-      }),
-    });
+    if (agent.agent_source === "webhook" && agent.external_webhook_url) {
+      // ── Webhook agent ──
+      const webhookHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (agent.webhook_secret) webhookHeaders["X-Webhook-Secret"] = agent.webhook_secret;
+
+      try {
+        aiResponse = await fetch(agent.external_webhook_url, {
+          method: "POST",
+          headers: webhookHeaders,
+          body: JSON.stringify({
+            messages: chatMessages,
+            context: { agent_id: agentId, user_id: user.id },
+          }),
+          signal: AbortSignal.timeout(30_000),
+        });
+
+        await adminClient.from("agents").update({
+          health_status: aiResponse.ok ? "healthy" : "degraded",
+          last_health_check_at: new Date().toISOString(),
+        }).eq("id", agentId);
+
+        if (!aiResponse.ok) {
+          const errText = await aiResponse.text();
+          console.error("Webhook error:", aiResponse.status, errText);
+          throw new Error("Webhook returned " + aiResponse.status);
+        }
+
+        const ct = aiResponse.headers.get("content-type") || "";
+        if (!ct.includes("text/event-stream")) {
+          const json = await aiResponse.json();
+          const text = json.content || json.message || json.text || json.reply || JSON.stringify(json);
+          const ssePayload = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
+          aiResponse = new Response(ssePayload, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+        }
+      } catch (err) {
+        console.error("Webhook unreachable:", err);
+        await adminClient.from("agents").update({
+          health_status: "unreachable",
+          last_health_check_at: new Date().toISOString(),
+        }).eq("id", agentId);
+        updateAgentTrust(adminClient, agentId, agent.name, agent.creator_user_id, newUsageCount, false).catch(
+          (e) => console.error("Trust update error:", e)
+        );
+        return new Response(JSON.stringify({ error: "External agent unreachable" }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+    } else if (agent.agent_source === "custom_llm" && agent.external_llm_config) {
+      // ── Custom LLM agent ──
+      const cfg = agent.external_llm_config as { provider: string; model: string; api_key_ref: string };
+      const { provider, model, api_key_ref } = cfg;
+
+      const providerEndpoints: Record<string, string> = {
+        openai: "https://api.openai.com/v1/chat/completions",
+        mistral: "https://api.mistral.ai/v1/chat/completions",
+        groq: "https://api.groq.com/openai/v1/chat/completions",
+        anthropic: "https://api.anthropic.com/v1/messages",
+      };
+
+      const endpoint = providerEndpoints[provider];
+      if (!endpoint) throw new Error(`Unsupported provider: ${provider}`);
+
+      if (provider === "anthropic") {
+        const userMessages = chatMessages.map((m: any) => ({ role: m.role === "system" ? "user" : m.role, content: m.content }));
+        aiResponse = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "x-api-key": api_key_ref,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ model, system: agent.system_prompt, messages: userMessages, max_tokens: 4096, stream: true }),
+        });
+      } else {
+        aiResponse = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${api_key_ref}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "system", content: agent.system_prompt }, ...chatMessages],
+            stream: true,
+          }),
+        });
+      }
+    } else {
+      // ── Platform agent (default) ──
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [{ role: "system", content: agent.system_prompt }, ...chatMessages],
+          stream: true,
+        }),
+      });
+    }
 
     const aiSuccess = aiResponse.ok;
 
@@ -152,21 +243,18 @@ serve(async (req) => {
       const status = aiResponse.status;
       if (status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await aiResponse.text();
-      console.error("AI gateway error:", status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      console.error("AI error:", status, t);
+      return new Response(JSON.stringify({ error: "AI provider error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
