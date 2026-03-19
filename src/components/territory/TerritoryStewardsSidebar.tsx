@@ -35,7 +35,7 @@ export function TerritoryStewardsSidebar({
 
   const isAuthenticated = !!currentUser.id;
   const isSteward = stewards.some(s => s.user_id === currentUser.id);
-  const canRequest = isAuthenticated && !isSteward && !isPioneerTerritory && userXpLevel >= 2;
+  const canRequest = isAuthenticated && !isSteward && !isPioneerTerritory && userXpLevel >= 1;
 
   // Check existing request
   const { data: existingRequest } = useQuery({

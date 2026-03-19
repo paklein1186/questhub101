@@ -224,6 +224,14 @@ export default function TerritoriesHome() {
                 <Plus className="h-3.5 w-3.5" /> Create Bioregion
               </Link>
             </Button>
+            {currentUser.id && (
+              <>
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setShowWizard(true)}>
+                  <Plus className="h-3.5 w-3.5" /> Add Territory
+                </Button>
+                {showWizard && <TerritoryCreateWizard open={showWizard} onClose={() => setShowWizard(false)} />}
+              </>
+            )}
           </div>
         </div>
       </div>
