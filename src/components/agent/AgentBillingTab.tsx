@@ -126,7 +126,7 @@ export default function AgentBillingTab({ agentId, agentCreatorId }: Props) {
               <Select value={selectedPlan || billing?.current_plan_id || ""} onValueChange={setSelectedPlan}>
                 <SelectTrigger><SelectValue placeholder="No plan" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No plan</SelectItem>
+                  <SelectItem value="none">No plan</SelectItem>
                   {(plans || []).map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.label} — {p.monthly_price} credits/mo

@@ -441,7 +441,7 @@ export function QuestProposals({
                     <Select value={propNeedId} onValueChange={setPropNeedId}>
                       <SelectTrigger><SelectValue placeholder="(optional) Select a need…" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         {questNeeds.map((n: any) => (
                           <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>
                         ))}
