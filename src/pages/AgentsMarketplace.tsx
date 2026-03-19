@@ -220,7 +220,6 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                       </Badge>
                     )}
                   </div>
-                  </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
                     <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
