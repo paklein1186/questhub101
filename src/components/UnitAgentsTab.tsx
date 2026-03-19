@@ -259,6 +259,9 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const agentQuota = useAgentQuota();
+  const billingCurrency = agent.billing_currency || "credits";
+  const costPerUse = agent.cost_per_use || 0;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
