@@ -424,8 +424,7 @@ export function HousesTerritoriesTab() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [newTopicName, setNewTopicName] = useState("");
-  const [newTerritoryName, setNewTerritoryName] = useState("");
-  const [newTerritoryLevel, setNewTerritoryLevel] = useState("TOWN");
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
 
   const { data: topics = [] } = useQuery({
     queryKey: ["admin-topics"],
