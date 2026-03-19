@@ -109,8 +109,7 @@ function MilestoneCard({
 }
 
 export default function MilestonesHub() {
-  const { milestones, completedCount, totalCount } = useMilestones();
-  const [showCompleted, setShowCompleted] = useState(false);
+  const { milestones, completedCount, totalCount, completeMilestone } = useMilestones();
 
   const phaseOrder = ["discover", "contribute", "create", "structure"];
 
