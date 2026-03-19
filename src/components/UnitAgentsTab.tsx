@@ -383,14 +383,14 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {/* Quota banner */}
-        {billingCurrency !== "free" && agentQuota.planQuota > 0 && (
+        {/* Cost banner */}
+        {usagePrice > 0 && (
           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
             <Info className="h-3.5 w-3.5 shrink-0" />
             {agentQuota.remaining > 0 ? (
               <span>You have <span className="font-medium text-foreground">{agentQuota.remaining}</span> free interactions remaining this month.</span>
             ) : (
-              <span>Free interactions used up. Next message costs <span className="font-medium text-foreground">{costPerUse} {billingCurrency}</span>.</span>
+              <span>Each message costs <span className="font-medium text-foreground">{usagePrice} credits</span>. Plan credits are used first.</span>
             )}
           </div>
         )}
