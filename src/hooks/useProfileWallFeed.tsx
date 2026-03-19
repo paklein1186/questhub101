@@ -22,6 +22,28 @@ const TABLE_MAP: Record<string, { table: string; nameCol: string }> = {
   USER: { table: "profiles", nameCol: "name" },
 };
 
+/** Map variant context types to their base type for DB lookup */
+const baseContextType = (t: string) => {
+  if (t === "GUILD_DISCUSSION" || t === "GUILD_EVENT") return "GUILD";
+  if (t === "QUEST_DISCUSSION") return "QUEST";
+  return t;
+};
+
+const CONTEXT_SUFFIX: Record<string, string> = {
+  GUILD_DISCUSSION: " › Discussion",
+  QUEST_DISCUSSION: " › Discussion",
+  GUILD_EVENT: " › Event",
+};
+
+const LINK_MAP: Record<string, string> = {
+  GUILD: "/guilds/",
+  COMPANY: "/companies/",
+  QUEST: "/quests/",
+  POD: "/pods/",
+  COURSE: "/courses/",
+  USER: "/users/",
+};
+
 /**
  * Aggregated wall feed for a profile page.
  * Collects posts from:
