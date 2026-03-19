@@ -20,6 +20,7 @@ import AgentOverviewTab from "@/components/agent/AgentOverviewTab";
 import AgentPermissionsTab from "@/components/agent/AgentPermissionsTab";
 import AgentActivityTab from "@/components/agent/AgentActivityTab";
 import AgentTrustTab from "@/components/agent/AgentTrustTab";
+import { useAgentQuota } from "@/hooks/useAgentQuota";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
