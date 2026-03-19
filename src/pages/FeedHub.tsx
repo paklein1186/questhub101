@@ -104,7 +104,7 @@ export default function FeedHub() {
         }
       }
 
-      // Fetch context names
+      // Fetch context names — normalize discussion/event types to their parent entity
       const tableMap: Record<string, { table: string; nameCol: string }> = {
         GUILD: { table: "guilds", nameCol: "name" },
         COMPANY: { table: "companies", nameCol: "name" },
@@ -113,12 +113,19 @@ export default function FeedHub() {
         USER: { table: "profiles", nameCol: "name" },
       };
 
+      // Map variant context types to their base type for DB lookup
+      const baseType = (t: string) => {
+        if (t === "GUILD_DISCUSSION" || t === "GUILD_EVENT") return "GUILD";
+        if (t === "QUEST_DISCUSSION") return "QUEST";
+        return t;
+      };
+
       const contextGroups: Record<string, string[]> = {};
       for (const post of posts) {
         if (post.context_id) {
-          const t = post.context_type;
-          if (!contextGroups[t]) contextGroups[t] = [];
-          if (!contextGroups[t].includes(post.context_id)) contextGroups[t].push(post.context_id);
+          const bt = baseType(post.context_type);
+          if (!contextGroups[bt]) contextGroups[bt] = [];
+          if (!contextGroups[bt].includes(post.context_id)) contextGroups[bt].push(post.context_id);
         }
       }
 
@@ -148,11 +155,21 @@ export default function FeedHub() {
         })
       );
 
+      // Suffix labels for discussion/event variants
+      const suffixMap: Record<string, string> = {
+        GUILD_DISCUSSION: " › Discussion",
+        QUEST_DISCUSSION: " › Discussion",
+        GUILD_EVENT: " › Event",
+      };
+
       for (const post of posts) {
         if (post.context_id) {
-          const k = `${post.context_type}:${post.context_id}`;
-          (post as any).contextName = contextNames.get(k) || null;
-          (post as any).contextLink = contextLinks.get(k) || null;
+          const bt = baseType(post.context_type);
+          const bk = `${bt}:${post.context_id}`;
+          const name = contextNames.get(bk);
+          const suffix = suffixMap[post.context_type] || "";
+          (post as any).contextName = name ? name + suffix : null;
+          (post as any).contextLink = contextLinks.get(bk) || null;
         }
       }
 

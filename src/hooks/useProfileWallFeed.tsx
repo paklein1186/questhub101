@@ -22,6 +22,28 @@ const TABLE_MAP: Record<string, { table: string; nameCol: string }> = {
   USER: { table: "profiles", nameCol: "name" },
 };
 
+/** Map variant context types to their base type for DB lookup */
+const baseContextType = (t: string) => {
+  if (t === "GUILD_DISCUSSION" || t === "GUILD_EVENT") return "GUILD";
+  if (t === "QUEST_DISCUSSION") return "QUEST";
+  return t;
+};
+
+const CONTEXT_SUFFIX: Record<string, string> = {
+  GUILD_DISCUSSION: " › Discussion",
+  QUEST_DISCUSSION: " › Discussion",
+  GUILD_EVENT: " › Event",
+};
+
+const LINK_MAP: Record<string, string> = {
+  GUILD: "/guilds/",
+  COMPANY: "/companies/",
+  QUEST: "/quests/",
+  POD: "/pods/",
+  COURSE: "/courses/",
+  USER: "/users/",
+};
+
 /**
  * Aggregated wall feed for a profile page.
  * Collects posts from:
@@ -197,9 +219,9 @@ export function useProfileWallFeed(profileUserId: string | undefined, sourceFilt
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
         if (post.context_id) {
-          const t = post.context_type;
-          if (!contextGroups[t]) contextGroups[t] = [];
-          if (!contextGroups[t].includes(post.context_id)) contextGroups[t].push(post.context_id);
+          const bt = baseContextType(post.context_type);
+          if (!contextGroups[bt]) contextGroups[bt] = [];
+          if (!contextGroups[bt].includes(post.context_id)) contextGroups[bt].push(post.context_id);
         }
       }
 
@@ -226,17 +248,13 @@ export function useProfileWallFeed(profileUserId: string | undefined, sourceFilt
 
       for (const post of result) {
         if (post.context_id) {
-          (post as any).contextName = contextNames.get(`${post.context_type}:${post.context_id}`) || null;
+          const bt = baseContextType(post.context_type);
+          const bk = `${bt}:${post.context_id}`;
+          const name = contextNames.get(bk);
+          const suffix = CONTEXT_SUFFIX[post.context_type] || "";
+          (post as any).contextName = name ? name + suffix : null;
+          (post as any).contextLink = LINK_MAP[bt] ? LINK_MAP[bt] + post.context_id : null;
         }
-        // Add context link path
-        const ct = post.context_type;
-        const cid = post.context_id;
-        if (ct === "GUILD" && cid) (post as any).contextLink = `/guilds/${cid}`;
-        else if (ct === "QUEST" && cid) (post as any).contextLink = `/quests/${cid}`;
-        else if (ct === "COMPANY" && cid) (post as any).contextLink = `/companies/${cid}`;
-        else if (ct === "POD" && cid) (post as any).contextLink = `/pods/${cid}`;
-        else if (ct === "COURSE" && cid) (post as any).contextLink = `/courses/${cid}`;
-        else if (ct === "USER" && cid) (post as any).contextLink = `/users/${cid}`;
       }
 
       return result;
