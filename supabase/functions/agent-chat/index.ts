@@ -180,10 +180,7 @@ serve(async (req) => {
 
       // Grant to creator
       await adminClient.from("profiles")
-        .update({ [balanceField]: adminClient.rpc ? undefined : 0 })
-        .eq("id", "noop"); // placeholder — use raw increment below
-      await adminClient.rpc("increment_profile_balance", undefined).catch(() => {});
-      // Direct increment for creator
+      // Grant to creator
       const { data: creatorProfile } = await adminClient
         .from("profiles")
         .select(balanceField)
