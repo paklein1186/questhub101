@@ -608,7 +608,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
                 <Input type="number" value={hirePrice} onChange={e => setHirePrice(e.target.value)} min="0" placeholder="0 = free to hire" />
                 {parseInt(hirePrice) > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    ≈ <span className="font-medium text-foreground">€{(parseInt(hirePrice) || 0).toFixed(2)}</span>
+                    ≈ <span className="font-medium text-foreground">€{((parseInt(hirePrice) || 0) * 0.04).toFixed(2)}</span>
                   </p>
                 )}
               </div>
@@ -617,7 +617,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
                 <Input type="number" value={usagePrice} onChange={e => setUsagePrice(e.target.value)} min="0" />
                 {parseInt(usagePrice) > 0 && (
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    ≈ <span className="font-medium text-foreground">€{(parseInt(usagePrice) || 0).toFixed(2)}</span>/msg · You earn <span className="font-medium text-foreground">80%</span> = <span className="font-medium text-foreground">€{((parseInt(usagePrice) || 0) * 0.8).toFixed(2)}</span> per msg
+                    ≈ <span className="font-medium text-foreground">€{((parseInt(usagePrice) || 0) * 0.04).toFixed(2)}</span>/msg · You earn <span className="font-medium text-foreground">80%</span> = <span className="font-medium text-foreground">€{((parseInt(usagePrice) || 0) * 0.04 * 0.8).toFixed(2)}</span> per msg
                   </p>
                 )}
               </div>
