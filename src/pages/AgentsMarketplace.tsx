@@ -103,6 +103,54 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
         )}
       </div>
 
+      {/* Filter chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <span className="text-xs text-muted-foreground mr-1">Source:</span>
+        {[
+          { value: "all", label: "All" },
+          { value: "platform", label: "🤖 Platform" },
+          { value: "custom_llm", label: "🔑 Custom" },
+          { value: "webhook", label: "🔗 External" },
+        ].map(f => (
+          <button
+            key={f.value}
+            onClick={() => setSourceFilter(f.value)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+              sourceFilter === f.value
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40"
+            }`}
+          >{f.label}</button>
+        ))}
+
+        <span className="text-xs text-muted-foreground ml-3 mr-1">Billing:</span>
+        {[
+          { value: "all", label: "All" },
+          { value: "free", label: "Free" },
+          { value: "credits", label: "Credits" },
+          { value: "coins", label: "Coins" },
+        ].map(f => (
+          <button
+            key={f.value}
+            onClick={() => setBillingFilter(f.value)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+              billingFilter === f.value
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40"
+            }`}
+          >{f.label}</button>
+        ))}
+
+        {activeFilterCount > 0 && (
+          <button
+            onClick={() => { setCategory("all"); setSourceFilter("all"); setBillingFilter("all"); }}
+            className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+          >
+            Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+          </button>
+        )}
+      </div>
+
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
