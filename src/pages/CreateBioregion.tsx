@@ -139,6 +139,140 @@ function StepIdentity({
   );
 }
 
+/* ── Inline town creation form ── */
+function CreateTownInline({
+  onCreated,
+}: {
+  onCreated: (t: { id: string; name: string; level: string }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [townName, setTownName] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocoded, setGeocoded] = useState<{ lat: number; lng: number; display: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const currentUser = useCurrentUser();
+
+  const handleGeocode = useCallback(async () => {
+    const query = postalCode.trim() || townName.trim();
+    if (!query) return;
+    setGeocoding(true);
+    setGeocoded(null);
+    try {
+      const params = new URLSearchParams({ q: query, format: "json", limit: "1" });
+      if (postalCode.trim()) params.set("postalcode", postalCode.trim());
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+        headers: { "Accept-Language": "en" },
+      });
+      const data = await res.json();
+      if (data?.[0]) {
+        setGeocoded({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name });
+      } else {
+        toast.error("Could not find location", { description: "Try a different name or postal code" });
+      }
+    } catch {
+      toast.error("Geocoding failed");
+    } finally {
+      setGeocoding(false);
+    }
+  }, [townName, postalCode]);
+
+  const handleCreate = useCallback(async () => {
+    if (!townName.trim() || !currentUser.id) return;
+    setCreating(true);
+    try {
+      const slug = townName
+        .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+
+      const { data: territory, error } = await supabase
+        .from("territories")
+        .insert({
+          name: townName.trim(),
+          slug,
+          level: "TOWN" as any,
+          created_by_user_id: currentUser.id,
+          latitude: geocoded?.lat ?? null,
+          longitude: geocoded?.lng ?? null,
+        })
+        .select("id, name, level")
+        .single();
+      if (error) throw error;
+
+      toast.success(`Town "${territory.name}" created!`);
+      onCreated({ id: territory.id, name: territory.name, level: territory.level });
+      setTownName("");
+      setPostalCode("");
+      setGeocoded(null);
+      setOpen(false);
+    } catch (err: any) {
+      toast.error("Failed to create town", { description: err.message });
+    } finally {
+      setCreating(false);
+    }
+  }, [townName, geocoded, currentUser.id, onCreated]);
+
+  if (!open) {
+    return (
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-1.5 text-xs w-full">
+        <MapPin className="h-3.5 w-3.5" /> Create a new town
+      </Button>
+    );
+  }
+
+  return (
+    <div className="border border-dashed border-primary/30 rounded-xl p-4 space-y-3 bg-primary/5">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-foreground">Create a new town</p>
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <Input
+        value={townName}
+        onChange={e => setTownName(e.target.value)}
+        placeholder="Town name *"
+        className="text-sm"
+        maxLength={100}
+      />
+      <div className="flex gap-2">
+        <Input
+          value={postalCode}
+          onChange={e => setPostalCode(e.target.value)}
+          placeholder="Postal code (optional)"
+          className="text-sm flex-1"
+          maxLength={20}
+        />
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleGeocode}
+          disabled={geocoding || (!townName.trim() && !postalCode.trim())}
+          className="text-xs shrink-0"
+        >
+          {geocoding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+          Locate
+        </Button>
+      </div>
+      {geocoded && (
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+          📍 {geocoded.display}
+          <span className="ml-2 text-[10px] opacity-70">({geocoded.lat.toFixed(4)}, {geocoded.lng.toFixed(4)})</span>
+        </div>
+      )}
+      <Button
+        size="sm"
+        onClick={handleCreate}
+        disabled={creating || !townName.trim()}
+        className="w-full text-xs gap-1.5"
+      >
+        {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+        Add town to bioregion
+      </Button>
+    </div>
+  );
+}
+
 /* ── Step 2: Select towns ── */
 function StepTowns({
   selected, onToggle,
@@ -151,7 +285,7 @@ function StepTowns({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Search for towns, localities, or provinces to include in this bioregion.</p>
+      <p className="text-sm text-muted-foreground">Search for existing towns or create new ones to include in this bioregion.</p>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -207,6 +341,11 @@ function StepTowns({
           )}
         </div>
       )}
+
+      <div className="pt-2 border-t border-border">
+        <p className="text-xs text-muted-foreground mb-2">Can't find a town? Create it here:</p>
+        <CreateTownInline onCreated={(t) => onToggle(t)} />
+      </div>
     </div>
   );
 }
