@@ -78,14 +78,23 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   const hireMut = useMutation({
     mutationFn: async (agentId: string) => {
       if (!user) throw new Error("Not authenticated");
+      // Find agent to check hire_price
+      const agent = agents?.find((a: any) => a.id === agentId);
+      const hirePrice = Number(agent?.hire_price ?? 0);
+      if (hirePrice > 0) {
+        const { processAgentPayment } = await import("@/lib/agentPayment");
+        const result = await processAgentPayment(user.id, hirePrice, agentId, "hire");
+        if (!result.success) throw new Error(result.error || "Payment failed");
+      }
       const { error } = await supabase.from("agent_hires").insert({ user_id: user.id, agent_id: agentId } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Agent hired!");
       qc.invalidateQueries({ queryKey: ["my-agent-hires"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: () => toast.error("Failed to hire agent"),
+    onError: (e: any) => toast.error(e.message || "Failed to hire agent"),
   });
 
   const Wrapper = bare ? "div" : PageShell;
