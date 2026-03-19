@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useAgentQuota } from "@/hooks/useAgentQuota";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
