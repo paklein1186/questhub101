@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bot, Plus, Sparkles, Search, Zap, Star, Globe, Key, AlertTriangle, Eye, EyeOff, CircleDollarSign, Gift } from "lucide-react";
+import { Bot, Plus, Sparkles, Search, Zap, Star, Globe, Key, AlertTriangle, Eye, EyeOff, CircleDollarSign, Gift, CheckCircle, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { AttachAgentDialog } from "@/components/agent/AttachAgentDialog";
 
 const CATEGORY_COLORS: Record<string, string> = {
   intelligence: "bg-blue-500/10 text-blue-600 border-blue-200",
@@ -30,12 +31,14 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [billingFilter, setBillingFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [attachAgentId, setAttachAgentId] = useState<string | null>(null);
 
   const CATEGORIES = [
     { value: "all", label: t("common.all") },
@@ -72,17 +75,39 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
     },
   });
 
+  const hireMut = useMutation({
+    mutationFn: async (agentId: string) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase.from("agent_hires").insert({ user_id: user.id, agent_id: agentId } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Agent hired!");
+      qc.invalidateQueries({ queryKey: ["my-agent-hires"] });
+    },
+    onError: () => toast.error("Failed to hire agent"),
+  });
+
   const Wrapper = bare ? "div" : PageShell;
 
   return (
     <Wrapper>
       {!bare && <SectionBanner {...HINTS.banners.agents} />}
       {!bare && (
-        <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-            <Bot className="h-7 w-7 text-primary" /> {t("agents.title")}
-          </h1>
-          <p className="text-muted-foreground mt-1">{t("agents.subtitle")}</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+              <Bot className="h-7 w-7 text-primary" /> {t("agents.title")}
+            </h1>
+            <p className="text-muted-foreground mt-1">{t("agents.subtitle")}</p>
+          </div>
+          {user && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/my-agents">
+                <Bot className="h-4 w-4 mr-1" /> My Agents
+              </Link>
+            </Button>
+          )}
         </div>
       )}
 
@@ -162,48 +187,96 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agents.map((agent: any) => (
-            <Card
-              key={agent.id}
-              className="p-5 hover:shadow-lg transition-shadow cursor-pointer group relative overflow-hidden"
-              onClick={() => navigate(`/agents/${agent.id}`)}
-            >
-              {agent.is_featured && (
-                <div className="absolute top-3 right-3">
-                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+          {agents.map((agent: any) => {
+            const isHired = myHires?.has(agent.id);
+            return (
+              <Card
+                key={agent.id}
+                className="p-5 hover:shadow-lg transition-shadow cursor-pointer group relative overflow-hidden"
+                onClick={() => navigate(`/agents/${agent.id}`)}
+              >
+                {agent.is_featured && (
+                  <div className="absolute top-3 right-3">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                  </div>
+                )}
+                {isHired && (
+                  <div className="absolute top-3 left-3">
+                    <Badge className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                      <CheckCircle className="h-3 w-3 mr-1" /> Hired
+                    </Badge>
+                  </div>
+                )}
+                <div className="flex items-start gap-3 mb-3 mt-1">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
+                    <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
+                    <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
+                  </div>
                 </div>
-              )}
-              <div className="flex items-start gap-3 mb-3">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <Bot className="h-6 w-6 text-primary" />
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-1 flex-wrap">
+                    {agent.skills?.slice(0, 2).map((s: string) => (
+                      <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                    ))}
+                    {agent.skills?.length > 2 && <Badge variant="secondary" className="text-[10px]">+{agent.skills.length - 2}</Badge>}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Zap className="h-3 w-3" /> {agent.cost_per_use} {t("common.credits")}
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
-                  <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
-                  <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
+                {/* Action buttons */}
+                <div className="mt-3 pt-3 border-t border-border flex gap-2" onClick={e => e.stopPropagation()}>
+                  {!user ? (
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <Link to="/login">Log in to hire</Link>
+                    </Button>
+                  ) : !isHired ? (
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      disabled={hireMut.isPending}
+                      onClick={() => hireMut.mutate(agent.id)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                      {hireMut.isPending ? "Hiring..." : "Hire Agent"}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button size="sm" variant="outline" className="flex-1" asChild>
+                        <Link to={`/agents/${agent.id}`}>Open</Link>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="flex-1"
+                        onClick={() => setAttachAgentId(agent.id)}
+                      >
+                        <Link2 className="h-3.5 w-3.5 mr-1" /> Attach to...
+                      </Button>
+                    </>
+                  )}
                 </div>
-              </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-1 flex-wrap">
-                  {agent.skills?.slice(0, 2).map((s: string) => (
-                    <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
-                  ))}
-                  {agent.skills?.length > 2 && <Badge variant="secondary" className="text-[10px]">+{agent.skills.length - 2}</Badge>}
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Zap className="h-3 w-3" /> {agent.cost_per_use} {t("common.credits")}
-                </div>
-              </div>
-              {myHires?.has(agent.id) && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary" />
-              )}
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 
       {user && <CreateAgentDialog open={createOpen} onOpenChange={setCreateOpen} userId={user.id} />}
+
+      {attachAgentId && user && (
+        <AttachAgentDialog
+          open={!!attachAgentId}
+          onOpenChange={(v) => { if (!v) setAttachAgentId(null); }}
+          agentId={attachAgentId}
+          userId={user.id}
+        />
+      )}
     </Wrapper>
   );
 }
