@@ -295,7 +295,7 @@ export function TrustTab({ nodeType, nodeId }: { nodeType: TrustNodeType; nodeId
   // Filter
   const filteredEdges = useMemo(() => {
     let result = edges;
-    if (filterTag) result = result.filter(e => e.tags?.includes(filterTag));
+    if (filterTag && filterTag !== "all") result = result.filter(e => e.tags?.includes(filterTag));
     if (filterEdgeType !== "all") result = result.filter(e => e.edge_type === filterEdgeType);
     if (filterDate === "30d") {
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
