@@ -234,7 +234,7 @@ function TrustEdgeCard({ edge, giver }: { edge: TrustEdgeRow; giver?: GiverProfi
 // ─── Main TrustTab ─────────────────────────────────────────
 export function TrustTab({ nodeType, nodeId }: { nodeType: TrustNodeType; nodeId: string }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filterTag, setFilterTag] = useState("");
+  const [filterTag, setFilterTag] = useState("all");
   const [filterEdgeType, setFilterEdgeType] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
 
