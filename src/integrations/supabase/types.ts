@@ -448,6 +448,7 @@ export type Database = {
         Row: {
           agent_source: string
           avatar_url: string | null
+          billing_currency: string
           category: string
           cost_per_use: number
           created_at: string
@@ -471,6 +472,7 @@ export type Database = {
         Insert: {
           agent_source?: string
           avatar_url?: string | null
+          billing_currency?: string
           category?: string
           cost_per_use?: number
           created_at?: string
@@ -494,6 +496,7 @@ export type Database = {
         Update: {
           agent_source?: string
           avatar_url?: string | null
+          billing_currency?: string
           category?: string
           cost_per_use?: number
           created_at?: string
@@ -6170,6 +6173,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agent_interactions_reset_at: string | null
+          agent_interactions_this_month: number | null
           allow_wall_comments: boolean
           avatar_url: string | null
           bio: string | null
@@ -6244,6 +6249,8 @@ export type Database = {
           xp_total: number
         }
         Insert: {
+          agent_interactions_reset_at?: string | null
+          agent_interactions_this_month?: number | null
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
@@ -6318,6 +6325,8 @@ export type Database = {
           xp_total?: number
         }
         Update: {
+          agent_interactions_reset_at?: string | null
+          agent_interactions_this_month?: number | null
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
@@ -8261,6 +8270,7 @@ export type Database = {
           max_services_active: number | null
           max_territories: number | null
           memory_engine_enabled: boolean | null
+          monthly_agent_interactions: number | null
           monthly_included_credits: number
           monthly_price_amount: number | null
           monthly_price_currency: string
@@ -8295,6 +8305,7 @@ export type Database = {
           max_services_active?: number | null
           max_territories?: number | null
           memory_engine_enabled?: boolean | null
+          monthly_agent_interactions?: number | null
           monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
@@ -8329,6 +8340,7 @@ export type Database = {
           max_services_active?: number | null
           max_territories?: number | null
           memory_engine_enabled?: boolean | null
+          monthly_agent_interactions?: number | null
           monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
@@ -10218,6 +10230,10 @@ export type Database = {
       approve_quest_affiliation: {
         Args: { _affiliation_id: string }
         Returns: undefined
+      }
+      check_agent_billing: {
+        Args: { _agent_id: string; _user_id: string }
+        Returns: Json
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       compute_contribution_fmv: {
