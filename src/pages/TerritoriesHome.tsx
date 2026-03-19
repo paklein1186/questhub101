@@ -72,6 +72,7 @@ export default function TerritoriesHome() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGeo, setSelectedGeo] = useState<GeoResult | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: geoResults = [], isLoading: geoLoading } = useGeoSearch(searchQuery);
