@@ -532,7 +532,7 @@ export default function CreateBioregion() {
     },
   });
 
-  const canCreate = xpLevel >= 3;
+  const canCreate = xpLevel >= 1;
 
   // Compute map center from selected towns
   const mapCenter = useMemo<[number, number]>(() => {
