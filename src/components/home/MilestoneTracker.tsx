@@ -6,6 +6,7 @@ import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { MILESTONE_ROUTES, PHASE_META } from "@/lib/milestoneRoutes";
 
 export function MilestoneTracker() {
   const { t } = useTranslation();
@@ -18,20 +19,16 @@ export function MilestoneTracker() {
   const sorted = useMemo(() => {
     const phaseOrder = ["discover", "contribute", "create", "structure"];
     return [...milestonesWithProgress].sort((a, b) => {
-      // Completed items go to the end
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
-      // Then by phase
       const pa = phaseOrder.indexOf((a as any).phase || "discover");
       const pb = phaseOrder.indexOf((b as any).phase || "discover");
       if (pa !== pb) return pa - pb;
-      // Then by sort_order within phase
       return a.sort_order - b.sort_order;
     });
   }, [milestonesWithProgress]);
 
   if (totalCount === 0) return null;
 
-  // Show first 3 uncompleted when collapsed, all when expanded
   const visible = expanded ? sorted : sorted.filter((m) => !m.isCompleted).slice(0, 3);
   const hasHidden = sorted.length > visible.length;
 
@@ -102,7 +99,6 @@ export function MilestoneTracker() {
                 );
               })}
 
-              {/* Show/hide toggle */}
               {hasHidden && !expanded && (
                 <button
                   onClick={(e) => {
@@ -122,76 +118,18 @@ export function MilestoneTracker() {
   );
 }
 
-// Phase labels and colors
-const PHASE_META: Record<string, { label: string; emoji: string; color: string }> = {
-  discover: { label: "Discover", emoji: "🌱", color: "text-emerald-600" },
-  contribute: { label: "Contribute", emoji: "🔗", color: "text-blue-600" },
-  create: { label: "Create", emoji: "🚀", color: "text-purple-600" },
-  structure: { label: "Structure", emoji: "🏛️", color: "text-amber-600" },
-};
-
-// Map milestone codes to actionable routes
-const MILESTONE_ROUTES: Record<string, string> = {
-  // Phase 1: Discover
-  complete_profile: "/me?tab=profile",
-  explore_guilds: "/explore?tab=entities",
-  join_first_guild: "/explore?tab=entities",
-  first_comment: "/feed",
-  // Phase 2: Contribute
-  respond_opportunity: "/explore?tab=quests",
-  add_knowledge: "/territories",
-  join_event: "/explore?tab=services",
-  help_or_resource: "/explore?tab=quests",
-  complete_subtask: "/work",
-  log_contribution: "/work",
-  fund_quest: "/explore?tab=quests",
-  follow_quest: "/explore?tab=quests",
-  // Phase 3: Create
-  create_quest: "/quests/new",
-  publish_service: "/services/new",
-  invite_collaborator: "/me/guilds",
-  post_update: "/work",
-  create_event: "/me/guilds",
-  create_course: "/courses/new",
-  open_fundraising: "/work",
-  set_availability: "/me/availability",
-  // Phase 4: Structure
-  create_guild: "/explore?tab=entities",
-  become_admin: "/me/guilds",
-  governance_vote: "/me/guilds",
-  setup_contract: "/work",
-  configure_exit: "/me/guilds",
-  create_partnership: "/me/guilds",
-  // Legacy codes (backward compat)
-  add_spoken_languages: "/explore?tab=entities",
-  join_creative_circle: "/explore?tab=entities",
-  impact_guild: "/explore?tab=entities",
-  create_first_quest: "/quests/new",
-  creative_artwork_quest: "/quests/new",
-  impact_quest: "/quests/new",
-  collaborate_pod: "/explore?tab=quests",
-  contribute_territory: "/network?tab=territories",
-  impact_territory_memory: "/network?tab=territories",
-  attend_event: "/explore?tab=services",
-  become_shareholder: "/shares",
-  publish_course: "/courses/new",
-  creative_class: "/courses/new",
-  host_workshop: "/me/guilds",
-  invite_friend: "/me/guilds",
-};
-
 function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; index: number }) {
   const navigate = useNavigate();
   const rewardLabel = milestone.reward_type !== "NONE" && milestone.reward_amount > 0
     ? `+${milestone.reward_amount} ${milestone.reward_type}`
     : null;
 
-  const route = MILESTONE_ROUTES[milestone.code];
-  const isClickable = !milestone.isCompleted && !!route;
+  const action = MILESTONE_ROUTES[milestone.code];
+  const isClickable = !milestone.isCompleted && !!action;
 
   const handleClick = () => {
-    if (isClickable && route) {
-      navigate(route);
+    if (isClickable && action) {
+      navigate(action.to);
     }
   };
 
@@ -211,7 +149,6 @@ function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; 
           : "bg-accent/20 hover:bg-accent/40 cursor-pointer"
       )}
     >
-      {/* Status icon */}
       <div
         className={cn(
           "flex items-center justify-center h-6 w-6 rounded-full shrink-0 text-xs",
@@ -227,7 +164,6 @@ function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; 
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <p
           className={cn(
@@ -246,7 +182,6 @@ function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; 
         )}
       </div>
 
-      {/* Reward badge */}
       {rewardLabel && !milestone.isCompleted && (
         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
           <Gift className="h-3 w-3" />
@@ -254,7 +189,6 @@ function MilestoneRow({ milestone, index }: { milestone: MilestoneWithProgress; 
         </span>
       )}
 
-      {/* Action arrow for incomplete */}
       {isClickable && (
         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
       )}

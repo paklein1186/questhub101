@@ -261,33 +261,76 @@ export function useMilestoneChecker() {
       const fields = [profile.name, profile.bio, profile.avatar_url, profile.headline];
       const filled = fields.filter(Boolean).length;
       const pct = (filled / fields.length) * 100;
-      if (pct >= 70) completeMilestone("complete_profile");
+      if (pct >= 70) {
+        completeMilestone("complete_profile");
+        completeMilestone("complete_profile_v2");
+      }
     }
 
-    if ((spokenLangsRes.count ?? 0) >= 1) completeMilestone("add_spoken_languages");
-    if ((guildMembersRes.count ?? 0) >= 1) {
+    const spokenCount = spokenLangsRes.count ?? 0;
+    if (spokenCount >= 1) {
+      completeMilestone("add_spoken_languages");
+      completeMilestone("set_spoken_languages");
+    }
+
+    const guildCount = guildMembersRes.count ?? 0;
+    if (guildCount >= 1) {
       completeMilestone("join_first_guild");
+      completeMilestone("join_first_guild_v2");
       completeMilestone("join_creative_circle");
       completeMilestone("impact_guild");
     }
-    if ((questsRes.count ?? 0) >= 1) {
+    if (guildCount >= 2) {
+      completeMilestone("join_second_guild");
+    }
+
+    const questCount = questsRes.count ?? 0;
+    if (questCount >= 1) {
       completeMilestone("create_first_quest");
+      completeMilestone("create_quest");
       completeMilestone("creative_artwork_quest");
       completeMilestone("impact_quest");
     }
-    if ((servicesRes.count ?? 0) >= 1) completeMilestone("publish_service");
+
+    const serviceCount = servicesRes.count ?? 0;
+    if (serviceCount >= 1) {
+      completeMilestone("publish_service");
+      completeMilestone("publish_service_v2");
+    }
+
     if ((podMembersRes.count ?? 0) >= 1) completeMilestone("collaborate_pod");
-    if ((territoryMemoryRes.count ?? 0) >= 1) {
+
+    const memoryCount = territoryMemoryRes.count ?? 0;
+    if (memoryCount >= 1) {
       completeMilestone("contribute_territory");
       completeMilestone("impact_territory_memory");
+      completeMilestone("add_knowledge");
     }
-    if ((eventAttendeesRes.count ?? 0) >= 1) completeMilestone("attend_event");
-    if ((shareholdingsRes.count ?? 0) >= 1) completeMilestone("become_shareholder");
-    if ((coursesRes.count ?? 0) >= 1) {
+
+    const eventAttendeeCount = eventAttendeesRes.count ?? 0;
+    if (eventAttendeeCount >= 1) {
+      completeMilestone("attend_event");
+      completeMilestone("join_event");
+    }
+
+    const shareholdingCount = shareholdingsRes.count ?? 0;
+    if (shareholdingCount >= 1) {
+      completeMilestone("become_shareholder");
+      completeMilestone("become_shareholder_v2");
+    }
+
+    const courseCount = coursesRes.count ?? 0;
+    if (courseCount >= 1) {
       completeMilestone("publish_course");
       completeMilestone("creative_class");
+      completeMilestone("create_course");
     }
-    if ((eventsHostedRes.count ?? 0) >= 1) completeMilestone("host_workshop");
+
+    const eventsHostedCount = eventsHostedRes.count ?? 0;
+    if (eventsHostedCount >= 1) {
+      completeMilestone("host_workshop");
+      completeMilestone("create_event");
+    }
   }, [user?.id, completeMilestone]);
 
   // Run check on mount

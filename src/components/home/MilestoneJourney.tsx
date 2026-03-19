@@ -7,22 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
-
-const ACTIONS: Record<string, { label: string; to: string }> = {
-  complete_profile: { label: "Edit profile", to: "/profile/edit" },
-  add_spoken_languages: { label: "Add languages", to: "/me?tab=language" },
-  join_first_guild: { label: "Browse guilds", to: "/explore?tab=guilds" },
-  create_first_quest: { label: "Create a quest", to: "/quests/new" },
-  publish_service: { label: "Create a service", to: "/services/new" },
-  collaborate_pod: { label: "Explore pods", to: "/explore?tab=pods" },
-  contribute_territory: { label: "Explore territories", to: "/network?tab=territories" },
-  attend_event: { label: "Find events", to: "/calendar" },
-  publish_course: { label: "Create a course", to: "/courses/new" },
-  host_workshop: { label: "Create an event", to: "/calendar" },
-};
+import { MILESTONE_ROUTES } from "@/lib/milestoneRoutes";
 
 function MiniMilestone({ m, index }: { m: MilestoneWithProgress; index: number }) {
-  const action = ACTIONS[m.code];
+  const action = MILESTONE_ROUTES[m.code];
 
   return (
     <motion.div
@@ -73,7 +61,6 @@ export function MilestoneJourney() {
   const upcoming = milestones.filter((m) => !m.isCompleted);
   const completed = milestones.filter((m) => m.isCompleted);
 
-  // Collapsed: show 4 upcoming + 2 completed; Expanded: show all
   const visibleUpcoming = expanded ? upcoming : upcoming.slice(0, 4);
   const visibleCompleted = expanded ? completed : completed.slice(-2);
   const hasMore = upcoming.length > 4 || completed.length > 2;

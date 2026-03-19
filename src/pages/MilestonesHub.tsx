@@ -1,8 +1,9 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Trophy, CheckCircle, Circle, ArrowRight,
-  Sparkles, Lock,
+  Sparkles, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
@@ -11,40 +12,22 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { PageShell } from "@/components/PageShell";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
-import { usePersona } from "@/hooks/usePersona";
-
-// ─── Suggested actions for common milestones ────────────────
-const SUGGESTED_ACTIONS: Record<string, { label: string; to: string }> = {
-  complete_profile: { label: "Edit your profile", to: "/profile/edit" },
-  add_spoken_languages: { label: "Go to language settings", to: "/me?tab=language" },
-  join_first_guild: { label: "Browse guilds", to: "/explore?tab=guilds" },
-  create_first_quest: { label: "Create a quest", to: "/quests/new" },
-  publish_service: { label: "Create a service", to: "/services/new" },
-  collaborate_pod: { label: "Explore pods", to: "/explore?tab=pods" },
-  contribute_territory: { label: "Explore territories", to: "/network?tab=territories" },
-  attend_event: { label: "Find events", to: "/calendar" },
-  publish_course: { label: "Create a course", to: "/courses/new" },
-  join_creative_circle: { label: "Browse circles", to: "/explore?tab=guilds" },
-  creative_artwork_quest: { label: "Start a creative quest", to: "/quests/new" },
-  creative_class: { label: "Publish a course", to: "/courses/new" },
-  impact_territory_memory: { label: "Explore territories", to: "/network?tab=territories" },
-  impact_quest: { label: "Create an impact quest", to: "/quests/new" },
-  impact_guild: { label: "Join an impact guild", to: "/explore?tab=guilds" },
-  host_workshop: { label: "Create an event", to: "/calendar" },
-};
+import { MILESTONE_ROUTES, PHASE_META } from "@/lib/milestoneRoutes";
+import { cn } from "@/lib/utils";
 
 function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
-  const action = SUGGESTED_ACTIONS[m.code];
+  const action = MILESTONE_ROUTES[m.code];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl border p-4 transition-all ${
+      className={cn(
+        "rounded-xl border p-4 transition-all",
         m.isCompleted
           ? "border-primary/20 bg-primary/5"
           : "border-border bg-card hover:border-primary/20"
-      }`}
+      )}
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl">{m.icon}</span>
@@ -58,6 +41,11 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>
+          {(m as any).subtitle && (
+            <p className="text-[10px] text-muted-foreground/70 italic mt-0.5">
+              {(m as any).subtitle}
+            </p>
+          )}
 
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {m.reward_type === "XP" && (
@@ -73,11 +61,6 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
             {m.reward_type === "BADGE" && (
               <Badge variant="secondary" className="text-[10px] gap-1">
                 <Trophy className="h-3 w-3 text-purple-500" /> Badge
-              </Badge>
-            )}
-            {m.persona_visibility !== "ALL" && (
-              <Badge variant="outline" className="text-[10px] capitalize">
-                {m.persona_visibility.toLowerCase()}
               </Badge>
             )}
           </div>
@@ -97,28 +80,34 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
 
 export default function MilestonesHub() {
   const { milestones, completedCount, totalCount } = useMilestones();
-  const { persona } = usePersona();
+  const [showCompleted, setShowCompleted] = useState(false);
 
-  const completed = milestones.filter((m) => m.isCompleted);
-  const upcoming = milestones.filter((m) => !m.isCompleted);
+  const phaseOrder = ["discover", "contribute", "create", "structure"];
+
+  // Group milestones by phase
+  const { phaseGroups, completed } = useMemo(() => {
+    const groups: Record<string, MilestoneWithProgress[]> = {};
+    const done: MilestoneWithProgress[] = [];
+    for (const m of milestones) {
+      if (m.isCompleted) {
+        done.push(m);
+      } else {
+        const phase = (m as any).phase || "discover";
+        if (!groups[phase]) groups[phase] = [];
+        groups[phase].push(m);
+      }
+    }
+    return { phaseGroups: groups, completed: done };
+  }, [milestones]);
 
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Compute total rewards earned
   const xpEarned = completed.reduce(
-    (s, m) => s + (m.reward_type === "XP" ? m.reward_amount : 0),
-    0
+    (s, m) => s + (m.reward_type === "XP" ? m.reward_amount : 0), 0
   );
   const creditsEarned = completed.reduce(
-    (s, m) => s + (m.reward_type === "CREDITS" ? m.reward_amount : 0),
-    0
+    (s, m) => s + (m.reward_type === "CREDITS" ? m.reward_amount : 0), 0
   );
-
-  const getPersonaTitle = () => {
-    if (persona === "CREATIVE") return "Your Creative Journey";
-    if (persona === "IMPACT") return "Your Impact Journey";
-    return "Your Journey";
-  };
 
   return (
     <PageShell>
@@ -127,7 +116,7 @@ export default function MilestonesHub() {
         <div>
           <h1 className="font-display text-3xl font-bold flex items-center gap-3">
             <Trophy className="h-8 w-8 text-primary" />
-            {getPersonaTitle()}
+            Your Journey
           </h1>
           <p className="text-muted-foreground mt-1">
             Track your progress, unlock features, and earn rewards as you grow.
@@ -162,38 +151,69 @@ export default function MilestonesHub() {
           <p className="text-xs text-muted-foreground">{progressPct}% complete</p>
         </div>
 
-        {/* Upcoming milestones */}
-        {upcoming.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" /> Next steps
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {upcoming.map((m) => (
-                <MilestoneCard key={m.id} m={m} />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Upcoming — grouped by phase */}
+        {phaseOrder.map((phase) => {
+          const items = phaseGroups[phase];
+          if (!items || items.length === 0) return null;
+          const meta = PHASE_META[phase];
+          return (
+            <section key={phase} className="space-y-3">
+              <h2 className={cn(
+                "font-display text-lg font-semibold flex items-center gap-2",
+                meta?.color
+              )}>
+                <span>{meta?.emoji}</span> {meta?.label}
+                <span className="text-xs font-normal text-muted-foreground ml-1">
+                  ({items.length} remaining)
+                </span>
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {items.map((m) => (
+                  <MilestoneCard key={m.id} m={m} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
         <Separator />
 
         {/* Completed milestones */}
         <section className="space-y-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-primary" /> Completed ({completed.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" /> Completed ({completed.length})
+            </h2>
+            {completed.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => setShowCompleted(!showCompleted)}
+              >
+                {showCompleted ? (
+                  <>
+                    <ChevronUp className="h-3.5 w-3.5" /> Hide
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3.5 w-3.5" /> Show
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
           {completed.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">
               No milestones completed yet. Start exploring!
             </p>
-          ) : (
+          ) : showCompleted ? (
             <div className="grid gap-3 sm:grid-cols-2">
               {completed.map((m) => (
                 <MilestoneCard key={m.id} m={m} />
               ))}
             </div>
-          )}
+          ) : null}
         </section>
       </div>
     </PageShell>
