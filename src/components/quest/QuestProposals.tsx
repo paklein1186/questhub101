@@ -396,11 +396,7 @@ export function QuestProposals({
             );
           })}
         </div>
-      ) : (
-        <div className="rounded-xl border border-border bg-card p-5 text-center">
-          <p className="text-sm text-muted-foreground">No funding campaigns configured yet. The quest owner can create campaigns in <span className="font-medium text-foreground">Settings → Fundraising</span>.</p>
-        </div>
-      )}
+      ) : null}
 
       {/* ── Proposals list ────────────────────────────── */}
       <div className="flex items-center justify-between">
