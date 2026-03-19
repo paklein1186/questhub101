@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Eye, EyeOff } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
@@ -48,6 +49,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [showDone, setShowDone] = useState(false);
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -332,7 +334,14 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       </div>
 
       <div className="space-y-1.5">
-        {subtasks.map((subtask: any) => {
+        {subtasks
+          .filter((subtask: any) => {
+            if (showDone) return true;
+            // Always show pending-done tasks (undo window)
+            if (pendingDone.has(subtask.id)) return true;
+            return subtask.status !== "DONE";
+          })
+          .map((subtask: any) => {
           const isPending = pendingDone.has(subtask.id);
 
           if (isPending) {
@@ -398,36 +407,46 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 </SelectContent>
               </Select>
             )}
-            {canManage && guildMembers.length > 0 && (
-              <div className="flex items-center gap-1">
-                {guildMembers.map((m: any) => {
-                  const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
-                  return (
-                    <button
-                      key={m.user_id}
-                      onClick={() => toggleAssignee(subtask.id, m.user_id)}
-                      className={`rounded-full ring-2 transition-all ${isAssigned ? "ring-primary" : "ring-transparent opacity-40 hover:opacity-70"}`}
-                      title={m.name}
-                    >
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={m.avatar_url} />
-                        <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
-                      </Avatar>
+            {/* Assignee avatar stack + add picker */}
+            <div className="flex items-center -space-x-1">
+              {(subtask.assignees || []).map((a: any) => (
+                <Avatar key={a.user_id} className="h-6 w-6 border-2 border-background">
+                  <AvatarImage src={a.avatar_url} />
+                  <AvatarFallback className="text-[10px]">{a.name?.[0]}</AvatarFallback>
+                </Avatar>
+              ))}
+              {canManage && guildMembers.length > 0 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-colors ml-1">
+                      <Plus className="h-3 w-3 text-muted-foreground" />
                     </button>
-                  );
-                })}
-              </div>
-            )}
-            {!canManage && subtask.assignees?.length > 0 && (
-              <div className="flex -space-x-1">
-                {subtask.assignees.map((a: any) => (
-                  <Avatar key={a.user_id} className="h-6 w-6 border-2 border-background">
-                    <AvatarImage src={a.avatar_url} />
-                    <AvatarFallback className="text-[10px]">{a.name?.[0]}</AvatarFallback>
-                  </Avatar>
-                ))}
-              </div>
-            )}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2" align="end">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Assign members</p>
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {guildMembers.map((m: any) => {
+                        const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
+                        return (
+                          <button
+                            key={m.user_id}
+                            onClick={() => toggleAssignee(subtask.id, m.user_id)}
+                            className={`w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors ${isAssigned ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                          >
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={m.avatar_url} />
+                              <AvatarFallback className="text-[9px]">{m.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">{m.name}</span>
+                            {isAssigned && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
             {/* Credit reward indicator */}
             {canManage ? (
               <div className="flex items-center gap-0.5" title="🟩 Coins — fiat-backed reward for completing this subtask">
@@ -503,6 +522,19 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           );
         })}
       </div>
+
+      {/* Show/hide completed tasks */}
+      {doneCount > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs gap-1.5 text-muted-foreground"
+          onClick={() => setShowDone(!showDone)}
+        >
+          {showDone ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+          {showDone ? "Hide completed tasks" : `View completed tasks (${doneCount})`}
+        </Button>
+      )}
 
       {canManage && (
         <div className="space-y-2">
