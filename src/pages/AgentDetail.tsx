@@ -132,18 +132,28 @@ export default function AgentDetail() {
     },
   });
 
+  const [hireConfirmOpen, setHireConfirmOpen] = useState(false);
+
   const hireMut = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
+      const hirePrice = Number((agent as any)?.hire_price ?? 0);
+      if (hirePrice > 0) {
+        const { processAgentPayment } = await import("@/lib/agentPayment");
+        const result = await processAgentPayment(user.id, hirePrice, id!, "hire");
+        if (!result.success) throw new Error(result.error || "Payment failed");
+      }
       const { error } = await supabase.from("agent_hires").insert({ user_id: user.id, agent_id: id! } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Agent hired! You can now chat.");
+      setHireConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["agent-hire"] });
       qc.invalidateQueries({ queryKey: ["my-agent-hires"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: () => toast.error("Failed to hire agent"),
+    onError: (e: any) => toast.error(e.message || "Failed to hire agent"),
   });
 
   const isHired = !!hire;
