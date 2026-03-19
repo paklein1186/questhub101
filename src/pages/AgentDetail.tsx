@@ -274,6 +274,7 @@ function AgentChat({ agentId, agentName, costPerUse, billingCurrency, userId, ag
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const agentQuota = useAgentQuota();
 
   const suggestedPrompts = useMemo(() => {
     const cat = agentCategory?.toLowerCase() || "";
