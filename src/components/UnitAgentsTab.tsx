@@ -178,15 +178,23 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
 
-  const { data: agents, isLoading } = useQuery({
-    queryKey: ["all-agents-for-admit", search],
+  // Only show agents that the current user has hired
+  const { data: hiredAgents, isLoading } = useQuery({
+    queryKey: ["my-hired-agents-for-admit", userId, search],
     enabled: open,
     queryFn: async () => {
-      let q = supabase.from("agents").select("*").eq("is_published", true).order("usage_count", { ascending: false }).limit(20);
-      if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
-      const { data, error } = await q;
+      const { data, error } = await supabase
+        .from("agent_hires")
+        .select("agent_id, agents(*)")
+        .eq("user_id", userId)
+        .eq("status", "active");
       if (error) throw error;
-      return data;
+      let agents = (data || []).map((h: any) => h.agents).filter(Boolean);
+      if (search.trim()) {
+        const s = search.trim().toLowerCase();
+        agents = agents.filter((a: any) => a.name?.toLowerCase().includes(s));
+      }
+      return agents;
     },
   });
 
@@ -198,10 +206,10 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
       admitted_by_user_id: userId,
     } as any);
     if (error) {
-      toast.error(error.message.includes("duplicate") ? "Agent already admitted" : "Failed to admit agent");
+      toast.error(error.message.includes("duplicate") ? "Agent already attached" : "Failed to attach agent");
       return;
     }
-    toast.success("Agent admitted!");
+    toast.success("Agent attached!");
     qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] });
     onOpenChange(false);
   };
@@ -209,11 +217,12 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Admit an Agent</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Attach a Hired Agent</DialogTitle></DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2">Only agents you've hired can be attached here.</p>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search agents..."
+            placeholder="Search your agents..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -222,10 +231,15 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
         <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {isLoading ? (
             <Skeleton className="h-16" />
-          ) : !agents?.length ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No agents found</p>
+          ) : !hiredAgents?.length ? (
+            <div className="text-center py-6">
+              <p className="text-sm text-muted-foreground">No hired agents found.</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                <a href="/agents" className="text-primary hover:underline">Browse & hire agents</a> first.
+              </p>
+            </div>
           ) : (
-            agents
+            hiredAgents
               .filter((a: any) => !existingAgentIds.includes(a.id))
               .map((agent: any) => (
                 <div
@@ -251,7 +265,6 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
     </Dialog>
   );
 }
-
 function UnitAgentChat({ agent, unitType, unitId, unitName }: {
   agent: any; unitType: string; unitId: string; unitName: string;
 }) {
