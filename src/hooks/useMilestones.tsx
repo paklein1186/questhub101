@@ -241,19 +241,54 @@ export function useMilestoneChecker() {
     if (!user?.id) return;
     const uid = user.id;
 
-    const profileRes = await supabase.from("profiles").select("name, bio, avatar_url, headline").eq("user_id", uid).single();
-    const spokenLangsRes = await supabase.from("user_spoken_languages").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const guildMembersRes = await supabase.from("guild_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const podMembersRes = await supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const territoryMemoryRes = await (supabase.from("territory_memory").select("id", { count: "exact", head: true }) as any).eq("author_user_id", uid);
-    const eventAttendeesRes = await supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const shareholdingsRes = await supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const eventsHostedRes = await supabase.from("guild_events").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid);
-
-    // These need extra chained filters - use `as any` to avoid deep TS instantiation
-    const questsRes = await (supabase.from("quests").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid) as any).eq("is_deleted", false);
-    const servicesRes = await (supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", uid) as any).eq("is_deleted", false);
-    const coursesRes = await (supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", uid) as any).eq("is_published", true);
+    // Batch all count queries in parallel
+    const [
+      profileRes,
+      spokenLangsRes,
+      guildMembersRes,
+      podMembersRes,
+      territoryMemoryRes,
+      eventAttendeesRes,
+      shareholdingsRes,
+      eventsHostedRes,
+      questsRes,
+      servicesRes,
+      coursesRes,
+      commentsRes,
+      messagesRes,
+      contributionsRes,
+      verifiedContributionsRes,
+      bookingsRes,
+      followsRes,
+      questFollowsRes,
+      commentUpvotesRes,
+      attachmentUpvotesRes,
+      xpRes,
+      subtasksRes,
+    ] = await Promise.all([
+      supabase.from("profiles").select("name, bio, avatar_url, headline, xp").eq("user_id", uid).single(),
+      supabase.from("user_spoken_languages").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("guild_members").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      (supabase.from("territory_memory").select("id", { count: "exact", head: true }) as any).eq("author_user_id", uid),
+      supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("guild_events").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid),
+      (supabase.from("quests").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid) as any).eq("is_deleted", false),
+      (supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", uid) as any).eq("is_deleted", false),
+      (supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", uid) as any).eq("is_published", true),
+      supabase.from("comments").select("id", { count: "exact", head: true }).eq("author_id", uid),
+      (supabase.from("conversation_participants").select("id", { count: "exact", head: true }) as any).eq("user_id", uid),
+      supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      (supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid) as any).eq("status", "VERIFIED"),
+      supabase.from("bookings").select("id", { count: "exact", head: true }).eq("requester_id", uid),
+      (supabase.from("activity_log").select("id", { count: "exact", head: true }).eq("actor_user_id", uid) as any).eq("action_type", "follow_user"),
+      (supabase.from("activity_log").select("id", { count: "exact", head: true }).eq("actor_user_id", uid) as any).eq("action_type", "follow_quest"),
+      supabase.from("comment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("attachment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      supabase.from("profiles").select("xp").eq("user_id", uid).single(),
+      (supabase.from("quest_subtasks").select("id", { count: "exact", head: true }) as any).eq("status", "DONE"),
+    ]);
 
     // Profile completeness
     const profile = profileRes.data;
@@ -267,23 +302,26 @@ export function useMilestoneChecker() {
       }
     }
 
-    const spokenCount = spokenLangsRes.count ?? 0;
-    if (spokenCount >= 1) {
+    // Spoken languages
+    if ((spokenLangsRes.count ?? 0) >= 1) {
       completeMilestone("add_spoken_languages");
       completeMilestone("set_spoken_languages");
     }
 
+    // Guilds
     const guildCount = guildMembersRes.count ?? 0;
     if (guildCount >= 1) {
       completeMilestone("join_first_guild");
       completeMilestone("join_first_guild_v2");
       completeMilestone("join_creative_circle");
       completeMilestone("impact_guild");
+      completeMilestone("explore_guilds"); // if joined, you explored
     }
     if (guildCount >= 2) {
       completeMilestone("join_second_guild");
     }
 
+    // Quests
     const questCount = questsRes.count ?? 0;
     if (questCount >= 1) {
       completeMilestone("create_first_quest");
@@ -292,44 +330,109 @@ export function useMilestoneChecker() {
       completeMilestone("impact_quest");
     }
 
-    const serviceCount = servicesRes.count ?? 0;
-    if (serviceCount >= 1) {
+    // Services
+    if ((servicesRes.count ?? 0) >= 1) {
       completeMilestone("publish_service");
       completeMilestone("publish_service_v2");
     }
 
+    // Pods
     if ((podMembersRes.count ?? 0) >= 1) completeMilestone("collaborate_pod");
 
-    const memoryCount = territoryMemoryRes.count ?? 0;
-    if (memoryCount >= 1) {
+    // Territory memory / knowledge
+    if ((territoryMemoryRes.count ?? 0) >= 1) {
       completeMilestone("contribute_territory");
       completeMilestone("impact_territory_memory");
       completeMilestone("add_knowledge");
+      completeMilestone("visit_territory"); // if contributed, you visited
     }
 
-    const eventAttendeeCount = eventAttendeesRes.count ?? 0;
-    if (eventAttendeeCount >= 1) {
+    // Events attended
+    if ((eventAttendeesRes.count ?? 0) >= 1) {
       completeMilestone("attend_event");
       completeMilestone("join_event");
     }
 
-    const shareholdingCount = shareholdingsRes.count ?? 0;
-    if (shareholdingCount >= 1) {
+    // Shareholdings
+    if ((shareholdingsRes.count ?? 0) >= 1) {
       completeMilestone("become_shareholder");
       completeMilestone("become_shareholder_v2");
     }
 
-    const courseCount = coursesRes.count ?? 0;
-    if (courseCount >= 1) {
+    // Courses
+    if ((coursesRes.count ?? 0) >= 1) {
       completeMilestone("publish_course");
       completeMilestone("creative_class");
       completeMilestone("create_course");
     }
 
-    const eventsHostedCount = eventsHostedRes.count ?? 0;
-    if (eventsHostedCount >= 1) {
+    // Events hosted
+    if ((eventsHostedRes.count ?? 0) >= 1) {
       completeMilestone("host_workshop");
       completeMilestone("create_event");
+    }
+
+    // Comments
+    if ((commentsRes.count ?? 0) >= 1) {
+      completeMilestone("first_comment");
+    }
+
+    // Messages / conversations
+    if ((messagesRes.count ?? 0) >= 1) {
+      completeMilestone("send_first_message");
+    }
+
+    // Contributions
+    const contribCount = contributionsRes.count ?? 0;
+    if (contribCount >= 1) {
+      completeMilestone("log_contribution");
+      completeMilestone("help_or_resource");
+    }
+
+    // Verified contributions
+    if ((verifiedContributionsRes.count ?? 0) >= 1) {
+      completeMilestone("get_contribution_verified");
+    }
+
+    // Bookings
+    if ((bookingsRes.count ?? 0) >= 1) {
+      completeMilestone("book_service");
+    }
+
+    // Follows (users)
+    if ((followsRes.count ?? 0) >= 1) {
+      completeMilestone("follow_user");
+      completeMilestone("view_user_profile"); // if followed, you viewed
+    }
+
+    // Quest follows
+    const questFollowCount = questFollowsRes.count ?? 0;
+    if (questFollowCount >= 1) {
+      completeMilestone("follow_quest_v2");
+    }
+    if (questFollowCount >= 3) {
+      completeMilestone("follow_3_quests");
+    }
+
+    // Upvotes / reactions
+    const totalReactions = (commentUpvotesRes.count ?? 0) + (attachmentUpvotesRes.count ?? 0);
+    if (totalReactions >= 1) {
+      completeMilestone("react_discussion");
+    }
+
+    // XP milestone
+    const currentXp = xpRes.data?.xp ?? 0;
+    if (currentXp >= 100) {
+      completeMilestone("earn_100_xp");
+    }
+
+    // Subtasks completed
+    const subtasksDone = subtasksRes.count ?? 0;
+    if (subtasksDone >= 1) {
+      completeMilestone("complete_subtask");
+    }
+    if (subtasksDone >= 5) {
+      completeMilestone("complete_5_subtasks");
     }
   }, [user?.id, completeMilestone]);
 
