@@ -32,8 +32,8 @@ import { AddJobDialog } from "@/components/AddJobDialog";
 import AgentsMarketplace from "./AgentsMarketplace";
 import OpportunitiesExplore from "./OpportunitiesExplore";
 
-const VALID_TABS_AUTH = ["entities", "quests", "opportunities", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "opportunities", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH = ["entities", "quests", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses", "agents", "jobs", "territories"];
 const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "territories"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
@@ -173,9 +173,6 @@ export default function ExploreHub() {
           <QuestsSubTabs />
         </TabsContent>
 
-        <TabsContent value="opportunities">
-          <OpportunitiesExplore bare />
-        </TabsContent>
 
         <TabsContent value="services">
           <div className="flex justify-end mb-4">
@@ -233,7 +230,6 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
   const exploreTabs: TabDefinition[] = useMemo(() => [
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")} <HintTooltip {...HINTS.tooltips.exploreEntities} /></> },
     { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></>, visible: !isGuest },
-    { value: "opportunities", label: <><HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities</>, visible: !isGuest },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
     { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")} <HintTooltip {...HINTS.tooltips.exploreAgents} /></> },
     { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> {t("tabs.jobs")}</>, visible: !isCreative },
@@ -281,12 +277,15 @@ function QuestsSubTabs() {
 }
 
 function JobsSubTabs() {
-  const [sub, setSub] = useState<"positions" | "quests" | "ideas">("positions");
+  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("positions");
   return (
     <div>
       <div className="flex gap-2 mb-4">
         <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
           <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
+        </Button>
+        <Button variant={sub === "opportunities" ? "default" : "outline"} size="sm" onClick={() => setSub("opportunities")}>
+          <HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities
         </Button>
         <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>
           <Swords className="h-3.5 w-3.5 mr-1" /> Quests
@@ -296,6 +295,7 @@ function JobsSubTabs() {
         </Button>
       </div>
       {sub === "positions" && <JobsExplore bare />}
+      {sub === "opportunities" && <OpportunitiesExplore bare />}
       {sub === "quests" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
       {sub === "ideas" && <QuestsMarketplace bare natureFilter="IDEA" />}
     </div>

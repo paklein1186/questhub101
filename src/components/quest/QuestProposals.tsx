@@ -137,6 +137,20 @@ export function QuestProposals({
 
   const profileMap = Object.fromEntries(proposerProfiles.map((p: any) => [p.user_id, p]));
 
+  // Quest needs for linking contributions
+  const { data: questNeeds = [] } = useQuery({
+    queryKey: ["quest-needs", questId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_needs" as any)
+        .select("id, title, status")
+        .eq("quest_id", questId)
+        .in("status", ["open", "in_progress"])
+        .order("created_at", { ascending: false }) as any;
+      return data ?? [];
+    },
+  });
+
   // ── Submit Proposal ─────────────────────────────────────
   const [expandedComments, setExpandedComments] = useState<string | null>(null);
   const [propOpen, setPropOpen] = useState(false);
@@ -145,6 +159,7 @@ export function QuestProposals({
   const [propCredits, setPropCredits] = useState("");
   const [propCurrency, setPropCurrency] = useState<"CREDITS" | "FIAT" | "BOTH">("CREDITS");
   const [propFiatAmount, setPropFiatAmount] = useState("");
+  const [propNeedId, setPropNeedId] = useState<string>("");
 
   const submitProposal = async () => {
     if (!propTitle.trim() || !currentUser.id) return;
@@ -157,6 +172,7 @@ export function QuestProposals({
       requested_credits: propCurrency !== "FIAT" ? (Number(propCredits) || 0) : 0,
       requested_fiat: propCurrency !== "CREDITS" ? (Number(propFiatAmount) || 0) : 0,
       requested_currency: propCurrency,
+      need_id: propNeedId || null,
       status: "PENDING",
     });
 
@@ -179,7 +195,7 @@ export function QuestProposals({
     });
 
     qc.invalidateQueries({ queryKey: ["quest-proposals", questId] });
-    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits(""); setPropCurrency("CREDITS"); setPropFiatAmount("");
+    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits(""); setPropCurrency("CREDITS"); setPropFiatAmount(""); setPropNeedId("");
     toast({ title: "Contribution submitted! +3 XP" });
   };
 
@@ -419,6 +435,21 @@ export function QuestProposals({
                   <label className="text-sm font-medium mb-1 block">Description</label>
                   <Textarea value={propDesc} onChange={e => setPropDesc(e.target.value)} maxLength={1000} className="resize-none min-h-[80px]" placeholder="Explain your approach…" />
                 </div>
+                {questNeeds.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Linked Need</label>
+                    <Select value={propNeedId} onValueChange={setPropNeedId}>
+                      <SelectTrigger><SelectValue placeholder="(optional) Select a need…" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {questNeeds.map((n: any) => (
+                          <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Link your contribution to a specific quest need</p>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium mb-1 block">Payment Currency</label>
                   <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
