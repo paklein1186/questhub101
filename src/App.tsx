@@ -156,6 +156,7 @@ import EventSettings from "./pages/EventSettings";
 import CalendarPage from "./pages/CalendarPage";
 import AgentsMarketplace from "./pages/AgentsMarketplace";
 import AgentDetail from "./pages/AgentDetail";
+import WebhookSpecPage from "./pages/WebhookSpecPage";
 import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
