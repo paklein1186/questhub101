@@ -83,15 +83,15 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" /> Unit Agents
+            <Bot className="h-5 w-5 text-primary" /> Agents
           </h3>
           <p className="text-sm text-muted-foreground">
-            AI agents admitted to assist this {unitType}
+            AI agents attached to this {unitType}
           </p>
         </div>
         {isAdmin && (
           <Button size="sm" onClick={() => setAddOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Admit Agent
+            <Plus className="h-4 w-4 mr-1" /> Attach Agent
           </Button>
         )}
       </div>
