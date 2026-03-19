@@ -234,7 +234,7 @@ export default function AgentDetail() {
 
             <div className="lg:col-span-2">
               {isHired ? (
-                <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
+                <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} billingCurrency={agent.billing_currency || "credits"} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
               ) : (
                 <Card className="p-12 text-center">
                   <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
