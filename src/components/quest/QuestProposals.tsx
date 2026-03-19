@@ -195,7 +195,7 @@ export function QuestProposals({
     });
 
     qc.invalidateQueries({ queryKey: ["quest-proposals", questId] });
-    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits(""); setPropCurrency("CREDITS"); setPropFiatAmount("");
+    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits(""); setPropCurrency("CREDITS"); setPropFiatAmount(""); setPropNeedId("");
     toast({ title: "Contribution submitted! +3 XP" });
   };
 
