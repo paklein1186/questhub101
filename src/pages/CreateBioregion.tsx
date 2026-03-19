@@ -680,10 +680,10 @@ export default function CreateBioregion() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-3">
             <Mountain className="h-10 w-10 text-muted-foreground mx-auto" />
-            <h2 className="text-lg font-semibold">Experience required</h2>
-            <p className="text-sm text-muted-foreground">
-              You need to be at least <strong>Level 3</strong> to create a bioregion. Complete quests and contribute to the community to level up!
-            </p>
+             <h2 className="text-lg font-semibold">Experience required</h2>
+             <p className="text-sm text-muted-foreground">
+               You need to be at least <strong>Level 1</strong> to create a bioregion. Sign up and start contributing to unlock this!
+             </p>
             <Badge variant="outline">Your level: {xpLevel}</Badge>
           </CardContent>
         </Card>
