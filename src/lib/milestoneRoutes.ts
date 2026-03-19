@@ -18,7 +18,7 @@ export const MILESTONE_ROUTES: Record<string, { label: string; to: string }> = {
   send_first_message:     { label: "Open inbox",               to: "/inbox" },
 
   // ── Phase 2: Contribute ────────────────────────────────────
-  respond_opportunity:    { label: "Browse opportunities",     to: "/opportunities" },
+  respond_opportunity:    { label: "Browse opportunities",     to: "/explore?tab=jobs&sub=opportunities" },
   join_quest:             { label: "Browse quests",            to: "/explore?tab=quests" },
   complete_subtask:       { label: "Go to work hub",           to: "/work" },
   log_contribution:       { label: "Go to work hub",           to: "/work" },
