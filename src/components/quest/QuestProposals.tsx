@@ -172,7 +172,7 @@ export function QuestProposals({
       requested_credits: propCurrency !== "FIAT" ? (Number(propCredits) || 0) : 0,
       requested_fiat: propCurrency !== "CREDITS" ? (Number(propFiatAmount) || 0) : 0,
       requested_currency: propCurrency,
-      need_id: propNeedId || null,
+      need_id: propNeedId && propNeedId !== "none" ? propNeedId : null,
       status: "PENDING",
     });
 
@@ -441,7 +441,7 @@ export function QuestProposals({
                     <Select value={propNeedId} onValueChange={setPropNeedId}>
                       <SelectTrigger><SelectValue placeholder="(optional) Select a need…" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         {questNeeds.map((n: any) => (
                           <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>
                         ))}

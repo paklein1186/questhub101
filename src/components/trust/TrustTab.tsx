@@ -234,7 +234,7 @@ function TrustEdgeCard({ edge, giver }: { edge: TrustEdgeRow; giver?: GiverProfi
 // ─── Main TrustTab ─────────────────────────────────────────
 export function TrustTab({ nodeType, nodeId }: { nodeType: TrustNodeType; nodeId: string }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filterTag, setFilterTag] = useState("");
+  const [filterTag, setFilterTag] = useState("all");
   const [filterEdgeType, setFilterEdgeType] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
 
@@ -295,7 +295,7 @@ export function TrustTab({ nodeType, nodeId }: { nodeType: TrustNodeType; nodeId
   // Filter
   const filteredEdges = useMemo(() => {
     let result = edges;
-    if (filterTag) result = result.filter(e => e.tags?.includes(filterTag));
+    if (filterTag && filterTag !== "all") result = result.filter(e => e.tags?.includes(filterTag));
     if (filterEdgeType !== "all") result = result.filter(e => e.edge_type === filterEdgeType);
     if (filterDate === "30d") {
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
@@ -347,7 +347,7 @@ export function TrustTab({ nodeType, nodeId }: { nodeType: TrustNodeType; nodeId
                     <SelectValue placeholder="Filter by tag" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All tags</SelectItem>
+                    <SelectItem value="all">All tags</SelectItem>
                     {allTags.map(tag => (
                       <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                     ))}

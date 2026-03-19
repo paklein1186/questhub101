@@ -47,7 +47,7 @@ export default function AgentBillingTab({ agentId, agentCreatorId }: Props) {
         payer_id: user.id,
         monthly_spend_limit: spendLimit ? Number(spendLimit) : null,
         auto_pause_over_limit: autoPause,
-        current_plan_id: selectedPlan || null,
+        current_plan_id: selectedPlan && selectedPlan !== "none" ? selectedPlan : null,
       };
       if (billing?.id) {
         const { error } = await supabase
@@ -123,10 +123,10 @@ export default function AgentBillingTab({ agentId, agentCreatorId }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-muted-foreground">Subscription Plan</label>
-              <Select value={selectedPlan || billing?.current_plan_id || ""} onValueChange={setSelectedPlan}>
+              <Select value={selectedPlan || billing?.current_plan_id || "none"} onValueChange={setSelectedPlan}>
                 <SelectTrigger><SelectValue placeholder="No plan" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No plan</SelectItem>
+                  <SelectItem value="none">No plan</SelectItem>
                   {(plans || []).map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.label} — {p.monthly_price} credits/mo
