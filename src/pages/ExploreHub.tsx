@@ -173,9 +173,6 @@ export default function ExploreHub() {
           <QuestsSubTabs />
         </TabsContent>
 
-        <TabsContent value="opportunities">
-          <OpportunitiesExplore bare />
-        </TabsContent>
 
         <TabsContent value="services">
           <div className="flex justify-end mb-4">
