@@ -341,6 +341,17 @@ function AgentChat({ agentId, agentName, costPerUse, billingCurrency, userId, ag
 
   const sendText = useCallback(async (text: string) => {
     if (!text.trim() || streaming) return;
+
+    // Process usage payment if needed
+    if (costPerUse > 0) {
+      const { processAgentPayment } = await import("@/lib/agentPayment");
+      const result = await processAgentPayment(userId, costPerUse, agentId, "usage");
+      if (!result.success) {
+        toast.error(result.error || "Insufficient balance. Please top up.");
+        return;
+      }
+    }
+
     setInput("");
     const userMsg: Msg = { role: "user", content: text.trim() };
     setMessages(prev => [...prev, userMsg]);

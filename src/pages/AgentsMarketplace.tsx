@@ -343,10 +343,14 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
   const [description, setDescription] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [skills, setSkills] = useState("");
-  const [costPerUse, setCostPerUse] = useState("5");
   const [category, setCategory] = useState("general");
-  const [billingCurrency, setBillingCurrency] = useState<"free" | "credits" | "coins">("credits");
   const [saving, setSaving] = useState(false);
+
+  // Pricing
+  const [pricingMode, setPricingMode] = useState<"free" | "paid">("free");
+  const [hirePrice, setHirePrice] = useState("0");
+  const [usagePrice, setUsagePrice] = useState("5");
+  const [freeCallsLimit, setFreeCallsLimit] = useState("");
 
   // Source mode
   const [agentSource, setAgentSource] = useState<AgentSource>("platform");
@@ -376,7 +380,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     setName(""); setDescription(""); setSystemPrompt(""); setSkills("");
     setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
     setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false);
-    setBillingCurrency("credits"); setCostPerUse("5");
+    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit("");
   };
 
   const handleCreate = async () => {
@@ -388,17 +392,22 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     }
 
     setSaving(true);
+    const isFree = pricingMode === "free";
     const insertPayload: any = {
       name: name.trim(),
       description: description.trim() || null,
       system_prompt: agentSource === "platform" ? systemPrompt.trim() : `External agent (${agentSource})`,
       skills: skills.split(",").map(s => s.trim()).filter(Boolean),
-      cost_per_use: billingCurrency === "free" ? 0 : (parseInt(costPerUse) || 5),
+      cost_per_use: isFree ? 0 : (parseInt(usagePrice) || 0),
       category,
       creator_user_id: userId,
       is_published: true,
       agent_source: agentSource,
-      billing_currency: billingCurrency,
+      billing_currency: isFree ? "free" : "credits",
+      pricing_mode: pricingMode,
+      hire_price: isFree ? 0 : (parseInt(hirePrice) || 0),
+      usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
+      free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
     };
 
     if (agentSource === "webhook") {
