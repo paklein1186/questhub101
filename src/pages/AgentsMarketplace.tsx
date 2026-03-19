@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bot, Plus, Sparkles, Search, Zap, Star } from "lucide-react";
+import { Bot, Plus, Sparkles, Search, Zap, Star, Globe, Key, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,47 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   );
 }
 
+type AgentSource = "platform" | "custom_llm" | "webhook";
+
+const LLM_PROVIDERS: { value: string; label: string; models: { value: string; label: string }[] }[] = [
+  {
+    value: "openai", label: "OpenAI",
+    models: [
+      { value: "gpt-4o", label: "GPT-4o" },
+      { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+      { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+      { value: "o1-mini", label: "o1-mini" },
+    ],
+  },
+  {
+    value: "anthropic", label: "Anthropic",
+    models: [
+      { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+      { value: "claude-haiku-4-20250414", label: "Claude Haiku 4" },
+    ],
+  },
+  {
+    value: "mistral", label: "Mistral",
+    models: [
+      { value: "mistral-large-latest", label: "Mistral Large" },
+      { value: "mistral-small-latest", label: "Mistral Small" },
+    ],
+  },
+  {
+    value: "groq", label: "Groq",
+    models: [
+      { value: "llama-3.3-70b-versatile", label: "LLaMA 3.3 70B" },
+      { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B" },
+    ],
+  },
+];
+
+const SOURCE_MODES: { value: AgentSource; emoji: string; label: string; desc: string }[] = [
+  { value: "platform", emoji: "🤖", label: "QuestHub AI", desc: "Powered by platform AI models" },
+  { value: "custom_llm", emoji: "🔑", label: "My own model", desc: "Bring your own API key & model" },
+  { value: "webhook", emoji: "🔗", label: "External bot", desc: "Connect via webhook URL" },
+];
+
 function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOpenChange: (v: boolean) => void; userId: string }) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
@@ -161,6 +203,22 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
   const [category, setCategory] = useState("general");
   const [saving, setSaving] = useState(false);
 
+  // Source mode
+  const [agentSource, setAgentSource] = useState<AgentSource>("platform");
+
+  // Custom LLM fields
+  const [llmProvider, setLlmProvider] = useState("");
+  const [llmModel, setLlmModel] = useState("");
+  const [llmApiKey, setLlmApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+
+  // Webhook fields
+  const [webhookUrl, setWebhookUrl] = useState("");
+
+  const filteredModels = useMemo(() => {
+    return LLM_PROVIDERS.find(p => p.value === llmProvider)?.models || [];
+  }, [llmProvider]);
+
   const CATEGORIES = [
     { value: "intelligence", label: t("agents.intelligence") },
     { value: "writing", label: t("agents.writing") },
@@ -169,37 +227,90 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     { value: "general", label: t("agents.general") },
   ];
 
+  const resetForm = () => {
+    setName(""); setDescription(""); setSystemPrompt(""); setSkills("");
+    setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
+    setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false);
+  };
+
   const handleCreate = async () => {
-    if (!name.trim() || !systemPrompt.trim()) {
-      toast.error(t("agents.nameRequired"));
-      return;
+    if (!name.trim()) { toast.error(t("agents.nameRequired")); return; }
+    if (agentSource === "platform" && !systemPrompt.trim()) { toast.error(t("agents.nameRequired")); return; }
+    if (agentSource === "webhook" && !webhookUrl.trim()) { toast.error("Webhook URL is required"); return; }
+    if (agentSource === "custom_llm" && (!llmProvider || !llmModel || !llmApiKey.trim())) {
+      toast.error("Provider, model, and API key are required"); return;
     }
+
     setSaving(true);
-    const { error } = await supabase.from("agents").insert({
+    const insertPayload: any = {
       name: name.trim(),
       description: description.trim() || null,
-      system_prompt: systemPrompt.trim(),
+      system_prompt: agentSource === "platform" ? systemPrompt.trim() : `External agent (${agentSource})`,
       skills: skills.split(",").map(s => s.trim()).filter(Boolean),
       cost_per_use: parseInt(costPerUse) || 5,
       category,
       creator_user_id: userId,
       is_published: true,
-    } as any);
-    setSaving(false);
-    if (error) {
-      toast.error(t("agents.failedToCreate"));
-      return;
+      agent_source: agentSource,
+    };
+
+    if (agentSource === "webhook") {
+      insertPayload.external_webhook_url = webhookUrl.trim();
     }
+    if (agentSource === "custom_llm") {
+      insertPayload.external_llm_config = {
+        provider: llmProvider,
+        model: llmModel,
+        api_key_ref: llmApiKey.trim(),
+      };
+    }
+
+    const { error } = await supabase.from("agents").insert(insertPayload as any);
+    setSaving(false);
+    if (error) { toast.error(t("agents.failedToCreate")); return; }
     toast.success(t("agents.agentCreated"));
     onOpenChange(false);
-    setName(""); setDescription(""); setSystemPrompt(""); setSkills("");
+    resetForm();
   };
+
+  const isExternal = agentSource !== "platform";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{t("agents.createAgent")}</DialogTitle></DialogHeader>
         <div className="space-y-4">
+          {/* Mode selector */}
+          <div className="grid grid-cols-3 gap-2">
+            {SOURCE_MODES.map(m => (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => { setAgentSource(m.value); setLlmProvider(""); setLlmModel(""); }}
+                className={`rounded-lg border-2 p-3 text-left transition-all text-sm ${
+                  agentSource === m.value
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-muted-foreground/40"
+                }`}
+              >
+                <span className="text-lg">{m.emoji}</span>
+                <p className="font-medium text-foreground mt-1 leading-tight">{m.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{m.desc}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Trust warning for external */}
+          {isExternal && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700/50 p-3">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                External agents start at <strong>Trust Level 0 (Untrusted)</strong>. Trust is earned through successful interactions and community endorsements.
+              </p>
+            </div>
+          )}
+
+          {/* Common fields */}
           <div>
             <Label>{t("common.name")} *</Label>
             <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Marketing Strategist" />
@@ -216,10 +327,90 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
             <Label>{t("common.description")}</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t("common.description")} rows={2} />
           </div>
-          <div>
-            <Label>{t("agents.systemPrompt")} *</Label>
-            <Textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)} placeholder="You are a..." rows={4} />
-          </div>
+
+          {/* Platform-only: system prompt */}
+          {agentSource === "platform" && (
+            <div>
+              <Label>{t("agents.systemPrompt")} *</Label>
+              <Textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)} placeholder="You are a..." rows={4} />
+            </div>
+          )}
+
+          {/* Custom LLM fields */}
+          {agentSource === "custom_llm" && (
+            <>
+              <div>
+                <Label>Provider *</Label>
+                <Select value={llmProvider} onValueChange={v => { setLlmProvider(v); setLlmModel(""); }}>
+                  <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
+                  <SelectContent>
+                    {LLM_PROVIDERS.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {llmProvider && (
+                <div>
+                  <Label>Model *</Label>
+                  <Select value={llmModel} onValueChange={setLlmModel}>
+                    <SelectTrigger><SelectValue placeholder="Select model" /></SelectTrigger>
+                    <SelectContent>
+                      {filteredModels.map(m => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div>
+                <Label>API Key *</Label>
+                <div className="relative">
+                  <Input
+                    type={showApiKey ? "text" : "password"}
+                    value={llmApiKey}
+                    onChange={e => setLlmApiKey(e.target.value)}
+                    placeholder="sk-..."
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Your key is stored encrypted and only used for this agent's calls.</p>
+              </div>
+            </>
+          )}
+
+          {/* Webhook fields */}
+          {agentSource === "webhook" && (
+            <>
+              <div>
+                <Label>Webhook URL *</Label>
+                <Input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/agent" />
+              </div>
+              <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground space-y-1.5">
+                <p className="font-medium text-foreground text-sm">Expected format</p>
+                <p><strong>POST</strong> request with JSON body:</p>
+                <pre className="bg-background rounded p-2 overflow-x-auto text-[11px]">{`{
+  "message": "user input",
+  "conversation_id": "uuid",
+  "context": { ... }
+}`}</pre>
+                <p><strong>Response</strong> (JSON):</p>
+                <pre className="bg-background rounded p-2 overflow-x-auto text-[11px]">{`{
+  "reply": "agent response text",
+  "actions": []  // optional
+}`}</pre>
+              </div>
+            </>
+          )}
+
+          {/* Common bottom fields */}
           <div>
             <Label>{t("agents.skillsCommaSeparated")}</Label>
             <Input value={skills} onChange={e => setSkills(e.target.value)} placeholder="copywriting, strategy, analysis" />
