@@ -132,13 +132,32 @@ export function useFollowingFeed(filterType?: string) {
       }
 
       // 5. Fetch context entity names for display
+      const baseType = (t: string) => {
+        if (t === "GUILD_DISCUSSION" || t === "GUILD_EVENT") return "GUILD";
+        if (t === "QUEST_DISCUSSION") return "QUEST";
+        return t;
+      };
+      const suffixMap: Record<string, string> = {
+        GUILD_DISCUSSION: " › Discussion",
+        QUEST_DISCUSSION: " › Discussion",
+        GUILD_EVENT: " › Event",
+      };
+      const linkMap: Record<string, string> = {
+        GUILD: "/guilds/",
+        COMPANY: "/companies/",
+        POD: "/pods/",
+        QUEST: "/quests/",
+        COURSE: "/courses/",
+        USER: "/users/",
+      };
+
       const contextGroups: Record<string, string[]> = {};
       for (const post of result) {
         if (post.context_id) {
-          const t = post.context_type;
-          if (!contextGroups[t]) contextGroups[t] = [];
-          if (!contextGroups[t].includes(post.context_id))
-            contextGroups[t].push(post.context_id);
+          const bt = baseType(post.context_type);
+          if (!contextGroups[bt]) contextGroups[bt] = [];
+          if (!contextGroups[bt].includes(post.context_id))
+            contextGroups[bt].push(post.context_id);
         }
       }
 
@@ -173,11 +192,15 @@ export function useFollowingFeed(filterType?: string) {
       }
       await Promise.all(nameFetches);
 
-      // Attach context names to posts for display
+      // Attach context names + links to posts
       for (const post of result) {
         if (post.context_id) {
-          (post as any).contextName =
-            contextNames.get(`${post.context_type}:${post.context_id}`) || null;
+          const bt = baseType(post.context_type);
+          const bk = `${bt}:${post.context_id}`;
+          const name = contextNames.get(bk);
+          const suffix = suffixMap[post.context_type] || "";
+          (post as any).contextName = name ? name + suffix : null;
+          (post as any).contextLink = linkMap[bt] ? linkMap[bt] + post.context_id : null;
         }
       }
 
