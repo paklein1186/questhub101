@@ -47,16 +47,20 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   ];
 
   const { data: agents, isLoading } = useQuery({
-    queryKey: ["agents", category, search],
+    queryKey: ["agents", category, search, sourceFilter, billingFilter],
     queryFn: async () => {
       let q = supabase.from("agents").select("*").eq("is_published", true).order("is_featured", { ascending: false }).order("usage_count", { ascending: false });
       if (category !== "all") q = q.eq("category", category);
+      if (sourceFilter !== "all") q = q.eq("agent_source", sourceFilter);
+      if (billingFilter !== "all") q = q.eq("billing_currency", billingFilter);
       if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
       const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
+
+  const activeFilterCount = (category !== "all" ? 1 : 0) + (sourceFilter !== "all" ? 1 : 0) + (billingFilter !== "all" ? 1 : 0);
 
   const { data: myHires } = useQuery({
     queryKey: ["my-agent-hires", user?.id],
