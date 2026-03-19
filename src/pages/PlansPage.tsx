@@ -71,6 +71,7 @@ export default function PlansPage() {
   const { t } = useTranslation();
   const { session } = useAuth();
   const { plan: currentPlan, refresh } = usePlanLimits();
+  const agentQuota = useAgentQuota();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<PlanRow[]>([]);
