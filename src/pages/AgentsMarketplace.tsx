@@ -234,8 +234,14 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                     ))}
                     {agent.skills?.length > 2 && <Badge variant="secondary" className="text-[10px]">+{agent.skills.length - 2}</Badge>}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Zap className="h-3 w-3" /> {agent.cost_per_use} {t("common.credits")}
+                  <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
+                    {Number(agent.hire_price ?? 0) > 0 && (
+                      <span><Sparkles className="h-3 w-3 inline mr-0.5" />{agent.hire_price} to hire</span>
+                    )}
+                    <span>
+                      <Zap className="h-3 w-3 inline mr-0.5" />
+                      {Number(agent.usage_price ?? agent.cost_per_use) > 0 ? `${agent.usage_price ?? agent.cost_per_use}/msg` : "Free usage"}
+                    </span>
                   </div>
                 </div>
                 {/* Action buttons */}
@@ -252,7 +258,7 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                       onClick={() => hireMut.mutate(agent.id)}
                     >
                       <Sparkles className="h-3.5 w-3.5 mr-1" />
-                      {hireMut.isPending ? "Hiring..." : "Hire Agent"}
+                      {hireMut.isPending ? "Hiring..." : Number(agent.hire_price ?? 0) > 0 ? `Hire (${agent.hire_price} cr)` : "Hire Agent (Free)"}
                     </Button>
                   ) : (
                     <>
