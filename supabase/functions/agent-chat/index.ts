@@ -109,9 +109,10 @@ serve(async (req) => {
     }
 
     // Increment usage count
+    const newUsageCount = (agent.usage_count || 0) + 1;
     await adminClient
       .from("agents")
-      .update({ usage_count: (agent.usage_count || 0) + 1 })
+      .update({ usage_count: newUsageCount })
       .eq("id", agentId);
 
     // Update last_used_at
@@ -140,7 +141,14 @@ serve(async (req) => {
       }),
     });
 
-    if (!aiResponse.ok) {
+    const aiSuccess = aiResponse.ok;
+
+    // Fire-and-forget trust update
+    updateAgentTrust(adminClient, agentId, agent.name, agent.creator_user_id, newUsageCount, aiSuccess).catch(
+      (err) => console.error("Trust update error:", err)
+    );
+
+    if (!aiSuccess) {
       const status = aiResponse.status;
       if (status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
@@ -173,3 +181,91 @@ serve(async (req) => {
     });
   }
 });
+
+// ─── Trust progression helper ───────────────────────────────────────────────
+const TRUST_THRESHOLDS = [
+  { score: 20, level: 1, label: "Newcomer" },
+  { score: 40, level: 2, label: "Recognized" },
+  { score: 60, level: 3, label: "Trusted" },
+  { score: 80, level: 4, label: "Established" },
+];
+
+async function updateAgentTrust(
+  db: any,
+  agentId: string,
+  agentName: string,
+  creatorUserId: string,
+  usageCount: number,
+  success: boolean
+) {
+  // 1. Get or create trust score row
+  const { data: existing } = await db
+    .from("agent_trust_scores")
+    .select("*")
+    .eq("agent_id", agentId)
+    .maybeSingle();
+
+  const prev = existing || {
+    owner_trust: 50,
+    history_score: 50,
+    guild_endorsements: 0,
+    xp_level: 0,
+    penalties: 0,
+    total_score: 0,
+  };
+
+  // 2. Increment / decrement history_score
+  const delta = success ? 0.1 : -1.0;
+  const newHistory = Math.max(0, Math.min(100, (prev.history_score ?? 50) + delta));
+
+  // 3. Every 10 interactions → full recompute; otherwise just update history
+  const doFullRecompute = usageCount % 10 === 0;
+  let newTotal = prev.total_score;
+
+  if (doFullRecompute) {
+    newTotal = Math.max(
+      0,
+      Math.min(
+        100,
+        0.25 * (prev.owner_trust ?? 50) +
+          0.25 * newHistory +
+          0.2 * (prev.guild_endorsements ?? 0) +
+          0.15 * (prev.xp_level ?? 0) -
+          0.15 * (prev.penalties ?? 0)
+      )
+    );
+  }
+
+  const roundTwo = (n: number) => Math.round(n * 100) / 100;
+
+  await db.from("agent_trust_scores").upsert(
+    {
+      agent_id: agentId,
+      history_score: roundTwo(newHistory),
+      total_score: roundTwo(doFullRecompute ? newTotal : prev.total_score),
+      owner_trust: prev.owner_trust ?? 50,
+      guild_endorsements: prev.guild_endorsements ?? 0,
+      xp_level: prev.xp_level ?? 0,
+      penalties: prev.penalties ?? 0,
+      computed_at: new Date().toISOString(),
+    },
+    { onConflict: "agent_id" }
+  );
+
+  // 4. Threshold notification check (only on full recompute)
+  if (doFullRecompute) {
+    const oldScore = prev.total_score ?? 0;
+    for (const t of TRUST_THRESHOLDS) {
+      if (oldScore < t.score && newTotal >= t.score) {
+        await db.from("notifications").insert({
+          user_id: creatorUserId,
+          type: "agent_trust",
+          title: `Your agent ${agentName} reached Trust Level ${t.level}: ${t.label}`,
+          body: `Trust score is now ${roundTwo(newTotal)}. Keep it up!`,
+          link: `/agents/${agentId}`,
+        });
+        break; // only notify highest threshold crossed
+      }
+    }
+  }
+}
