@@ -33,6 +33,8 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [billingFilter, setBillingFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
 
   const CATEGORIES = [
