@@ -415,14 +415,52 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
             </>
           )}
 
+          {/* Billing currency */}
+          <div>
+            <Label className="mb-2 block">Billing currency</Label>
+            <div className="space-y-2">
+              {([
+                { value: "free" as const, icon: Gift, label: "Free", desc: "No charge. Good for community agents or testing." },
+                { value: "credits" as const, icon: Zap, label: "Credits", desc: "Users pay with platform credits (€0.04/credit). Best for utility agents." },
+                { value: "coins" as const, icon: CircleDollarSign, label: "Coins", desc: "Users pay with Coins (fiat-backed). Best for premium agents." },
+              ]).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setBillingCurrency(opt.value)}
+                  className={`w-full flex items-start gap-3 rounded-lg border-2 p-3 text-left transition-all ${
+                    billingCurrency === opt.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <opt.icon className={`h-4 w-4 mt-0.5 shrink-0 ${billingCurrency === opt.value ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <p className="font-medium text-sm text-foreground">{opt.label}</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight">{opt.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cost per use — hidden when free */}
+          {billingCurrency !== "free" && (
+            <div>
+              <Label>Cost per interaction ({billingCurrency})</Label>
+              <Input type="number" value={costPerUse} onChange={e => setCostPerUse(e.target.value)} min="1" />
+              {parseInt(costPerUse) > 0 && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  You will earn <span className="font-medium text-foreground">75%</span> of each interaction = <span className="font-medium text-foreground">{((parseInt(costPerUse) || 0) * 0.75).toFixed(1)} {billingCurrency}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Common bottom fields */}
           <div>
             <Label>{t("agents.skillsCommaSeparated")}</Label>
             <Input value={skills} onChange={e => setSkills(e.target.value)} placeholder="copywriting, strategy, analysis" />
-          </div>
-          <div>
-            <Label>{t("agents.costPerUse")}</Label>
-            <Input type="number" value={costPerUse} onChange={e => setCostPerUse(e.target.value)} min="1" />
           </div>
           <Button onClick={handleCreate} disabled={saving} className="w-full">
             {saving ? t("agents.creating") : t("agents.createAgent")}
