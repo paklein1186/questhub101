@@ -134,8 +134,8 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
     <div className="space-y-3">
       {!readOnly && isOwner && (
         <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={openCreate}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Need
+          <Button size="sm" variant="default" onClick={openCreate}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add Opportunity
           </Button>
         </div>
       )}
