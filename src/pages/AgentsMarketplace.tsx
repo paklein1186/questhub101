@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionBanner, HINTS } from "@/components/onboarding/ContextualHint";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -125,6 +126,7 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                 <div className="min-w-0">
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
                   <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
+                  <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>

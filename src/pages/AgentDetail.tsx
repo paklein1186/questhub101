@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import AgentBillingTab from "@/components/agent/AgentBillingTab";
+import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import AgentOverviewTab from "@/components/agent/AgentOverviewTab";
 import AgentPermissionsTab from "@/components/agent/AgentPermissionsTab";
 import AgentActivityTab from "@/components/agent/AgentActivityTab";
@@ -198,7 +199,10 @@ export default function AgentDetail() {
                       {agent.name}
                       {agent.is_featured && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
                     </h1>
-                    <Badge variant="outline" className="text-xs">{agent.category}</Badge>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-xs">{agent.category}</Badge>
+                      <AgentSourceBadge agentSource={(agent as any).agent_source} healthStatus={(agent as any).health_status} size="lg" />
+                    </div>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>

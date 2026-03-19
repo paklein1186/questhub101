@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -127,6 +128,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
                   <Badge variant="outline" className="text-[10px] mt-0.5">
                     {ua.agents?.category}
                   </Badge>
+                  <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                     {ua.agents?.description}
                   </p>
