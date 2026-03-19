@@ -435,6 +435,21 @@ export function QuestProposals({
                   <label className="text-sm font-medium mb-1 block">Description</label>
                   <Textarea value={propDesc} onChange={e => setPropDesc(e.target.value)} maxLength={1000} className="resize-none min-h-[80px]" placeholder="Explain your approach…" />
                 </div>
+                {questNeeds.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Linked Need</label>
+                    <Select value={propNeedId} onValueChange={setPropNeedId}>
+                      <SelectTrigger><SelectValue placeholder="(optional) Select a need…" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {questNeeds.map((n: any) => (
+                          <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Link your contribution to a specific quest need</p>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium mb-1 block">Payment Currency</label>
                   <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
