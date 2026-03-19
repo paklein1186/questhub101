@@ -232,7 +232,7 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
     { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></>, visible: !isGuest },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
     { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")} <HintTooltip {...HINTS.tooltips.exploreAgents} /></> },
-    { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> {t("tabs.jobs")}</>, visible: !isCreative },
+    { value: "jobs", label: <><HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities</>, visible: !isCreative },
     { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")} <HintTooltip {...HINTS.tooltips.exploreHouses} /></> },
     { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {t("explore.courses")}</> },
     { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> {t("tabs.humans")}</>, visible: !isGuest },
