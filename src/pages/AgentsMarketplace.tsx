@@ -125,9 +125,10 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
-                   <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
-                    <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
+                  <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
+                  <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
                 </div>
+              </div>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>
               <div className="flex items-center justify-between">
                 <div className="flex gap-1 flex-wrap">

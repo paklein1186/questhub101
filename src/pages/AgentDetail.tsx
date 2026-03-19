@@ -203,6 +203,7 @@ export default function AgentDetail() {
                       <Badge variant="outline" className="text-xs">{agent.category}</Badge>
                       <AgentSourceBadge agentSource={(agent as any).agent_source} healthStatus={(agent as any).health_status} size="lg" />
                     </div>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
                 <div className="flex flex-wrap gap-1 mb-4">
