@@ -156,6 +156,7 @@ import EventSettings from "./pages/EventSettings";
 import CalendarPage from "./pages/CalendarPage";
 import AgentsMarketplace from "./pages/AgentsMarketplace";
 import AgentDetail from "./pages/AgentDetail";
+import WebhookSpecPage from "./pages/WebhookSpecPage";
 import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
@@ -285,6 +286,7 @@ const App = () => (
                 <Route path="/contact" element={<Navigate to="/legal?tab=contact" replace />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/agents" element={<AgentsMarketplace />} />
+                <Route path="/agents/webhook-spec" element={<WebhookSpecPage />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
                 <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
