@@ -268,7 +268,7 @@ export default function AgentDetail() {
   );
 }
 
-function AgentChat({ agentId, agentName, costPerUse, userId, agentCategory, agentSkills }: { agentId: string; agentName: string; costPerUse: number; userId: string; agentCategory: string; agentSkills: string[] }) {
+function AgentChat({ agentId, agentName, costPerUse, billingCurrency, userId, agentCategory, agentSkills }: { agentId: string; agentName: string; costPerUse: number; billingCurrency: string; userId: string; agentCategory: string; agentSkills: string[] }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
