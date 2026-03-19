@@ -50,7 +50,7 @@ export const MILESTONE_ROUTES: Record<string, { label: string; to: string }> = {
   earn_100_xp:            { label: "View your XP",             to: "/me/xp" },
 
   // ── Phase 4: Structure ─────────────────────────────────────
-  create_guild_v2:        { label: "Browse guilds",            to: "/explore?tab=entities" },
+  create_guild_v2:        { label: "Create a guild",           to: "/create/guild-info" },
   become_admin:           { label: "My guilds",                to: "/me/guilds" },
   governance_vote:        { label: "My guilds",                to: "/me/guilds" },
   setup_contract:         { label: "Go to work hub",           to: "/work" },
