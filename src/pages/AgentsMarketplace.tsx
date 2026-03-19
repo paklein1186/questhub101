@@ -234,6 +234,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     setName(""); setDescription(""); setSystemPrompt(""); setSkills("");
     setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
     setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false);
+    setBillingCurrency("credits"); setCostPerUse("5");
   };
 
   const handleCreate = async () => {
