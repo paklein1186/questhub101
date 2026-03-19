@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, CheckCircle, Circle, ArrowRight, Sparkles } from "lucide-react";
+import { Trophy, CheckCircle, Circle, ArrowRight, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,12 +65,18 @@ function MiniMilestone({ m, index }: { m: MilestoneWithProgress; index: number }
 
 export function MilestoneJourney() {
   const { milestones, completedCount, totalCount } = useMilestones();
+  const [expanded, setExpanded] = useState(false);
 
   if (totalCount === 0) return null;
 
   const progressPct = Math.round((completedCount / totalCount) * 100);
-  const upcoming = milestones.filter((m) => !m.isCompleted).slice(0, 4);
-  const recentCompleted = milestones.filter((m) => m.isCompleted).slice(-2);
+  const upcoming = milestones.filter((m) => !m.isCompleted);
+  const completed = milestones.filter((m) => m.isCompleted);
+
+  // Collapsed: show 4 upcoming + 2 completed; Expanded: show all
+  const visibleUpcoming = expanded ? upcoming : upcoming.slice(0, 4);
+  const visibleCompleted = expanded ? completed : completed.slice(-2);
+  const hasMore = upcoming.length > 4 || completed.length > 2;
 
   return (
     <motion.section
@@ -86,7 +93,7 @@ export function MilestoneJourney() {
         </h2>
         <Button variant="ghost" size="sm" className="text-xs h-7" asChild>
           <Link to="/me/milestones">
-            See all <ArrowRight className="h-3 w-3 ml-1" />
+            Full page <ArrowRight className="h-3 w-3 ml-1" />
           </Link>
         </Button>
       </div>
@@ -103,27 +110,47 @@ export function MilestoneJourney() {
       </div>
 
       {/* Next milestones */}
-      {upcoming.length > 0 && (
+      {visibleUpcoming.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" /> Next steps
+            <Sparkles className="h-3.5 w-3.5 text-primary" /> Next steps ({upcoming.length})
           </p>
-          {upcoming.map((m, i) => (
+          {visibleUpcoming.map((m, i) => (
             <MiniMilestone key={m.id} m={m} index={i} />
           ))}
         </div>
       )}
 
-      {/* Recent completions */}
-      {recentCompleted.length > 0 && (
+      {/* Completed */}
+      {visibleCompleted.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <CheckCircle className="h-3.5 w-3.5 text-primary" /> Recently completed
+            <CheckCircle className="h-3.5 w-3.5 text-primary" /> Completed ({completed.length})
           </p>
-          {recentCompleted.map((m, i) => (
+          {visibleCompleted.map((m, i) => (
             <MiniMilestone key={m.id} m={m} index={i} />
           ))}
         </div>
+      )}
+
+      {/* Expand/Collapse toggle */}
+      {hasMore && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-xs h-8 gap-1.5 text-muted-foreground"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="h-3.5 w-3.5" /> Show less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" /> Show all milestones ({totalCount})
+            </>
+          )}
+        </Button>
       )}
     </motion.section>
   );
