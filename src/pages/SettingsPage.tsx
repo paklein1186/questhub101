@@ -14,7 +14,7 @@ import {
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
   Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare, Mail,
-  History, Scale,
+  History, Scale, Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
