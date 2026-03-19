@@ -479,7 +479,7 @@ const ADMIN_SECTIONS = [
     title: "Portal Customization",
     description: "Edit description, cover images and tags",
     icon: Globe,
-    minXpLevel: 3,
+    minXpLevel: 1,
     component: PortalCustomizationSection,
   },
   {
@@ -487,7 +487,7 @@ const ADMIN_SECTIONS = [
     title: "Member Management",
     description: "View and manage members in this territory",
     icon: Users,
-    minXpLevel: 5,
+    minXpLevel: 1,
     component: MemberManagementSection,
   },
   {
@@ -495,7 +495,7 @@ const ADMIN_SECTIONS = [
     title: "Quest Curation",
     description: "Feature and pin quests in the portal",
     icon: Compass,
-    minXpLevel: 5,
+    minXpLevel: 1,
     component: QuestCurationSection,
   },
   {
@@ -503,7 +503,7 @@ const ADMIN_SECTIONS = [
     title: "Steward Delegation",
     description: "Assign co-stewards and manage roles",
     icon: Shield,
-    minXpLevel: 8,
+    minXpLevel: 1,
     component: StewardDelegationSection,
   },
   {
@@ -511,7 +511,7 @@ const ADMIN_SECTIONS = [
     title: "Economy Tools",
     description: "Grant XP to contributors and manage CTG flows",
     icon: Coins,
-    minXpLevel: 12,
+    minXpLevel: 1,
     component: EconomyToolsSection,
   },
 ] as const;

@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +72,7 @@ export default function TerritoriesHome() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGeo, setSelectedGeo] = useState<GeoResult | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: geoResults = [], isLoading: geoLoading } = useGeoSearch(searchQuery);
@@ -224,6 +226,14 @@ export default function TerritoriesHome() {
                 <Plus className="h-3.5 w-3.5" /> Create Bioregion
               </Link>
             </Button>
+            {currentUser.id && (
+              <>
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setShowWizard(true)}>
+                  <Plus className="h-3.5 w-3.5" /> Add Territory
+                </Button>
+                {showWizard && <TerritoryCreateWizard open={showWizard} onClose={() => setShowWizard(false)} />}
+              </>
+            )}
           </div>
         </div>
       </div>

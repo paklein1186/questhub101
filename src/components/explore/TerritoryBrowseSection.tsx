@@ -1,7 +1,7 @@
 import { useState, useMemo, useContext } from "react";
 import { GridDensityContext } from "@/pages/ExploreHub";
 import { Link } from "react-router-dom";
-import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain } from "lucide-react";
+import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -138,16 +138,28 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
 
 type SortMode = "activity" | "name";
 type ViewMode = "grid" | "map";
+type TypeFilter = "all" | "locations" | "bioregions";
+
+const BIOREGION_LEVELS = new Set(["BIOREGION"]);
 
 export function TerritoryBrowseSection() {
   const [sort, setSort] = useState<SortMode>("activity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [search, setSearch] = useState("");
   const { gridClassName } = useContext(GridDensityContext);
   const { data: territories = [], isLoading } = useTerritoryLeaderboard();
 
   const filtered = useMemo(() => {
     let list = [...territories];
+
+    // Type filter
+    if (typeFilter === "bioregions") {
+      list = list.filter(t => BIOREGION_LEVELS.has(t.level?.toUpperCase() ?? ""));
+    } else if (typeFilter === "locations") {
+      list = list.filter(t => !BIOREGION_LEVELS.has(t.level?.toUpperCase() ?? ""));
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(t => t.name.toLowerCase().includes(q) || t.parent_name?.toLowerCase().includes(q));
@@ -159,7 +171,7 @@ export function TerritoryBrowseSection() {
       return scoreB - scoreA;
     });
     return list;
-  }, [territories, sort, search]);
+  }, [territories, sort, search, typeFilter]);
 
   if (isLoading) {
     return (
@@ -181,7 +193,20 @@ export function TerritoryBrowseSection() {
             className="h-9 text-sm"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Type filter */}
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+            <Button size="sm" variant={typeFilter === "all" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("all")}>
+              <Globe className="h-3 w-3" /> All
+            </Button>
+            <Button size="sm" variant={typeFilter === "locations" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("locations")}>
+              <MapPin className="h-3 w-3" /> Locations
+            </Button>
+            <Button size="sm" variant={typeFilter === "bioregions" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("bioregions")}>
+              <Leaf className="h-3 w-3" /> Bioregions
+            </Button>
+          </div>
+
           {/* View toggle */}
           <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
             <Button

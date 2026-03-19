@@ -2,6 +2,7 @@
  * ContentTabs — ALL data from real Supabase database, zero mocks.
  */
 import { useState, useMemo } from "react";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 import { Link } from "react-router-dom";
 import {
   Check, X, Star, Pencil, Save, Crown, Hash, Plus, Trash2,
@@ -424,8 +425,7 @@ export function HousesTerritoriesTab() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [newTopicName, setNewTopicName] = useState("");
-  const [newTerritoryName, setNewTerritoryName] = useState("");
-  const [newTerritoryLevel, setNewTerritoryLevel] = useState("TOWN");
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
 
   const { data: topics = [] } = useQuery({
     queryKey: ["admin-topics"],
@@ -453,14 +453,6 @@ export function HousesTerritoriesTab() {
     setNewTopicName("");
     qc.invalidateQueries({ queryKey: ["admin-topics"] });
     toast({ title: "Topic created" });
-  };
-
-  const addTerritory = async () => {
-    if (!newTerritoryName.trim()) return;
-    await supabase.from("territories").insert({ name: newTerritoryName.trim(), level: newTerritoryLevel as any });
-    setNewTerritoryName("");
-    qc.invalidateQueries({ queryKey: ["admin-territories"] });
-    toast({ title: "Territory created" });
   };
 
   return (
@@ -495,20 +487,11 @@ export function HousesTerritoriesTab() {
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Territories</h3>
         <div className="flex gap-2 mb-3">
-          <Input placeholder="New territory name…" value={newTerritoryName} onChange={(e) => setNewTerritoryName(e.target.value)} className="max-w-xs" />
-          <Select value={newTerritoryLevel} onValueChange={setNewTerritoryLevel}>
-            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TOWN">Town</SelectItem>
-              <SelectItem value="CITY">City</SelectItem>
-              <SelectItem value="DEPARTMENT">Department</SelectItem>
-              <SelectItem value="REGION">Region</SelectItem>
-              <SelectItem value="COUNTRY">Country</SelectItem>
-              <SelectItem value="CUSTOM">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button size="sm" onClick={addTerritory} disabled={!newTerritoryName.trim()}><Plus className="h-4 w-4 mr-1" /> Add</Button>
+          <Button size="sm" onClick={() => setShowTerritoryWizard(true)}><Plus className="h-4 w-4 mr-1" /> Add Territory</Button>
         </div>
+        {showTerritoryWizard && (
+          <TerritoryCreateWizard open={showTerritoryWizard} onClose={() => setShowTerritoryWizard(false)} />
+        )}
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
