@@ -242,7 +242,7 @@ export default function MilestonesHub() {
           ) : showCompleted ? (
             <div className="grid gap-3 sm:grid-cols-2">
               {completed.map((m) => (
-                <MilestoneCard key={m.id} m={m} />
+                <MilestoneCard key={m.id} m={m} onComplete={completeMilestone} />
               ))}
             </div>
           ) : null}
