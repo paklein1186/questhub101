@@ -2,6 +2,7 @@
  * ContentTabs — ALL data from real Supabase database, zero mocks.
  */
 import { useState, useMemo } from "react";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 import { Link } from "react-router-dom";
 import {
   Check, X, Star, Pencil, Save, Crown, Hash, Plus, Trash2,
