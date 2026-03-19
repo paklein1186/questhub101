@@ -1,7 +1,7 @@
 import { useState, useMemo, useContext } from "react";
 import { GridDensityContext } from "@/pages/ExploreHub";
 import { Link } from "react-router-dom";
-import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain } from "lucide-react";
+import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

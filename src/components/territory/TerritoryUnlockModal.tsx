@@ -37,13 +37,13 @@ import {
 
 /* ── XP requirements per level ── */
 const UNLOCK_REQUIREMENTS: Record<string, { minXpLevel: number; label: string }> = {
-  TOWN:      { minXpLevel: 3,  label: "Seedling (lvl 3+)" },
-  LOCALITY:  { minXpLevel: 3,  label: "Seedling (lvl 3+)" },
-  PROVINCE:  { minXpLevel: 5,  label: "Sprout (lvl 5+)" },
-  REGION:    { minXpLevel: 5,  label: "Sprout (lvl 5+)" },
-  NATIONAL:  { minXpLevel: 7,  label: "Pollinator (lvl 7+)" },
-  CONTINENT: { minXpLevel: 9,  label: "Harvester (lvl 9+)" },
-  GLOBAL:    { minXpLevel: 12, label: "Ecosystem Builder (lvl 12+)" },
+  TOWN:      { minXpLevel: 1,  label: "Any level" },
+  LOCALITY:  { minXpLevel: 1,  label: "Any level" },
+  PROVINCE:  { minXpLevel: 1,  label: "Any level" },
+  REGION:    { minXpLevel: 1,  label: "Any level" },
+  NATIONAL:  { minXpLevel: 1,  label: "Any level" },
+  CONTINENT: { minXpLevel: 1,  label: "Any level" },
+  GLOBAL:    { minXpLevel: 1,  label: "Any level" },
 };
 
 /* ── Steward pledge lines ── */
