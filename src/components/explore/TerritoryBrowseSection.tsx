@@ -138,16 +138,28 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
 
 type SortMode = "activity" | "name";
 type ViewMode = "grid" | "map";
+type TypeFilter = "all" | "locations" | "bioregions";
+
+const BIOREGION_LEVELS = new Set(["BIOREGION"]);
 
 export function TerritoryBrowseSection() {
   const [sort, setSort] = useState<SortMode>("activity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [search, setSearch] = useState("");
   const { gridClassName } = useContext(GridDensityContext);
   const { data: territories = [], isLoading } = useTerritoryLeaderboard();
 
   const filtered = useMemo(() => {
     let list = [...territories];
+
+    // Type filter
+    if (typeFilter === "bioregions") {
+      list = list.filter(t => BIOREGION_LEVELS.has(t.level?.toUpperCase() ?? ""));
+    } else if (typeFilter === "locations") {
+      list = list.filter(t => !BIOREGION_LEVELS.has(t.level?.toUpperCase() ?? ""));
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(t => t.name.toLowerCase().includes(q) || t.parent_name?.toLowerCase().includes(q));
@@ -159,7 +171,7 @@ export function TerritoryBrowseSection() {
       return scoreB - scoreA;
     });
     return list;
-  }, [territories, sort, search]);
+  }, [territories, sort, search, typeFilter]);
 
   if (isLoading) {
     return (
