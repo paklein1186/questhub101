@@ -762,10 +762,13 @@ export default function SettingsPage() {
                   </Section>
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(dbTerritories.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
                       <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((prev) => prev.includes(id) ? prev : [...prev, id])} />
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/create/bioregion"><Leaf className="h-3.5 w-3.5 mr-1" /> Add Bioregion</Link>
+                      </Button>
                     </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
                       {dbTerritories.map((t: any) => (
