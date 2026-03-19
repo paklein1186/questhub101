@@ -286,6 +286,7 @@ const App = () => (
                 <Route path="/contact" element={<Navigate to="/legal?tab=contact" replace />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/agents" element={<AgentsMarketplace />} />
+                <Route path="/agents/webhook-spec" element={<WebhookSpecPage />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
                 <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
