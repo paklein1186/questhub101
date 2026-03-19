@@ -123,7 +123,7 @@ export default function AgentBillingTab({ agentId, agentCreatorId }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-muted-foreground">Subscription Plan</label>
-              <Select value={selectedPlan || billing?.current_plan_id || ""} onValueChange={setSelectedPlan}>
+              <Select value={selectedPlan || billing?.current_plan_id || "none"} onValueChange={setSelectedPlan}>
                 <SelectTrigger><SelectValue placeholder="No plan" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No plan</SelectItem>
