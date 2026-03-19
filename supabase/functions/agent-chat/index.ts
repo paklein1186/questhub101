@@ -93,19 +93,80 @@ serve(async (req) => {
       });
     }
 
-    // Deduct credits
-    const { error: spendErr } = await adminClient.rpc("spend_user_credits", {
-      _amount: agent.cost_per_use,
-      _type: "AGENT_USE",
-      _source: `Agent: ${agent.name}`,
-      _related_entity_type: "agent",
-      _related_entity_id: agentId,
-    });
+    // ─── Hybrid billing ───────────────────────────────────────────
+    const billingCurrency = agent.billing_currency || "credits";
 
-    // If insufficient credits, allow anyway but warn (or block)
-    if (spendErr) {
-      console.error("Credit spend error:", spendErr.message);
-      // Don't block — let them chat but log it
+    if (billingCurrency !== "free") {
+      // Check plan-based free interactions
+      let usedPlan = false;
+
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("agent_interactions_this_month, agent_interactions_reset_at")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        // Reset counter if new month
+        const monthStart = new Date();
+        monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+        let currentCount = profile.agent_interactions_this_month || 0;
+
+        if (!profile.agent_interactions_reset_at || new Date(profile.agent_interactions_reset_at) < monthStart) {
+          currentCount = 0;
+          await adminClient.from("profiles")
+            .update({ agent_interactions_this_month: 0, agent_interactions_reset_at: monthStart.toISOString() })
+            .eq("id", user.id);
+        }
+
+        // Check plan quota
+        const { data: sub } = await adminClient
+          .from("user_subscriptions")
+          .select("subscription_plans(monthly_agent_interactions)")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
+        const planQuota = (sub as any)?.subscription_plans?.monthly_agent_interactions || 0;
+
+        if (planQuota > 0 && currentCount < planQuota) {
+          await adminClient.from("profiles")
+            .update({ agent_interactions_this_month: currentCount + 1 })
+            .eq("id", user.id);
+          usedPlan = true;
+        }
+      }
+
+      if (!usedPlan) {
+        if (billingCurrency === "coins") {
+          const { error: spendErr } = await adminClient.rpc("spend_user_coins", {
+            _amount: agent.cost_per_use,
+            _type: "AGENT_USE",
+            _source: `Agent: ${agent.name}`,
+            _related_entity_type: "agent",
+            _related_entity_id: agentId,
+          });
+          if (spendErr) {
+            return new Response(JSON.stringify({
+              error: `Insufficient coins. This agent costs ${agent.cost_per_use} coins per interaction.`,
+            }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        } else {
+          const { error: spendErr } = await adminClient.rpc("spend_user_credits", {
+            _amount: agent.cost_per_use,
+            _type: "AGENT_USE",
+            _source: `Agent: ${agent.name}`,
+            _related_entity_type: "agent",
+            _related_entity_id: agentId,
+          });
+          if (spendErr) {
+            return new Response(JSON.stringify({
+              error: `Insufficient credits. This agent costs ${agent.cost_per_use} credits per interaction.`,
+            }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
+      }
     }
 
     // Increment usage count
