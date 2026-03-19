@@ -210,20 +210,22 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                   </div>
                 )}
                 <div className="flex items-start gap-3 mb-3 mt-1">
-                  <div className="relative h-12 w-12 shrink-0">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Bot className="h-6 w-6 text-primary" />
-                    </div>
-                    {isHired && (
-                      <Badge className="absolute -top-2 -left-2 text-[10px] bg-primary/10 text-primary border-primary/30 px-1.5 py-0 whitespace-nowrap">
-                        <CheckCircle className="h-3 w-3 mr-0.5" /> Hired
-                      </Badge>
-                    )}
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot className="h-6 w-6 text-primary" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
-                    <Badge variant="outline" className={`text-[10px] mt-1 ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
-                    <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{agent.name}</h3>
+                      {isHired && (
+                        <Badge className="text-[10px] bg-primary/10 text-primary border-primary/30 px-1.5 py-0 shrink-0">
+                          <CheckCircle className="h-3 w-3 mr-0.5" /> Hired
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Badge variant="outline" className={`text-[10px] ${CATEGORY_COLORS[agent.category] || ""}`}>{agent.category}</Badge>
+                      <AgentSourceBadge agentSource={agent.agent_source} healthStatus={agent.health_status} />
+                    </div>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>
