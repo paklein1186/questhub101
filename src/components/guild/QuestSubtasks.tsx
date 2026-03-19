@@ -49,6 +49,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [showDone, setShowDone] = useState(false);
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
