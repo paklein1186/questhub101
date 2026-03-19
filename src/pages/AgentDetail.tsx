@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare, CreditCard, Shield, Activity, Eye, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/lib/admin";
 import { PageShell } from "@/components/PageShell";
