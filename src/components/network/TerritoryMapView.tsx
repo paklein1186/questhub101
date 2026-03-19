@@ -61,6 +61,30 @@ interface Props {
   territories: TerritoryLeaderboardItem[];
 }
 
+/** Try to geocode a territory name via Nominatim and persist the result */
+async function geocodeAndPersist(id: string, name: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name)}&format=json&limit=1`,
+      { headers: { "User-Agent": "changethegame-app" } }
+    );
+    if (!res.ok) return null;
+    const results = await res.json();
+    if (!results.length) return null;
+    const lat = parseFloat(results[0].lat);
+    const lng = parseFloat(results[0].lon);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    // Persist coordinates so future loads don't need geocoding
+    await supabase
+      .from("territories")
+      .update({ latitude: lat, longitude: lng, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
 export function TerritoryMapView({ territories }: Props) {
   const navigate = useNavigate();
 
@@ -71,14 +95,32 @@ export function TerritoryMapView({ territories }: Props) {
       if (territoryIds.length === 0) return {};
       const { data } = await supabase
         .from("territories")
-        .select("id, latitude, longitude, level, geojson")
+        .select("id, name, latitude, longitude, level, geojson")
         .in("id", territoryIds);
       const map: Record<string, TerritoryGeoData> = {};
+      const toGeocode: { id: string; name: string }[] = [];
+
       (data ?? []).forEach((t: any) => {
         if (t.latitude != null && t.longitude != null) {
           map[t.id] = { lat: t.latitude, lng: t.longitude, level: t.level, geojson: t.geojson };
+        } else {
+          toGeocode.push({ id: t.id, name: t.name });
         }
       });
+
+      // Auto-geocode territories missing coordinates (batch up to 5 at a time)
+      if (toGeocode.length > 0) {
+        const batch = toGeocode.slice(0, 5);
+        // Nominatim requires sequential requests (rate limit), so run serially
+        for (const item of batch) {
+          const coords = await geocodeAndPersist(item.id, item.name);
+          if (coords) {
+            const original = (data ?? []).find((t: any) => t.id === item.id);
+            map[item.id] = { lat: coords.lat, lng: coords.lng, level: original?.level, geojson: original?.geojson };
+          }
+        }
+      }
+
       return map;
     },
     staleTime: 300_000,
