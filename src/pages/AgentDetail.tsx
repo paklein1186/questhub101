@@ -222,17 +222,56 @@ export default function AgentDetail() {
                     <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  <Zap className="h-4 w-4" /> {agent.cost_per_use} credits per message
+                <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                  {Number((agent as any).hire_price ?? 0) > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" /> Hire: {(agent as any).hire_price} credits
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4" /> Usage: {Number((agent as any).usage_price ?? agent.cost_per_use) > 0 ? `${(agent as any).usage_price ?? agent.cost_per_use} credits/msg` : "Free"}
+                  </div>
                 </div>
                 <div className="text-xs text-muted-foreground">{agent.usage_count} interactions</div>
               </Card>
 
               {!isHired && user && (
-                <Button onClick={() => hireMut.mutate()} disabled={hireMut.isPending} className="w-full" size="lg">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {hireMut.isPending ? "Hiring..." : "Hire this Agent"}
-                </Button>
+                <>
+                  <Button
+                    onClick={() => {
+                      const hp = Number((agent as any).hire_price ?? 0);
+                      if (hp > 0) setHireConfirmOpen(true);
+                      else hireMut.mutate();
+                    }}
+                    disabled={hireMut.isPending}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {hireMut.isPending ? "Hiring..." : Number((agent as any).hire_price ?? 0) > 0 ? `Hire for ${(agent as any).hire_price} credits` : "Hire this Agent (Free)"}
+                  </Button>
+
+                  {/* Hire confirmation dialog */}
+                  {hireConfirmOpen && (
+                    <Dialog open={hireConfirmOpen} onOpenChange={setHireConfirmOpen}>
+                      <DialogContent className="max-w-sm">
+                        <DialogHeader>
+                          <DialogTitle>Confirm Hiring</DialogTitle>
+                        </DialogHeader>
+                        <p className="text-sm text-muted-foreground">
+                          Hiring <strong>{agent.name}</strong> costs <strong>{(agent as any).hire_price} credits</strong>.
+                          Plan credits are used first, then coins.
+                        </p>
+                        <div className="flex gap-2 justify-end mt-2">
+                          <Button variant="outline" size="sm" onClick={() => setHireConfirmOpen(false)}>Cancel</Button>
+                          <Button size="sm" disabled={hireMut.isPending} onClick={() => hireMut.mutate()}>
+                            {hireMut.isPending ? "Processing..." : "Confirm & Pay"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </>
               )}
               {isHired && (
                 <div className="flex items-center gap-2 text-sm text-primary">
@@ -244,7 +283,7 @@ export default function AgentDetail() {
 
             <div className="lg:col-span-2">
               {isHired ? (
-                <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} billingCurrency={agent.billing_currency || "credits"} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
+                <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={Number((agent as any).usage_price ?? agent.cost_per_use)} billingCurrency={"credits"} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
               ) : (
                 <Card className="p-12 text-center">
                   <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
