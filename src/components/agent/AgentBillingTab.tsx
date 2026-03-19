@@ -47,7 +47,7 @@ export default function AgentBillingTab({ agentId, agentCreatorId }: Props) {
         payer_id: user.id,
         monthly_spend_limit: spendLimit ? Number(spendLimit) : null,
         auto_pause_over_limit: autoPause,
-        current_plan_id: selectedPlan || null,
+        current_plan_id: selectedPlan && selectedPlan !== "none" ? selectedPlan : null,
       };
       if (billing?.id) {
         const { error } = await supabase
