@@ -33,6 +33,8 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [billingFilter, setBillingFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
 
   const CATEGORIES = [
@@ -45,16 +47,20 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   ];
 
   const { data: agents, isLoading } = useQuery({
-    queryKey: ["agents", category, search],
+    queryKey: ["agents", category, search, sourceFilter, billingFilter],
     queryFn: async () => {
       let q = supabase.from("agents").select("*").eq("is_published", true).order("is_featured", { ascending: false }).order("usage_count", { ascending: false });
       if (category !== "all") q = q.eq("category", category);
+      if (sourceFilter !== "all") q = q.eq("agent_source", sourceFilter);
+      if (billingFilter !== "all") q = q.eq("billing_currency", billingFilter);
       if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
       const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
+
+  const activeFilterCount = (category !== "all" ? 1 : 0) + (sourceFilter !== "all" ? 1 : 0) + (billingFilter !== "all" ? 1 : 0);
 
   const { data: myHires } = useQuery({
     queryKey: ["my-agent-hires", user?.id],
@@ -94,6 +100,54 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> {t("agents.createAgent")}
           </Button>
+        )}
+      </div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <span className="text-xs text-muted-foreground mr-1">Source:</span>
+        {[
+          { value: "all", label: "All" },
+          { value: "platform", label: "🤖 Platform" },
+          { value: "custom_llm", label: "🔑 Custom" },
+          { value: "webhook", label: "🔗 External" },
+        ].map(f => (
+          <button
+            key={f.value}
+            onClick={() => setSourceFilter(f.value)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+              sourceFilter === f.value
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40"
+            }`}
+          >{f.label}</button>
+        ))}
+
+        <span className="text-xs text-muted-foreground ml-3 mr-1">Billing:</span>
+        {[
+          { value: "all", label: "All" },
+          { value: "free", label: "Free" },
+          { value: "credits", label: "Credits" },
+          { value: "coins", label: "Coins" },
+        ].map(f => (
+          <button
+            key={f.value}
+            onClick={() => setBillingFilter(f.value)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+              billingFilter === f.value
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40"
+            }`}
+          >{f.label}</button>
+        ))}
+
+        {activeFilterCount > 0 && (
+          <button
+            onClick={() => { setCategory("all"); setSourceFilter("all"); setBillingFilter("all"); }}
+            className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+          >
+            Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+          </button>
         )}
       </div>
 
