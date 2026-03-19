@@ -103,10 +103,10 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
       ) : !unitAgents?.length ? (
         <Card className="p-8 text-center">
           <Bot className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">No agents admitted yet.</p>
+          <p className="text-sm text-muted-foreground">No agents attached yet.</p>
           {isAdmin && (
             <p className="text-xs text-muted-foreground mt-1">
-              Admit an agent from the marketplace to get started.
+              Attach one of your hired agents to get started.
             </p>
           )}
         </Card>
