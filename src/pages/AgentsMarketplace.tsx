@@ -78,14 +78,23 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
   const hireMut = useMutation({
     mutationFn: async (agentId: string) => {
       if (!user) throw new Error("Not authenticated");
+      // Find agent to check hire_price
+      const agent = agents?.find((a: any) => a.id === agentId);
+      const hirePrice = Number(agent?.hire_price ?? 0);
+      if (hirePrice > 0) {
+        const { processAgentPayment } = await import("@/lib/agentPayment");
+        const result = await processAgentPayment(user.id, hirePrice, agentId, "hire");
+        if (!result.success) throw new Error(result.error || "Payment failed");
+      }
       const { error } = await supabase.from("agent_hires").insert({ user_id: user.id, agent_id: agentId } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Agent hired!");
       qc.invalidateQueries({ queryKey: ["my-agent-hires"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: () => toast.error("Failed to hire agent"),
+    onError: (e: any) => toast.error(e.message || "Failed to hire agent"),
   });
 
   const Wrapper = bare ? "div" : PageShell;
@@ -225,8 +234,14 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                     ))}
                     {agent.skills?.length > 2 && <Badge variant="secondary" className="text-[10px]">+{agent.skills.length - 2}</Badge>}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Zap className="h-3 w-3" /> {agent.cost_per_use} {t("common.credits")}
+                  <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
+                    {Number(agent.hire_price ?? 0) > 0 && (
+                      <span><Sparkles className="h-3 w-3 inline mr-0.5" />{agent.hire_price} to hire</span>
+                    )}
+                    <span>
+                      <Zap className="h-3 w-3 inline mr-0.5" />
+                      {Number(agent.usage_price ?? agent.cost_per_use) > 0 ? `${agent.usage_price ?? agent.cost_per_use}/msg` : "Free usage"}
+                    </span>
                   </div>
                 </div>
                 {/* Action buttons */}
@@ -243,7 +258,7 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
                       onClick={() => hireMut.mutate(agent.id)}
                     >
                       <Sparkles className="h-3.5 w-3.5 mr-1" />
-                      {hireMut.isPending ? "Hiring..." : "Hire Agent"}
+                      {hireMut.isPending ? "Hiring..." : Number(agent.hire_price ?? 0) > 0 ? `Hire (${agent.hire_price} cr)` : "Hire Agent (Free)"}
                     </Button>
                   ) : (
                     <>
@@ -328,10 +343,14 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
   const [description, setDescription] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [skills, setSkills] = useState("");
-  const [costPerUse, setCostPerUse] = useState("5");
   const [category, setCategory] = useState("general");
-  const [billingCurrency, setBillingCurrency] = useState<"free" | "credits" | "coins">("credits");
   const [saving, setSaving] = useState(false);
+
+  // Pricing
+  const [pricingMode, setPricingMode] = useState<"free" | "paid">("free");
+  const [hirePrice, setHirePrice] = useState("0");
+  const [usagePrice, setUsagePrice] = useState("5");
+  const [freeCallsLimit, setFreeCallsLimit] = useState("");
 
   // Source mode
   const [agentSource, setAgentSource] = useState<AgentSource>("platform");
@@ -361,7 +380,7 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     setName(""); setDescription(""); setSystemPrompt(""); setSkills("");
     setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
     setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false);
-    setBillingCurrency("credits"); setCostPerUse("5");
+    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit("");
   };
 
   const handleCreate = async () => {
@@ -373,17 +392,22 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
     }
 
     setSaving(true);
+    const isFree = pricingMode === "free";
     const insertPayload: any = {
       name: name.trim(),
       description: description.trim() || null,
       system_prompt: agentSource === "platform" ? systemPrompt.trim() : `External agent (${agentSource})`,
       skills: skills.split(",").map(s => s.trim()).filter(Boolean),
-      cost_per_use: billingCurrency === "free" ? 0 : (parseInt(costPerUse) || 5),
+      cost_per_use: isFree ? 0 : (parseInt(usagePrice) || 0),
       category,
       creator_user_id: userId,
       is_published: true,
       agent_source: agentSource,
-      billing_currency: billingCurrency,
+      billing_currency: isFree ? "free" : "credits",
+      pricing_mode: pricingMode,
+      hire_price: isFree ? 0 : (parseInt(hirePrice) || 0),
+      usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
+      free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
     };
 
     if (agentSource === "webhook") {
@@ -542,45 +566,59 @@ function CreateAgentDialog({ open, onOpenChange, userId }: { open: boolean; onOp
             </>
           )}
 
-          {/* Billing currency */}
+          {/* Monetization toggle */}
           <div>
-            <Label className="mb-2 block">Billing currency</Label>
-            <div className="space-y-2">
-              {([
-                { value: "free" as const, icon: Gift, label: "Free", desc: "No charge. Good for community agents or testing." },
-                { value: "credits" as const, icon: Zap, label: "Credits", desc: "Users pay with platform credits (€0.04/credit). Best for utility agents." },
-                { value: "coins" as const, icon: CircleDollarSign, label: "Coins", desc: "Users pay with Coins (fiat-backed). Best for premium agents." },
-              ]).map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setBillingCurrency(opt.value)}
-                  className={`w-full flex items-start gap-3 rounded-lg border-2 p-3 text-left transition-all ${
-                    billingCurrency === opt.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/40"
-                  }`}
-                >
-                  <opt.icon className={`h-4 w-4 mt-0.5 shrink-0 ${billingCurrency === opt.value ? "text-primary" : "text-muted-foreground"}`} />
-                  <div>
-                    <p className="font-medium text-sm text-foreground">{opt.label}</p>
-                    <p className="text-[11px] text-muted-foreground leading-tight">{opt.desc}</p>
-                  </div>
-                </button>
-              ))}
+            <Label className="mb-2 block">Monetization</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPricingMode("free")}
+                className={`flex items-start gap-2 rounded-lg border-2 p-3 text-left transition-all ${
+                  pricingMode === "free" ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"
+                }`}
+              >
+                <Gift className={`h-4 w-4 mt-0.5 shrink-0 ${pricingMode === "free" ? "text-primary" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="font-medium text-sm text-foreground">Free</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">No charge for hire or usage</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPricingMode("paid")}
+                className={`flex items-start gap-2 rounded-lg border-2 p-3 text-left transition-all ${
+                  pricingMode === "paid" ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"
+                }`}
+              >
+                <CircleDollarSign className={`h-4 w-4 mt-0.5 shrink-0 ${pricingMode === "paid" ? "text-primary" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="font-medium text-sm text-foreground">Paid</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">Set hire & usage prices</p>
+                </div>
+              </button>
             </div>
           </div>
 
-          {/* Cost per use — hidden when free */}
-          {billingCurrency !== "free" && (
-            <div>
-              <Label>Cost per interaction ({billingCurrency})</Label>
-              <Input type="number" value={costPerUse} onChange={e => setCostPerUse(e.target.value)} min="1" />
-              {parseInt(costPerUse) > 0 && (
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  You will earn <span className="font-medium text-foreground">75%</span> of each interaction = <span className="font-medium text-foreground">{((parseInt(costPerUse) || 0) * 0.75).toFixed(1)} {billingCurrency}</span>
-                </p>
-              )}
+          {pricingMode === "paid" && (
+            <div className="space-y-3 rounded-lg border border-border p-3 bg-muted/30">
+              <div>
+                <Label>Hire price (one-time, credits)</Label>
+                <Input type="number" value={hirePrice} onChange={e => setHirePrice(e.target.value)} min="0" placeholder="0 = free to hire" />
+              </div>
+              <div>
+                <Label>Usage price (per message, credits)</Label>
+                <Input type="number" value={usagePrice} onChange={e => setUsagePrice(e.target.value)} min="0" />
+                {parseInt(usagePrice) > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    You earn <span className="font-medium text-foreground">80%</span> = <span className="font-medium text-foreground">{((parseInt(usagePrice) || 0) * 0.8).toFixed(1)} credits</span> per msg
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label>Free calls limit (optional)</Label>
+                <Input type="number" value={freeCallsLimit} onChange={e => setFreeCallsLimit(e.target.value)} min="0" placeholder="Unlimited if empty" />
+                <p className="text-[11px] text-muted-foreground mt-1">Number of free interactions before charging</p>
+              </div>
             </div>
           )}
 

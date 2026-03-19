@@ -316,6 +316,56 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_transactions: {
+        Row: {
+          agent_id: string
+          amount: number
+          coin_value: number
+          coins_used: number
+          created_at: string
+          creator_share: number
+          credits_used: number
+          id: string
+          platform_share: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          amount?: number
+          coin_value?: number
+          coins_used?: number
+          created_at?: string
+          creator_share?: number
+          credits_used?: number
+          id?: string
+          platform_share?: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          coin_value?: number
+          coins_used?: number
+          created_at?: string
+          creator_share?: number
+          credits_used?: number
+          id?: string
+          platform_share?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_trust_scores: {
         Row: {
           agent_id: string
@@ -456,17 +506,21 @@ export type Database = {
           description: string | null
           external_llm_config: Json | null
           external_webhook_url: string | null
+          free_calls_limit: number | null
           health_status: string
+          hire_price: number
           id: string
           is_featured: boolean
           is_published: boolean
           last_health_check_at: string | null
           name: string
+          pricing_mode: string
           skills: string[] | null
           system_prompt: string
           territory_id: string | null
           updated_at: string
           usage_count: number
+          usage_price: number
           webhook_secret: string | null
         }
         Insert: {
@@ -480,17 +534,21 @@ export type Database = {
           description?: string | null
           external_llm_config?: Json | null
           external_webhook_url?: string | null
+          free_calls_limit?: number | null
           health_status?: string
+          hire_price?: number
           id?: string
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
           name: string
+          pricing_mode?: string
           skills?: string[] | null
           system_prompt: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
+          usage_price?: number
           webhook_secret?: string | null
         }
         Update: {
@@ -504,17 +562,21 @@ export type Database = {
           description?: string | null
           external_llm_config?: Json | null
           external_webhook_url?: string | null
+          free_calls_limit?: number | null
           health_status?: string
+          hire_price?: number
           id?: string
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
           name?: string
+          pricing_mode?: string
           skills?: string[] | null
           system_prompt?: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
+          usage_price?: number
           webhook_secret?: string | null
         }
         Relationships: [
@@ -10570,6 +10632,15 @@ export type Database = {
           match_level: string
           matched_at_granularity: string
         }[]
+      }
+      process_agent_payment: {
+        Args: {
+          p_agent_id: string
+          p_amount: number
+          p_type: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       process_give_back: {
         Args: {
