@@ -233,6 +233,13 @@ export default function PlansPage() {
                     {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3 w-3" />} label="Create companies" highlight />}
                     {plan.partnership_proposals_enabled && <PlanFeature label="Partnership proposals" highlight />}
                     {plan.ai_agents_enabled && <PlanFeature label="AI Agents" highlight />}
+                    {plan.monthly_agent_interactions > 0 && (
+                      <PlanFeature
+                        icon={<Bot className="h-3 w-3" />}
+                        label={`${plan.monthly_agent_interactions} agent interactions/mo${isCurrentPlan ? ` — Used ${agentQuota.used}/${plan.monthly_agent_interactions}` : ""}`}
+                        highlight
+                      />
+                    )}
                     {plan.territory_intelligence_enabled && <PlanFeature label="Territory intelligence" highlight />}
                     {plan.fundraising_tools_enabled && <PlanFeature label="Fundraising tools" highlight />}
                     {plan.memory_engine_enabled && <PlanFeature label="Memory engine" highlight />}
