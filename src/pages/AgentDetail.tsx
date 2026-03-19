@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import AgentBillingTab from "@/components/agent/AgentBillingTab";
+import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import AgentOverviewTab from "@/components/agent/AgentOverviewTab";
 import AgentPermissionsTab from "@/components/agent/AgentPermissionsTab";
 import AgentActivityTab from "@/components/agent/AgentActivityTab";
