@@ -268,13 +268,13 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
 function UnitAgentChat({ agent, unitType, unitId, unitName }: {
   agent: any; unitType: string; unitId: string; unitName: string;
 }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const agentQuota = useAgentQuota();
-  const billingCurrency = agent.billing_currency || "credits";
-  const costPerUse = agent.cost_per_use || 0;
+  const usagePrice = Number(agent.usage_price ?? agent.cost_per_use ?? 0);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -283,6 +283,17 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || streaming) return;
+
+    // Process usage payment if needed
+    if (usagePrice > 0 && user) {
+      const { processAgentPayment } = await import("@/lib/agentPayment");
+      const result = await processAgentPayment(user.id, usagePrice, agent.id, "usage");
+      if (!result.success) {
+        toast.error(result.error || "Insufficient balance. Please top up.");
+        return;
+      }
+    }
+
     setInput("");
     const userMsg: Msg = { role: "user", content: text };
     setMessages(prev => [...prev, userMsg]);
