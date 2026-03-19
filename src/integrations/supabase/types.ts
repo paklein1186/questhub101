@@ -10615,6 +10615,16 @@ export type Database = {
             }
             Returns: undefined
           }
+      spend_user_coins: {
+        Args: {
+          _amount: number
+          _related_entity_id?: string
+          _related_entity_type?: string
+          _source?: string
+          _type: string
+        }
+        Returns: undefined
+      }
       spend_user_credits: {
         Args: {
           _amount: number
