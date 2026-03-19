@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionBanner, HINTS } from "@/components/onboarding/ContextualHint";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
