@@ -50,6 +50,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const ALL_TABS = [
+  { key: "general", label: "General", icon: Pencil },
   { key: "affiliations", label: "Affiliations", icon: Link2 },
   { key: "contributions", label: "Contributions", icon: PieChart },
   { key: "fundraising", label: "Fundraising", icon: PieChart },
