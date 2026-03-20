@@ -186,7 +186,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
                     <p className="text-xs text-muted-foreground leading-relaxed">{need.description}</p>
                   )}
                 </div>
-                {!readOnly && isOwner && (
+                {!readOnly && canEdit && (
                   <div className="flex items-center gap-1 shrink-0">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(need)}>
                       <Pencil className="h-3.5 w-3.5" />
