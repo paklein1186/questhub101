@@ -188,7 +188,7 @@ export default function CompanyDetail() {
         <div className="flex items-center gap-4 mb-3">
           {company.logo_url && <img src={company.logo_url} alt="" className="h-14 w-14 rounded-xl" />}
           <div className="flex-1">
-            <h1 className="font-display text-3xl font-bold">{company.name}</h1>
+            <h1 className="font-display text-3xl font-bold">{trName}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {company.sector && <span>{company.sector}</span>}
               {company.size && <><span>·</span><Badge variant="outline">{company.size}</Badge></>}
