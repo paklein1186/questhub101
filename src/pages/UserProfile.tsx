@@ -441,6 +441,15 @@ export default function UserProfile() {
   const { data: followedGuildsCount = 0 } = useFollowedEntityCount(id, "GUILD");
   const { data: followedQuestsCount = 0 } = useFollowedEntityCount(id, "QUEST");
 
+  // ─── Auto-translation ───
+  const { i18n } = useTranslation();
+  const profileTrFields = useMemo(() => [
+    { fieldName: "bio", originalText: profile?.bio ?? null },
+  ], [profile?.bio]);
+  const { translations: profileTr } = useContentTranslations("PROFILE", id, profileTrFields);
+  useAutoTranslateEntity("PROFILE", id, profileTrFields, profileTr);
+  const trBio = (i18n.language !== "en" && profileTr.bio?.isTranslated ? profileTr.bio.text : null) ?? profile?.bio;
+
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
   }
