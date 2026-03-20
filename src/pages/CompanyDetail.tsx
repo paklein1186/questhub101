@@ -2,6 +2,9 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useContentTranslations } from "@/hooks/useContentTranslation";
+import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
+import { useTranslation } from "react-i18next";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
@@ -99,6 +102,17 @@ export default function CompanyDetail() {
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
 
+  // ─── Auto-translation ───
+  const { i18n } = useTranslation();
+  const companyTrFields = useMemo(() => [
+    { fieldName: "name", originalText: company?.name ?? null },
+    { fieldName: "description", originalText: company?.description ?? null },
+  ], [company?.name, company?.description]);
+  const { translations: companyTr } = useContentTranslations("COMPANY", id, companyTrFields);
+  useAutoTranslateEntity("COMPANY", id, companyTrFields, companyTr);
+  const trName = (i18n.language !== "en" && companyTr.name?.isTranslated ? companyTr.name.text : null) ?? company?.name;
+  const trDesc = (i18n.language !== "en" && companyTr.description?.isTranslated ? companyTr.description.text : null) ?? company?.description;
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
   if (company.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This traditional organization has been removed.</p></PageShell>;
@@ -174,7 +188,7 @@ export default function CompanyDetail() {
         <div className="flex items-center gap-4 mb-3">
           {company.logo_url && <img src={company.logo_url} alt="" className="h-14 w-14 rounded-xl" />}
           <div className="flex-1">
-            <h1 className="font-display text-3xl font-bold">{company.name}</h1>
+            <h1 className="font-display text-3xl font-bold">{trName}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {company.sector && <span>{company.sector}</span>}
               {company.size && <><span>·</span><Badge variant="outline">{company.size}</Badge></>}
@@ -207,7 +221,7 @@ export default function CompanyDetail() {
             </div>
         </div>
 
-        {company.description && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p></GuestContentGate>}
+        {trDesc && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{trDesc}</p></GuestContentGate>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
@@ -251,7 +265,7 @@ export default function CompanyDetail() {
               <div>
                 <h3 className="font-display font-semibold mb-2">About</h3>
                 <div className="rounded-xl border border-border bg-card/50 p-4">
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{company.description}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
                 </div>
               </div>
             </GuestContentGate>

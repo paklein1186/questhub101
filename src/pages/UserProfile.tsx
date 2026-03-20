@@ -1,9 +1,12 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useContentTranslations } from "@/hooks/useContentTranslation";
+import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban,
@@ -438,6 +441,15 @@ export default function UserProfile() {
   const { data: followedGuildsCount = 0 } = useFollowedEntityCount(id, "GUILD");
   const { data: followedQuestsCount = 0 } = useFollowedEntityCount(id, "QUEST");
 
+  // ─── Auto-translation ───
+  const { i18n } = useTranslation();
+  const profileTrFields = useMemo(() => [
+    { fieldName: "bio", originalText: profile?.bio ?? null },
+  ], [profile?.bio]);
+  const { translations: profileTr } = useContentTranslations("PROFILE", id, profileTrFields);
+  useAutoTranslateEntity("PROFILE", id, profileTrFields, profileTr);
+  const trBio = (i18n.language !== "en" && profileTr.bio?.isTranslated ? profileTr.bio.text : null) ?? profile?.bio;
+
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
   }
@@ -693,7 +705,7 @@ export default function UserProfile() {
             )}
 
             {/* Bio */}
-            {profile.bio && <GuestContentGate blur><AboutSection bio={profile.bio} /></GuestContentGate>}
+            {profile.bio && <GuestContentGate blur><AboutSection bio={trBio || profile.bio} /></GuestContentGate>}
 
             {/* Activity summary */}
             <ActivitySummary
