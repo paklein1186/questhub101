@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
