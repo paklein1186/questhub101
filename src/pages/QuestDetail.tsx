@@ -835,7 +835,7 @@ export default function QuestDetail() {
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" asChild><Link to={`/quests/${quest.id}/settings`}><Pencil className="h-4 w-4 mr-1" /> Edit / Settings</Link></Button>}
-            {isOwner && <Button size="sm" variant="outline" asChild><Link to={`/quests/${quest.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
+            
             {isOwner && !isCancelled && (
               <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
                 <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
