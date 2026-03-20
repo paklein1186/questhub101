@@ -207,6 +207,29 @@ export default function QuestCreate() {
   const [ocuEnabled, setOcuEnabled] = useState(false);
   const { rate: coinEurRate, toEur } = useCoinsRate();
 
+  // Local needs (saved after quest creation)
+  interface LocalNeed { id: string; title: string; description: string; category: string; status: string; }
+  const [localNeeds, setLocalNeeds] = useState<LocalNeed[]>([]);
+  const [needDialogOpen, setNeedDialogOpen] = useState(false);
+  const [editingNeedId, setEditingNeedId] = useState<string | null>(null);
+  const [needForm, setNeedForm] = useState({ title: "", description: "", category: "GENERAL", status: "OPEN" });
+
+  const openCreateNeed = () => { setEditingNeedId(null); setNeedForm({ title: "", description: "", category: "GENERAL", status: "OPEN" }); setNeedDialogOpen(true); };
+  const openEditNeed = (n: LocalNeed) => { setEditingNeedId(n.id); setNeedForm({ title: n.title, description: n.description, category: n.category, status: n.status }); setNeedDialogOpen(true); };
+  const saveLocalNeed = () => {
+    if (!needForm.title.trim()) return;
+    if (editingNeedId) {
+      setLocalNeeds(prev => prev.map(n => n.id === editingNeedId ? { ...n, ...needForm } : n));
+    } else {
+      setLocalNeeds(prev => [...prev, { ...needForm, id: crypto.randomUUID() }]);
+    }
+    setNeedDialogOpen(false);
+  };
+  const deleteLocalNeed = (id: string) => setLocalNeeds(prev => prev.filter(n => n.id !== id));
+
+  // Territory wizard overlay
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
+
   // Auto-enable OCU if the guild has ocu_default_enabled
   useEffect(() => {
     if (guild && (guild as any).ocu_default_enabled && !ocuEnabled) {
