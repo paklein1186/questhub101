@@ -1181,14 +1181,40 @@ export default function QuestCreate() {
           )}
 
           {(topics ?? []).length > 0 && (
-            <SearchableTagPicker
-              label="Topics"
-              items={(topics ?? []).map(t => ({ id: t.id, name: t.name }))}
-              selectedIds={selectedTopics}
-              onToggle={toggleTopic}
-              onSelectAll={() => setSelectedTopics((topics ?? []).map(t => t.id))}
-              onClearAll={() => setSelectedTopics([])}
-            />
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-semibold">Topics</span>
+                <span className="mx-1 text-muted-foreground text-xs">|</span>
+                {(["all", "topics", "houses"] as const).map(f => (
+                  <Button
+                    key={f}
+                    variant={topicFilter === f ? "default" : "outline"}
+                    size="sm"
+                    type="button"
+                    className="h-6 text-xs"
+                    onClick={() => setTopicFilter(f)}
+                  >
+                    {f === "all" ? "All" : f === "topics" ? "Topics" : "Houses"}
+                  </Button>
+                ))}
+              </div>
+              <SearchableTagPicker
+                label=""
+                items={(topics ?? []).filter((t: any) => {
+                  if (topicFilter === "houses") return t.name?.startsWith("House of");
+                  if (topicFilter === "topics") return !t.name?.startsWith("House of");
+                  return true;
+                }).map(t => ({ id: t.id, name: t.name }))}
+                selectedIds={selectedTopics}
+                onToggle={toggleTopic}
+                onSelectAll={() => setSelectedTopics((topics ?? []).filter((t: any) => {
+                  if (topicFilter === "houses") return t.name?.startsWith("House of");
+                  if (topicFilter === "topics") return !t.name?.startsWith("House of");
+                  return true;
+                }).map(t => t.id))}
+                onClearAll={() => setSelectedTopics([])}
+              />
+            </>
           )}
 
           {/* Territories with Create New button */}
