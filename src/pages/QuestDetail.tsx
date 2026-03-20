@@ -332,6 +332,7 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
+  const [uPostAs, setUPostAs] = useState<import("@/components/feed/PostAsSelector").PostAsEntity | null>(null);
   const activeTab = searchParams.get("tab") || "explore";
   const setActiveTab = (v: string) => setSearchParams(prev => {
     const next = new URLSearchParams(prev);
