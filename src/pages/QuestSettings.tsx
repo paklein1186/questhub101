@@ -623,9 +623,26 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     <div className="flex items-center gap-2 mb-2">
                       <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories((allTerritoriesList ?? []).map((t: any) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories([])} disabled={editTerritories.length === 0}>Clear all</Button>
+                      <span className="mx-1 text-muted-foreground text-xs">|</span>
+                      {(["all", "location", "bioregion"] as const).map(f => (
+                        <Button
+                          key={f}
+                          variant={(territoryFilter ?? "all") === f ? "default" : "outline"}
+                          size="sm"
+                          type="button"
+                          className="h-6 text-xs"
+                          onClick={() => setTerritoryFilter(f)}
+                        >
+                          {f === "all" ? "All" : f === "location" ? "Locations" : "Bioregions"}
+                        </Button>
+                      ))}
                     </div>
                     <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
-                      {(allTerritoriesList ?? []).map((t: any) => (
+                      {(allTerritoriesList ?? []).filter((t: any) => {
+                        if ((territoryFilter ?? "all") === "bioregion") return t.level === "BIOREGION";
+                        if ((territoryFilter ?? "all") === "location") return t.level !== "BIOREGION";
+                        return true;
+                      }).map((t: any) => (
                         <Badge
                           key={t.id}
                           variant={editTerritories.includes(t.id) ? "default" : "outline"}
