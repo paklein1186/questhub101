@@ -571,7 +571,7 @@ export default function GuildDetail() {
               <div>
                 <h3 className="font-display font-semibold mb-2">About</h3>
                 <div className="rounded-xl border border-border bg-card/50 p-4">
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{guild.description}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
                 </div>
               </div>
             </GuestContentGate>
