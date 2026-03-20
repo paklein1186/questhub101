@@ -1175,15 +1175,27 @@ export default function QuestCreate() {
             />
           )}
 
-          {(territories ?? []).length > 0 && (
-            <SearchableTagPicker
-              label="Territories"
-              items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
-              selectedIds={selectedTerritories}
-              onToggle={toggleTerritory}
-              onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
-              onClearAll={() => setSelectedTerritories([])}
-            />
+          {/* Territories with Create New button */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">Territories</span>
+              <Button size="sm" variant="outline" onClick={() => setShowTerritoryWizard(true)}>
+                <MapPin className="h-3.5 w-3.5 mr-1" /> Create new territory
+              </Button>
+            </div>
+            {(territories ?? []).length > 0 && (
+              <SearchableTagPicker
+                label=""
+                items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
+                selectedIds={selectedTerritories}
+                onToggle={toggleTerritory}
+                onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
+                onClearAll={() => setSelectedTerritories([])}
+              />
+            )}
+          </div>
+          {showTerritoryWizard && (
+            <TerritoryCreateWizard open={showTerritoryWizard} onClose={() => { setShowTerritoryWizard(false); qc.invalidateQueries({ queryKey: ["territories"] }); }} />
           )}
 
           <div className="flex items-center gap-2">
