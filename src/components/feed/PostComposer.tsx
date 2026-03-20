@@ -347,10 +347,20 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex gap-3">
         <Avatar className="h-9 w-9 mt-0.5">
-          <AvatarImage src={authUser?.avatarUrl} />
-          <AvatarFallback>{authUser?.name?.[0] || "?"}</AvatarFallback>
+          {postAs ? (
+            <>
+              <AvatarImage src={postAs.logoUrl ?? undefined} />
+              <AvatarFallback>{postAs.label?.[0] || "?"}</AvatarFallback>
+            </>
+          ) : (
+            <>
+              <AvatarImage src={authUser?.avatarUrl} />
+              <AvatarFallback>{authUser?.name?.[0] || "?"}</AvatarFallback>
+            </>
+          )}
         </Avatar>
         <div className="flex-1 space-y-3">
+          <PostAsSelector value={postAs} onChange={setPostAs} />
           <MentionTextarea
             value={content}
             onChange={setContent}
