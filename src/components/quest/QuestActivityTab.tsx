@@ -58,6 +58,7 @@ export function QuestActivityTab({
 }: QuestActivityTabProps) {
   const [discussionOpen, setDiscussionOpen] = useState(false);
   const [ritualsOpen, setRitualsOpen] = useState(false);
+  const [opportunitiesOpen, setOpportunitiesOpen] = useState(false);
 
   const guild = quest.guilds;
 
