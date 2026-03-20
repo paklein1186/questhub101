@@ -15,12 +15,11 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { useQuestParticipants } from "@/hooks/useEntityQueries";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
-import { QuestStatus } from "@/types/enums";
+import { QuestStatus, QuestNature as QuestNatureEnum } from "@/types/enums";
 import {
   QUEST_NATURE_LABELS,
   QUEST_NATURE_ICONS,
-  QuestNature,
-} from "@/types/questNature";
+} from "@/lib/questTypes";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
