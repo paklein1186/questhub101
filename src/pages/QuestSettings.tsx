@@ -5,8 +5,22 @@ import {
   ArrowLeft, Save, Trash2, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
   Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
-  PieChart, FileText, LogOut, Snowflake,
+  PieChart, FileText, LogOut, Snowflake, Hash, MapPin, Building2,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ImageUpload";
+import { AIWriterButton } from "@/components/AIWriterButton";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useQuestParticipants } from "@/hooks/useEntityQueries";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { QuestStatus } from "@/types/enums";
+import {
+  QUEST_NATURE_LABELS,
+  QUEST_NATURE_ICONS,
+  QuestNature,
+} from "@/types/questNature";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
