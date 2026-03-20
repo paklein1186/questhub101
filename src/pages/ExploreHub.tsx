@@ -280,15 +280,15 @@ function QuestsSubTabs() {
 }
 
 function JobsSubTabs() {
-  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("positions");
+  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("opportunities");
   return (
     <div>
       <div className="flex gap-2 mb-4">
-        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
-          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
-        </Button>
         <Button variant={sub === "opportunities" ? "default" : "outline"} size="sm" onClick={() => setSub("opportunities")}>
           <HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities
+        </Button>
+        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
+          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
         </Button>
         <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>
           <Swords className="h-3.5 w-3.5 mr-1" /> Quests
