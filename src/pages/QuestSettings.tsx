@@ -5,8 +5,21 @@ import {
   ArrowLeft, Save, Trash2, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
   Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
-  PieChart, FileText, LogOut, Snowflake,
+  PieChart, FileText, LogOut, Snowflake, Hash, MapPin, Building2,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ImageUpload";
+import { AIWriterButton } from "@/components/AIWriterButton";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useQuestParticipants } from "@/hooks/useEntityQueries";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { QuestStatus, QuestNature as QuestNatureEnum } from "@/types/enums";
+import {
+  QUEST_NATURE_LABELS,
+  QUEST_NATURE_ICONS,
+} from "@/lib/questTypes";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
@@ -36,6 +49,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const ALL_TABS = [
+  { key: "general", label: "General", icon: Pencil },
   { key: "affiliations", label: "Affiliations", icon: Link2 },
   { key: "contributions", label: "Contributions", icon: PieChart },
   { key: "fundraising", label: "Fundraising", icon: PieChart },
@@ -90,7 +104,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   const [searchParams, setSearchParams] = useSearchParams();
   const { rate: coinsRate } = useCoinsRate();
 
-  const activeTab = searchParams.get("tab") || "affiliations";
+  const activeTab = searchParams.get("tab") || "general";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
   const isCancelled = quest.status === "CANCELLED";
@@ -120,7 +134,151 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   const [addCtgAmount, setAddCtgAmount] = useState("");
   const [addingSaving, setAddingSaving] = useState(false);
 
-  // ── OCU sub-settings ──
+  // ── General tab state ──
+  const { data: allTopicsList } = useTopics();
+  const { data: allTerritoriesList } = useTerritories();
+  const { data: participants } = useQuestParticipants(questId);
+  const { grantXp, grantCredits, spendCredits } = useXpCredits();
+
+  const [editTitle, setEditTitle] = useState(quest.title || "");
+  const [editDesc, setEditDesc] = useState(quest.description || "");
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState((quest as any).website_url || "");
+  const [editStatus, setEditStatus] = useState<QuestStatus>((quest.status as QuestStatus) || QuestStatus.OPEN);
+  const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>(quest.cover_image_url ?? undefined);
+  const [editCoverFocalY, setEditCoverFocalY] = useState((quest as any).cover_focal_y ?? 50);
+  const [editQuestNature, setEditQuestNature] = useState((quest as any).quest_nature || "PROJECT");
+  const [editPriceFiat, setEditPriceFiat] = useState(String(quest.price_fiat ?? 0));
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
+
+  // Topics & territories from quest
+  const { data: questTopics } = useQuery({
+    queryKey: ["quest-topics-edit", questId],
+    queryFn: async () => {
+      const { data } = await supabase.from("quest_topics").select("topic_id").eq("quest_id", questId);
+      return (data ?? []).map((r: any) => r.topic_id as string);
+    },
+  });
+  const { data: questTerritories } = useQuery({
+    queryKey: ["quest-territories-edit", questId],
+    queryFn: async () => {
+      const { data } = await supabase.from("quest_territories").select("territory_id").eq("quest_id", questId);
+      return (data ?? []).map((r: any) => r.territory_id as string);
+    },
+  });
+  const [editTopics, setEditTopics] = useState<string[]>([]);
+  const [editTerritories, setEditTerritories] = useState<string[]>([]);
+  const [topicsInitialized, setTopicsInitialized] = useState(false);
+  const [territoriesInitialized, setTerritoriesInitialized] = useState(false);
+
+  // Sync from fetched data once
+  if (questTopics && !topicsInitialized) {
+    setEditTopics(questTopics);
+    setTopicsInitialized(true);
+  }
+  if (questTerritories && !territoriesInitialized) {
+    setEditTerritories(questTerritories);
+    setTerritoriesInitialized(true);
+  }
+
+  const saveGeneral = async () => {
+    const fiat = Number(editPriceFiat) || 0;
+    const credits = Number(creditReward) || 0;
+    const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
+    const isDraft = editStatus === QuestStatus.DRAFT;
+    const previousStatus = quest.status;
+    const isBecomingCompleted = editStatus === QuestStatus.COMPLETED && previousStatus !== QuestStatus.COMPLETED;
+    const isBecomingCancelled = editStatus === QuestStatus.CANCELLED && previousStatus !== QuestStatus.CANCELLED;
+
+    await supabase.from("quests").update({
+      title: editTitle.trim() || quest.title,
+      description: editDesc.trim() || null,
+      website_url: editWebsiteUrl.trim() || null,
+      status: editStatus as any,
+      is_draft: isDraft,
+      cover_image_url: editCoverImageUrl || null,
+      cover_focal_y: editCoverFocalY,
+      credit_reward: credits,
+      price_fiat: fiat,
+      monetization_type: monType as any,
+      credit_budget: Number(creditBudget) || 0,
+      allow_fundraising: allowFundraising,
+      funding_goal_credits: fundingGoal ? Number(fundingGoal) : null,
+      quest_nature: editQuestNature,
+      funding_type: fundingType,
+    } as any).eq("id", questId);
+
+    // Update topics
+    await supabase.from("quest_topics").delete().eq("quest_id", questId);
+    if (editTopics.length > 0) {
+      await supabase.from("quest_topics").insert(editTopics.map((topic_id) => ({ quest_id: questId, topic_id })));
+    }
+    // Update territories
+    await supabase.from("quest_territories").delete().eq("quest_id", questId);
+    if (editTerritories.length > 0) {
+      await supabase.from("quest_territories" as any).insert(editTerritories.map((territory_id) => ({ quest_id: questId, territory_id })));
+    }
+
+    // Quest Completion: award XP & credits
+    if (isBecomingCompleted) {
+      await grantXp(quest.created_by_user_id, {
+        type: XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR,
+        relatedEntityType: "quest",
+        relatedEntityId: questId,
+      });
+      const activeParticipants = (participants || []).filter(
+        (p: any) => p.status === "ACCEPTED" && p.user_id !== quest.created_by_user_id
+      );
+      for (const p of activeParticipants) {
+        await grantXp(p.user_id, {
+          type: XP_EVENT_TYPES.QUEST_COMPLETED_USER,
+          relatedEntityType: "quest",
+          relatedEntityId: questId,
+        }, true);
+      }
+      const creditRewardPerUser = quest.credit_reward;
+      if (creditRewardPerUser > 0) {
+        const allEligible = (participants || []).filter((p: any) => p.status === "ACCEPTED");
+        for (const p of allEligible) {
+          await grantCredits(p.user_id, {
+            type: CREDIT_TX_TYPES.QUEST_REWARD_EARNED,
+            amount: creditRewardPerUser,
+            source: `Quest completed: ${quest.title}`,
+            relatedEntityType: "quest",
+            relatedEntityId: questId,
+          }, true);
+        }
+        toast({ title: `${creditRewardPerUser} credits awarded to ${allEligible.length} participant(s)` });
+      }
+      const creditBudgetVal = Number((quest as any).credit_budget) || 0;
+      if (creditBudgetVal > 0 && currentUser.id) {
+        await spendCredits(currentUser.id, {
+          type: CREDIT_TX_TYPES.QUEST_BUDGET_SPENT,
+          amount: creditBudgetVal,
+          source: `Quest budget: ${quest.title}`,
+          relatedEntityType: "quest",
+          relatedEntityId: questId,
+        });
+      }
+      toast({ title: "🎉 Quest completed!", description: "XP and rewards have been distributed to all participants." });
+    }
+
+    if (isBecomingCancelled && (quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
+      const { error: refundError } = await supabase.rpc("refund_quest_funding" as any, { _quest_id: questId });
+      if (refundError) {
+        toast({ title: "Refund failed", description: refundError.message, variant: "destructive" });
+      } else {
+        toast({ title: "Credits refunded" });
+      }
+    }
+
+    qc.invalidateQueries({ queryKey: ["quest", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-topics-edit", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-territories-edit", questId] });
+    toast({ title: "Quest updated" });
+  };
+
+
   const ocuConfig = typeof (quest as any).features_config === "object" && (quest as any).features_config?.ocu
     ? (quest as any).features_config.ocu
     : {};
@@ -384,7 +542,115 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           <div className="flex-1 min-w-0">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
 
-              {/* ── Affiliations ── */}
+              {/* ── General ── */}
+              {activeTab === "general" && (
+                <div className="space-y-5 max-w-lg">
+                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium">Description</label>
+                      <AIWriterButton
+                        type="quest_story"
+                        context={{ title: editTitle, status: editStatus, creditReward, creditBudget }}
+                        currentText={editDesc}
+                        onAccept={(text) => setEditDesc(text)}
+                      />
+                    </div>
+                    <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={2000} className="resize-none min-h-[120px]" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Link / Website URL</label>
+                    <Input value={editWebsiteUrl} onChange={e => setEditWebsiteUrl(e.target.value)} placeholder="https://…" type="url" />
+                    <p className="text-xs text-muted-foreground mt-1">Optional link displayed on the quest page</p>
+                  </div>
+                  <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
+                  <div><label className="text-sm font-medium mb-1 block">Status</label>
+                    <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={QuestStatus.DRAFT}>Draft</SelectItem>
+                        <SelectItem value={QuestStatus.OPEN}>Open</SelectItem>
+                        <SelectItem value={QuestStatus.OPEN_FOR_PROPOSALS}>Open for Proposals</SelectItem>
+                        <SelectItem value={QuestStatus.ACTIVE}>Active</SelectItem>
+                        <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
+                        <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><label className="text-sm font-medium mb-1 block">Quest Nature</label>
+                    <Select value={editQuestNature} onValueChange={setEditQuestNature}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(Object.values(QuestNatureEnum) as QuestNatureEnum[]).map(n => (
+                          <SelectItem key={n} value={n}>{QUEST_NATURE_ICONS[n]} {QUEST_NATURE_LABELS[n]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                      <Hash className="h-3.5 w-3.5" /> Topics
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics((allTopicsList ?? []).map((t: any) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics([])} disabled={editTopics.length === 0}>Clear all</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                      {(allTopicsList ?? []).map((t: any) => (
+                        <Badge
+                          key={t.id}
+                          variant={editTopics.includes(t.id) ? "default" : "outline"}
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditTopics(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                        >
+                          {t.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" /> Territories
+                      </label>
+                      <Button size="sm" variant="outline" type="button" onClick={() => setShowTerritoryWizard(true)}>
+                        <MapPin className="h-3.5 w-3.5 mr-1" /> Create new territory
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories((allTerritoriesList ?? []).map((t: any) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories([])} disabled={editTerritories.length === 0}>Clear all</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                      {(allTerritoriesList ?? []).map((t: any) => (
+                        <Badge
+                          key={t.id}
+                          variant={editTerritories.includes(t.id) ? "default" : "outline"}
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditTerritories(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                        >
+                          {t.name}
+                        </Badge>
+                      ))}
+                    </div>
+                    {showTerritoryWizard && (
+                      <TerritoryCreateWizard
+                        open={showTerritoryWizard}
+                        onClose={() => {
+                          setShowTerritoryWizard(false);
+                          qc.invalidateQueries({ queryKey: ["territories"] });
+                        }}
+                      />
+                    )}
+                  </div>
+                  <Button onClick={saveGeneral} className="w-full">Save Changes</Button>
+                </div>
+              )}
+
+
               {activeTab === "affiliations" && (
                 <QuestAffiliationsTab questId={questId} quest={quest} />
               )}
