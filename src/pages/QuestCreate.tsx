@@ -40,6 +40,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, Building2, Handshake, X as XIcon } from "lucide-react";
+import { NEED_CATEGORIES, NEED_STATUSES } from "@/components/quest/QuestNeedsManager";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 
 interface AiSuggestion {
   description: string;
