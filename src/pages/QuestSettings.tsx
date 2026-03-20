@@ -542,7 +542,115 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           <div className="flex-1 min-w-0">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
 
-              {/* ── Affiliations ── */}
+              {/* ── General ── */}
+              {activeTab === "general" && (
+                <div className="space-y-5 max-w-lg">
+                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium">Description</label>
+                      <AIWriterButton
+                        type="quest_story"
+                        context={{ title: editTitle, status: editStatus, creditReward, creditBudget }}
+                        currentText={editDesc}
+                        onAccept={(text) => setEditDesc(text)}
+                      />
+                    </div>
+                    <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={2000} className="resize-none min-h-[120px]" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Link / Website URL</label>
+                    <Input value={editWebsiteUrl} onChange={e => setEditWebsiteUrl(e.target.value)} placeholder="https://…" type="url" />
+                    <p className="text-xs text-muted-foreground mt-1">Optional link displayed on the quest page</p>
+                  </div>
+                  <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
+                  <div><label className="text-sm font-medium mb-1 block">Status</label>
+                    <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={QuestStatus.DRAFT}>Draft</SelectItem>
+                        <SelectItem value={QuestStatus.OPEN}>Open</SelectItem>
+                        <SelectItem value={QuestStatus.OPEN_FOR_PROPOSALS}>Open for Proposals</SelectItem>
+                        <SelectItem value={QuestStatus.ACTIVE}>Active</SelectItem>
+                        <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
+                        <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><label className="text-sm font-medium mb-1 block">Quest Nature</label>
+                    <Select value={editQuestNature} onValueChange={setEditQuestNature}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(Object.values(QuestNatureEnum) as QuestNatureEnum[]).map(n => (
+                          <SelectItem key={n} value={n}>{QUEST_NATURE_ICONS[n]} {QUEST_NATURE_LABELS[n]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                      <Hash className="h-3.5 w-3.5" /> Topics
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics((allTopicsList ?? []).map((t: any) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics([])} disabled={editTopics.length === 0}>Clear all</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                      {(allTopicsList ?? []).map((t: any) => (
+                        <Badge
+                          key={t.id}
+                          variant={editTopics.includes(t.id) ? "default" : "outline"}
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditTopics(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                        >
+                          {t.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" /> Territories
+                      </label>
+                      <Button size="sm" variant="outline" type="button" onClick={() => setShowTerritoryWizard(true)}>
+                        <MapPin className="h-3.5 w-3.5 mr-1" /> Create new territory
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories((allTerritoriesList ?? []).map((t: any) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories([])} disabled={editTerritories.length === 0}>Clear all</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                      {(allTerritoriesList ?? []).map((t: any) => (
+                        <Badge
+                          key={t.id}
+                          variant={editTerritories.includes(t.id) ? "default" : "outline"}
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditTerritories(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                        >
+                          {t.name}
+                        </Badge>
+                      ))}
+                    </div>
+                    {showTerritoryWizard && (
+                      <TerritoryCreateWizard
+                        open={showTerritoryWizard}
+                        onClose={() => {
+                          setShowTerritoryWizard(false);
+                          qc.invalidateQueries({ queryKey: ["territories"] });
+                        }}
+                      />
+                    )}
+                  </div>
+                  <Button onClick={saveGeneral} className="w-full">Save Changes</Button>
+                </div>
+              )}
+
+
               {activeTab === "affiliations" && (
                 <QuestAffiliationsTab questId={questId} quest={quest} />
               )}
