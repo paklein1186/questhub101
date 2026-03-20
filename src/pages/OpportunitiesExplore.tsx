@@ -35,7 +35,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_needs")
-        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status)")
+        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status, quest_topics(topic_id))")
         .in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
         .limit(100);
