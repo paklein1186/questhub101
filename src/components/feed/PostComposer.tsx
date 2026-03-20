@@ -23,6 +23,7 @@ import {
   ACCEPTED_DOC_TYPES,
 } from "@/lib/postHelpers";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
+import { PostAsSelector, type PostAsEntity } from "@/components/feed/PostAsSelector";
 
 interface PendingFile {
   file: File;
