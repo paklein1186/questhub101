@@ -846,6 +846,7 @@ export default function QuestDetail() {
                 <DialogContent>
                   <DialogHeader><DialogTitle>{editingUpdateId ? "Edit Quest Update" : "Post Quest Update"}</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-2">
+                    <PostAsSelector value={uPostAs} onChange={setUPostAs} questId={quest.id} />
                     <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
                     <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
                     <div>
