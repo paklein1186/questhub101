@@ -465,7 +465,7 @@ export default function GuildDetail() {
           {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt="" />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{guild.name}</h1>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{trName}</h1>
               {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
