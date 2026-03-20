@@ -147,7 +147,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
 
   return (
     <div className="space-y-3">
-      {!readOnly && isOwner && (
+      {!readOnly && canEdit && (
         <div className="flex justify-end">
           <Button size="sm" variant="default" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Add Opportunity
