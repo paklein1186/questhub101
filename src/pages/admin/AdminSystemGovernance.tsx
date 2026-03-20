@@ -54,6 +54,13 @@ function CooperativeSettings() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
+        <span className="text-amber-500 text-lg">⚠️</span>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Alpha Phase</p>
+          <p className="text-sm text-muted-foreground">Shareholding settings are provisional and will be formally defined by the first active co-creators.</p>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
