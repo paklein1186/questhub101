@@ -23,6 +23,7 @@ import {
   ACCEPTED_DOC_TYPES,
 } from "@/lib/postHelpers";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
+import { PostAsSelector, type PostAsEntity } from "@/components/feed/PostAsSelector";
 
 interface PendingFile {
   file: File;
@@ -83,6 +84,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
   const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>(initialTerritoryIds ?? []);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(initialTopicIds ?? []);
   const [visibility, setVisibility] = useState<string>("public");
+  const [postAs, setPostAs] = useState<import("@/components/feed/PostAsSelector").PostAsEntity | null>(null);
 
   const imgRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
@@ -229,6 +231,9 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         topicIds: selectedTopicIds,
         visibility: showVisibilityPicker ? visibility : "public",
         roomId,
+        postedAsEntityType: postAs?.entityType || null,
+        postedAsEntityId: postAs?.entityId || null,
+        postedAsLabel: postAs?.label || null,
       });
 
       // Emit $CTG for post published
@@ -342,10 +347,20 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex gap-3">
         <Avatar className="h-9 w-9 mt-0.5">
-          <AvatarImage src={authUser?.avatarUrl} />
-          <AvatarFallback>{authUser?.name?.[0] || "?"}</AvatarFallback>
+          {postAs ? (
+            <>
+              <AvatarImage src={postAs.logoUrl ?? undefined} />
+              <AvatarFallback>{postAs.label?.[0] || "?"}</AvatarFallback>
+            </>
+          ) : (
+            <>
+              <AvatarImage src={authUser?.avatarUrl} />
+              <AvatarFallback>{authUser?.name?.[0] || "?"}</AvatarFallback>
+            </>
+          )}
         </Avatar>
         <div className="flex-1 space-y-3">
+          <PostAsSelector value={postAs} onChange={setPostAs} />
           <MentionTextarea
             value={content}
             onChange={setContent}

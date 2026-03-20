@@ -119,6 +119,9 @@ export function useCreatePost() {
       visibility = "public",
       resharedPostId,
       roomId,
+      postedAsEntityType,
+      postedAsEntityId,
+      postedAsLabel,
     }: {
       authorUserId: string;
       contextType: string;
@@ -130,6 +133,9 @@ export function useCreatePost() {
       visibility?: string;
       resharedPostId?: string;
       roomId?: string;
+      postedAsEntityType?: string | null;
+      postedAsEntityId?: string | null;
+      postedAsLabel?: string | null;
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
@@ -142,6 +148,9 @@ export function useCreatePost() {
           visibility,
           reshared_post_id: resharedPostId || null,
           room_id: roomId || null,
+          posted_as_entity_type: postedAsEntityType || null,
+          posted_as_entity_id: postedAsEntityId || null,
+          posted_as_label: postedAsLabel || null,
         } as any)
         .select("id")
         .single();

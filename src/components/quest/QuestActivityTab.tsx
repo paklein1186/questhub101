@@ -144,14 +144,22 @@ export function QuestActivityTab({
             className={`rounded-xl border bg-card p-5 space-y-3 ${update.pinned ? "border-primary/40 bg-primary/5" : "border-border"}`}
           >
             <div className="flex items-start gap-3">
-              {update.author && (
+              {update.posted_as_entity_type && update.posted_as_label ? (
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="text-xs">{update.posted_as_label?.[0]}</AvatarFallback>
+                </Avatar>
+              ) : update.author ? (
                 <Link to={`/users/${update.author.user_id}`}>
                   <Avatar className="h-9 w-9"><AvatarImage src={update.author.avatar_url} /><AvatarFallback>{update.author.name?.[0]}</AvatarFallback></Avatar>
                 </Link>
-              )}
+              ) : null}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 text-sm flex-wrap">
-                  {update.author && <Link to={`/users/${update.author.user_id}`} className="font-medium hover:text-primary">{update.author.name}</Link>}
+                  {update.posted_as_entity_type && update.posted_as_label ? (
+                    <span className="font-medium">{update.posted_as_label}</span>
+                  ) : update.author ? (
+                    <Link to={`/users/${update.author.user_id}`} className="font-medium hover:text-primary">{update.author.name}</Link>
+                  ) : null}
                   <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                   <Badge variant="secondary" className="text-[10px] capitalize">{update.type.toLowerCase().replace(/_/g, " ")}</Badge>
                   {update.pinned && <Badge className="text-[10px] bg-primary/10 text-primary border-0">Pinned</Badge>}

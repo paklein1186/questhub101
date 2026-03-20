@@ -60,6 +60,7 @@ import { QuestExploreTab } from "@/components/quest/QuestExploreTab";
 import { QuestWorkTab } from "@/components/quest/QuestWorkTab";
 import { QuestActivityTab } from "@/components/quest/QuestActivityTab";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { PostAsSelector, type PostAsEntity } from "@/components/feed/PostAsSelector";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
@@ -332,6 +333,7 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
+  const [uPostAs, setUPostAs] = useState<import("@/components/feed/PostAsSelector").PostAsEntity | null>(null);
   const activeTab = searchParams.get("tab") || "explore";
   const setActiveTab = (v: string) => setSearchParams(prev => {
     const next = new URLSearchParams(prev);
@@ -447,6 +449,9 @@ export default function QuestDetail() {
     } else {
       await supabase.from("quest_updates").insert({
         quest_id: quest.id, author_id: currentUser.id, title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft, visibility: uVisibility,
+        posted_as_entity_type: uPostAs?.entityType || null,
+        posted_as_entity_id: uPostAs?.entityId || null,
+        posted_as_label: uPostAs?.label || null,
       } as any);
 
       // Notify participants & followers for published (non-draft) updates
@@ -465,7 +470,7 @@ export default function QuestDetail() {
       }
     }
     qc.invalidateQueries({ queryKey: ["quest-updates", id] });
-    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setEditingUpdateId(null);
+    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setEditingUpdateId(null); setUPostAs(null);
     toast({ title: uDraft ? "Draft saved!" : editingUpdateId ? "Update edited!" : "Update posted!" });
   };
 
@@ -836,11 +841,12 @@ export default function QuestDetail() {
               </Button>
             )}
             {canPostUpdate && !isCancelled && (
-              <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
+              <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUPostAs(null); } }}>
                 <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
                 <DialogContent>
                   <DialogHeader><DialogTitle>{editingUpdateId ? "Edit Quest Update" : "Post Quest Update"}</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-2">
+                    <PostAsSelector value={uPostAs} onChange={setUPostAs} questId={quest.id} />
                     <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
                     <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
                     <div>
