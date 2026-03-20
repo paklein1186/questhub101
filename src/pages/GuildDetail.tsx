@@ -331,6 +331,17 @@ export default function GuildDetail() {
   const questIds = (guildQuests || []).map((q: any) => q.id);
   const { data: guildAchievements } = useAchievementsForQuests(questIds);
 
+  // ─── Auto-translation ───
+  const { i18n } = useTranslation();
+  const guildTrFields = useMemo(() => [
+    { fieldName: "name", originalText: guild?.name ?? null },
+    { fieldName: "description", originalText: guild?.description ?? null },
+  ], [guild?.name, guild?.description]);
+  const { translations: guildTr } = useContentTranslations("GUILD", id, guildTrFields);
+  useAutoTranslateEntity("GUILD", id, guildTrFields, guildTr);
+  const trName = (i18n.language !== "en" && guildTr.name?.isTranslated ? guildTr.name.text : null) ?? guild?.name;
+  const trDesc = (i18n.language !== "en" && guildTr.description?.isTranslated ? guildTr.description.text : null) ?? guild?.description;
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
   if (guild.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
