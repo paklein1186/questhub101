@@ -104,7 +104,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   const [searchParams, setSearchParams] = useSearchParams();
   const { rate: coinsRate } = useCoinsRate();
 
-  const activeTab = searchParams.get("tab") || "affiliations";
+  const activeTab = searchParams.get("tab") || "general";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
   const isCancelled = quest.status === "CANCELLED";
