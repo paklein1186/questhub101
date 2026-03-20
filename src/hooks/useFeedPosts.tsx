@@ -148,6 +148,9 @@ export function useCreatePost() {
           visibility,
           reshared_post_id: resharedPostId || null,
           room_id: roomId || null,
+          posted_as_entity_type: postedAsEntityType || null,
+          posted_as_entity_id: postedAsEntityId || null,
+          posted_as_label: postedAsLabel || null,
         } as any)
         .select("id")
         .single();
