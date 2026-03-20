@@ -119,6 +119,9 @@ export function useCreatePost() {
       visibility = "public",
       resharedPostId,
       roomId,
+      postedAsEntityType,
+      postedAsEntityId,
+      postedAsLabel,
     }: {
       authorUserId: string;
       contextType: string;
@@ -130,6 +133,9 @@ export function useCreatePost() {
       visibility?: string;
       resharedPostId?: string;
       roomId?: string;
+      postedAsEntityType?: string | null;
+      postedAsEntityId?: string | null;
+      postedAsLabel?: string | null;
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
