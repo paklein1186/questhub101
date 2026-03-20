@@ -32,7 +32,7 @@ import { AddJobDialog } from "@/components/AddJobDialog";
 import AgentsMarketplace from "./AgentsMarketplace";
 import OpportunitiesExplore from "./OpportunitiesExplore";
 
-const VALID_TABS_AUTH = ["entities", "quests", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH = ["entities", "quests", "jobs", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses", "agents", "jobs", "territories"];
 const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "territories"];
