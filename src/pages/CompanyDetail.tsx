@@ -78,13 +78,6 @@ export default function CompanyDetail() {
     return next;
   }, { replace: true });
 
-  // Quest creation state
-  const [questOpen, setQuestOpen] = useState(false);
-  const [qTitle, setQTitle] = useState("");
-  const [qDesc, setQDesc] = useState("");
-  const [qGuildId, setQGuildId] = useState("");
-  const [qRewardXp, setQRewardXp] = useState("100");
-
   // Service creation state
   const [svcOpen, setSvcOpen] = useState(false);
   const [svcTitle, setSvcTitle] = useState("");
@@ -123,29 +116,6 @@ export default function CompanyDetail() {
   const memberRole = currentMembership?.role;
   const isAdmin = isLoggedIn && (memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email));
   const isMember = !!currentMembership;
-
-  const createQuest = async () => {
-    if (!qTitle.trim()) return;
-    const { error } = await supabase.from("quests").insert({
-      title: qTitle.trim(), description: qDesc.trim() || null,
-      status: "OPEN" as any, monetization_type: "PAID" as any,
-      reward_xp: Number(qRewardXp) || 100, is_featured: false,
-      created_by_user_id: currentUser.id,
-      guild_id: qGuildId || null, company_id: company.id,
-      owner_type: "COMPANY", owner_id: company.id,
-    } as any);
-    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
-    // Emit $CTG for quest creation
-    supabase.rpc('emit_ctg_for_contribution', {
-      p_user_id: currentUser.id,
-      p_contribution_type: 'quest_created',
-      p_related_entity_id: company.id,
-      p_related_entity_type: 'company',
-    } as any).then(() => {});
-    qc.invalidateQueries({ queryKey: ["quests-for-company", id] });
-    setQuestOpen(false); setQTitle(""); setQDesc(""); setQGuildId(""); setQRewardXp("100");
-    toast({ title: "Quest created!" });
-  };
 
   const createService = async () => {
     if (!svcTitle.trim()) return;
@@ -384,27 +354,9 @@ export default function CompanyDetail() {
         <TabsContent value="quests" className="mt-6 space-y-3">
           <PendingAffiliationRequests entityType="COMPANY" entityId={company.id} isAdmin={isAdmin} />
           {isAdmin && (
-            <Dialog open={questOpen} onOpenChange={setQuestOpen}>
-              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Create Quest for {company.name}</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} maxLength={120} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Guild (optional)</label>
-                    <Select value={qGuildId} onValueChange={setQGuildId}>
-                      <SelectTrigger><SelectValue placeholder="Select guild" /></SelectTrigger>
-                      <SelectContent>
-                        {(allGuilds || []).filter((g: any) => g.is_approved).map((g: any) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
-                  <Button onClick={createQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button size="sm" className="mb-3" asChild>
+              <Link to={`/companies/${company.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Link>
+            </Button>
           )}
           <EntityQuestsFilters quests={quests}>
             {(filtered, viewMode) => (
