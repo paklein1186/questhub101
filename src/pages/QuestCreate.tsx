@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb, Plus, Pencil, Trash2, MapPin } from "lucide-react";
 import { QuestNature } from "@/types/enums";
 import {
   QUEST_NATURE_LABELS,
