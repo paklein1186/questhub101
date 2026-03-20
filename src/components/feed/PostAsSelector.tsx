@@ -37,7 +37,7 @@ export function PostAsSelector({ value, onChange, questId }: PostAsSelectorProps
         .from("guild_members")
         .select("guild_id, role, guilds:guild_id(id, name, logo_url, is_deleted)")
         .eq("user_id", currentUser.id)
-        .in("role", ["ADMIN", "SOURCE"]);
+        .in("role", ["ADMIN"] as any[]);
 
       for (const m of (guildMemberships ?? []) as any[]) {
         if (m.guilds && !m.guilds.is_deleted) {
