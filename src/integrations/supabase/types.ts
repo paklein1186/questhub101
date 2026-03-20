@@ -3829,6 +3829,9 @@ export type Database = {
           deleted_at: string | null
           id: string
           is_deleted: boolean
+          posted_as_entity_id: string | null
+          posted_as_entity_type: string | null
+          posted_as_label: string | null
           reshared_post_id: string | null
           room_id: string | null
           updated_at: string
@@ -3845,6 +3848,9 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          posted_as_entity_id?: string | null
+          posted_as_entity_type?: string | null
+          posted_as_label?: string | null
           reshared_post_id?: string | null
           room_id?: string | null
           updated_at?: string
@@ -3861,6 +3867,9 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          posted_as_entity_id?: string | null
+          posted_as_entity_type?: string | null
+          posted_as_label?: string | null
           reshared_post_id?: string | null
           room_id?: string | null
           updated_at?: string
@@ -7262,6 +7271,9 @@ export type Database = {
           is_deleted: boolean
           is_draft: boolean
           pinned: boolean
+          posted_as_entity_id: string | null
+          posted_as_entity_type: string | null
+          posted_as_label: string | null
           quest_id: string
           title: string
           type: string
@@ -7280,6 +7292,9 @@ export type Database = {
           is_deleted?: boolean
           is_draft?: boolean
           pinned?: boolean
+          posted_as_entity_id?: string | null
+          posted_as_entity_type?: string | null
+          posted_as_label?: string | null
           quest_id: string
           title: string
           type?: string
@@ -7298,6 +7313,9 @@ export type Database = {
           is_deleted?: boolean
           is_draft?: boolean
           pinned?: boolean
+          posted_as_entity_id?: string | null
+          posted_as_entity_type?: string | null
+          posted_as_label?: string | null
           quest_id?: string
           title?: string
           type?: string
