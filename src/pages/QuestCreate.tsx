@@ -182,6 +182,7 @@ export default function QuestCreate() {
   const [questStatus, setQuestStatus] = useState<string>("OPEN");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
+  const [territoryFilter, setTerritoryFilter] = useState<"all" | "location" | "bioregion">("all");
   const [monetizationType, setMonetizationType] = useState("FREE");
   const [isMonetized, setIsMonetized] = useState(false);
   const [creditReward, setCreditReward] = useState("0");
