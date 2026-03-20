@@ -372,6 +372,7 @@ export default function QuestDetail() {
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
   const [editFundingType, setEditFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
 
   // Quest features config (read-only, managed on Settings page)
   const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
