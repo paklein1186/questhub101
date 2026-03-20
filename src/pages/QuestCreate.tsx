@@ -437,7 +437,7 @@ export default function QuestCreate() {
         );
       }
 
-      // Insert local needs
+      // Insert local needs + auto-post updates for each
       if (localNeeds.length > 0) {
         await supabase.from("quest_needs" as any).insert(
           localNeeds.map(n => ({
@@ -448,6 +448,20 @@ export default function QuestCreate() {
             status: n.status,
             created_by_user_id: currentUser.id,
           }))
+        );
+        // Post an update for each new opportunity
+        await supabase.from("quest_updates").insert(
+          localNeeds.map(n => {
+            const catLabel = NEED_CATEGORIES.find(c => c.value === n.category)?.label ?? n.category;
+            return {
+              quest_id: quest.id,
+              author_id: currentUser.id,
+              title: `🆕 New opportunity: ${n.title}`,
+              content: `A new **${catLabel}** opportunity has been posted: **${n.title}**${n.description ? `\n\n${n.description}` : ""}\n\n[View in Explore tab →](/quests/${quest.id}?tab=explore)`,
+              type: "OPPORTUNITY",
+              visibility: "PUBLIC",
+            };
+          })
         );
       }
 
