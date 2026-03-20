@@ -122,6 +122,23 @@ export function QuestActivityTab({
             </SheetContent>
           </Sheet>
         )}
+
+        <Sheet open={opportunitiesOpen} onOpenChange={setOpportunitiesOpen}>
+          <SheetTrigger asChild>
+            <Button size="sm" variant="outline">
+              <Lightbulb className="h-4 w-4 mr-1" /> Opportunities
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Opportunities</SheetTitle>
+              <SheetDescription>What this quest needs</SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+              <QuestNeedsManager questId={quest.id} questOwnerId={quest.created_by_user_id} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* ─── Updates Feed ─── */}
