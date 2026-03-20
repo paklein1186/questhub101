@@ -221,7 +221,7 @@ export default function CompanyDetail() {
             </div>
         </div>
 
-        {company.description && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p></GuestContentGate>}
+        {trDesc && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{trDesc}</p></GuestContentGate>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
