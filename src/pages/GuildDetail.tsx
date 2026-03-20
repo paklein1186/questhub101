@@ -2,6 +2,9 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useMemo } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
+import { useContentTranslations } from "@/hooks/useContentTranslation";
+import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
+import { useTranslation } from "react-i18next";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {

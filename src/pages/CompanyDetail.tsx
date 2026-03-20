@@ -2,6 +2,9 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useContentTranslations } from "@/hooks/useContentTranslation";
+import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
+import { useTranslation } from "react-i18next";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
