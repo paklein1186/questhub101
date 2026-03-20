@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar, Lightbulb } from "lucide-react";
+import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -57,6 +58,7 @@ export function QuestActivityTab({
 }: QuestActivityTabProps) {
   const [discussionOpen, setDiscussionOpen] = useState(false);
   const [ritualsOpen, setRitualsOpen] = useState(false);
+  const [opportunitiesOpen, setOpportunitiesOpen] = useState(false);
 
   const guild = quest.guilds;
 
@@ -120,6 +122,23 @@ export function QuestActivityTab({
             </SheetContent>
           </Sheet>
         )}
+
+        <Sheet open={opportunitiesOpen} onOpenChange={setOpportunitiesOpen}>
+          <SheetTrigger asChild>
+            <Button size="sm" variant="outline">
+              <Lightbulb className="h-4 w-4 mr-1" /> Opportunities
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Opportunities</SheetTitle>
+              <SheetDescription>What this quest needs</SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+              <QuestNeedsManager questId={quest.id} questOwnerId={quest.created_by_user_id} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* ─── Updates Feed ─── */}
