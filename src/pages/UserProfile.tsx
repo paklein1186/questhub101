@@ -705,7 +705,7 @@ export default function UserProfile() {
             )}
 
             {/* Bio */}
-            {profile.bio && <GuestContentGate blur><AboutSection bio={profile.bio} /></GuestContentGate>}
+            {profile.bio && <GuestContentGate blur><AboutSection bio={trBio || profile.bio} /></GuestContentGate>}
 
             {/* Activity summary */}
             <ActivitySummary
