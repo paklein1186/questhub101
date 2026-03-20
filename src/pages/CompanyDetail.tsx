@@ -354,27 +354,9 @@ export default function CompanyDetail() {
         <TabsContent value="quests" className="mt-6 space-y-3">
           <PendingAffiliationRequests entityType="COMPANY" entityId={company.id} isAdmin={isAdmin} />
           {isAdmin && (
-            <Dialog open={questOpen} onOpenChange={setQuestOpen}>
-              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Create Quest for {company.name}</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} maxLength={120} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Guild (optional)</label>
-                    <Select value={qGuildId} onValueChange={setQGuildId}>
-                      <SelectTrigger><SelectValue placeholder="Select guild" /></SelectTrigger>
-                      <SelectContent>
-                        {(allGuilds || []).filter((g: any) => g.is_approved).map((g: any) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
-                  <Button onClick={createQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button size="sm" className="mb-3" asChild>
+              <Link to={`/companies/${company.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Link>
+            </Button>
           )}
           <EntityQuestsFilters quests={quests}>
             {(filtered, viewMode) => (

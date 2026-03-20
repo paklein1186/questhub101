@@ -323,7 +323,7 @@ export function TerritoryQuestGrid({
             <Compass className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No quests in {territoryName} yet.</p>
             {canCreateQuest && (
-              <Link to={`/quests/create?territory=${territoryId}`}>
+              <Link to={`/quests/new?territory=${territoryId}`}>
                 <Button size="sm" variant="outline" className="mt-3 gap-1.5">
                   <Plus className="h-3.5 w-3.5" /> Create the first quest
                 </Button>
