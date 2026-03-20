@@ -1,5 +1,7 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useContentTranslations } from "@/hooks/useContentTranslation";
+import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
@@ -228,6 +230,15 @@ export default function QuestDetail() {
   const { data: resolvedHosts } = useResolvedQuestHosts(id);
   const { data: allTopicsList } = useTopics();
   const { data: allTerritoriesList } = useTerritories();
+
+  // Auto-translate quest title + description
+  const questFields = [
+    { fieldName: "title", originalText: quest?.title ?? null },
+    { fieldName: "description", originalText: quest?.description ?? null },
+    { fieldName: "ai_summary", originalText: (quest as any)?.ai_summary ?? null },
+  ];
+  const { translations: questTr } = useContentTranslations("QUEST", id, questFields);
+  useAutoTranslateEntity("QUEST", id, questFields, questTr);
 
   // Fetch multi-affiliations
   const { data: questAffiliations = [] } = useQuery({
@@ -679,7 +690,7 @@ export default function QuestDetail() {
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
-          <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
+          <h1 className="font-display text-3xl font-bold">{questTr.title?.text || quest.title}</h1>
           <div className="flex items-center gap-2 flex-wrap">
             {(quest as any).quest_nature && (quest as any).quest_nature !== "PROJECT" && (
               <span className="inline-flex items-center gap-1">
@@ -790,10 +801,13 @@ export default function QuestDetail() {
           {quest.is_featured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
-        {quest.description && (
+        {(questTr.description?.text || quest.description) && (
           <GuestContentGate blur>
             <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
-              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{quest.description}</p>
+              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{questTr.description?.text || quest.description}</p>
+              {questTr.description?.isTranslated && (
+                <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>
+              )}
             </div>
           </GuestContentGate>
         )}
@@ -1017,6 +1031,8 @@ export default function QuestDetail() {
             isCollaborator={isCollaborator}
             isLoggedIn={isLoggedIn}
             canPostUpdate={canPostUpdate}
+            translatedSummary={questTr.ai_summary?.text ?? null}
+            isSummaryTranslated={questTr.ai_summary?.isTranslated ?? false}
           />
         </TabsContent>
 

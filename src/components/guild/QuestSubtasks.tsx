@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,8 @@ const STATUS_COLORS: Record<string, string> = {
 export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   const { grantXp, grantCredits } = useXpCredits();
   const { notifyContributionLogged } = useNotifications();
   const qc = useQueryClient();
@@ -76,6 +79,26 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       });
     },
   });
+
+  // Batch-fetch subtask title translations for current language
+  const subtaskIds = subtasks.map((s: any) => s.id);
+  const { data: subtaskTranslations = [] } = useQuery({
+    queryKey: ["subtask-translations", questId, lang, subtaskIds.join(",")],
+    queryFn: async () => {
+      if (subtaskIds.length === 0) return [];
+      const { data } = await supabase
+        .from("content_translations")
+        .select("entity_id, translated_text")
+        .eq("entity_type", "QUEST_SUBTASK")
+        .eq("field_name", "title")
+        .eq("language_code", lang)
+        .in("entity_id", subtaskIds);
+      return data ?? [];
+    },
+    enabled: lang !== "en" && subtaskIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const subtaskTrMap = new Map(subtaskTranslations.map((t: any) => [t.entity_id, t.translated_text]));
 
   // Fetch quest participants (+ creator) for assignee picker
   const { data: guildMembers = [] } = useQuery({
@@ -348,7 +371,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             return (
               <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-emerald-500/5 p-2">
                 <div className="flex-1">
-                  <span className="text-sm text-muted-foreground line-through">{subtask.title}</span>
+                  <span className="text-sm text-muted-foreground line-through">{subtaskTrMap.get(subtask.id) || subtask.title}</span>
                   <span className="block text-[10px] text-amber-600">Contribution automatically logged</span>
                 </div>
                 <Button
@@ -392,7 +415,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 className={`flex-1 text-sm cursor-pointer ${subtask.status === "DONE" ? "line-through text-muted-foreground" : ""}`}
                 onDoubleClick={() => canEditSubtask(subtask) && startEditing(subtask)}
               >
-                {subtask.title}
+                {subtaskTrMap.get(subtask.id) || subtask.title}
               </span>
             )}
             {canEditSubtask(subtask) && (

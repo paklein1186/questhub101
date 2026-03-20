@@ -31,6 +31,8 @@ interface QuestExploreTabProps {
   isCollaborator: boolean;
   isLoggedIn: boolean;
   canPostUpdate: boolean;
+  translatedSummary?: string | null;
+  isSummaryTranslated?: boolean;
 }
 
 export function QuestExploreTab({
@@ -45,6 +47,8 @@ export function QuestExploreTab({
   isCollaborator,
   isLoggedIn,
   canPostUpdate,
+  translatedSummary,
+  isSummaryTranslated,
 }: QuestExploreTabProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -113,7 +117,7 @@ export function QuestExploreTab({
     }
   };
 
-  const aiSummary = (quest as any).ai_summary;
+  const aiSummary = translatedSummary || (quest as any).ai_summary;
   const hasRewards = quest.credit_reward > 0 || Number((quest as any).coins_budget ?? 0) > 0 || Number((quest as any).ctg_budget ?? 0) > 0;
 
   return (
@@ -126,7 +130,10 @@ export function QuestExploreTab({
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
               <div className="flex items-start gap-3">
                 <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm leading-relaxed">{aiSummary}</p>
+                <div>
+                  <p className="text-sm leading-relaxed">{aiSummary}</p>
+                  {isSummaryTranslated && <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>}
+                </div>
               </div>
               {isOwner && (
                 <Button
