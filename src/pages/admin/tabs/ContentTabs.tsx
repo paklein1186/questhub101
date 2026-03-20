@@ -388,6 +388,13 @@ export function PlansXpTab() {
     <div className="space-y-8">
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><CreditCard className="h-5 w-5" /> Subscription Plans</h3>
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 mb-4">
+          <span className="text-amber-500 text-lg">⚠️</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Alpha Phase</p>
+            <p className="text-sm text-muted-foreground">Platform credit plans are provisional and subject to change. Final pricing and quotas will be confirmed before public launch.</p>
+          </div>
+        </div>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>

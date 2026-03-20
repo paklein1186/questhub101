@@ -50,6 +50,14 @@ export default function CooperativeVenturePage({ embedded }: { embedded?: boolea
           </p>
         </section>
 
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
+          <span className="text-amber-500 text-lg">⚠️</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Alpha Phase — Shareholding Structure</p>
+            <p className="text-sm text-muted-foreground">The share classes, governance weights, and economic terms described below are provisional. They will be formally defined and ratified by the first active co-creators of the platform.</p>
+          </div>
+        </div>
+
         <Separator />
 
         {/* Why coop-like */}
