@@ -75,8 +75,13 @@ export default function OpportunitiesExplore({ bare }: Props) {
       }
       return true;
     });
+    // Apply house/topic filter
+    result = houseFilter.applyHouseFilter(
+      result,
+      (item: any) => ((item.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id),
+    );
     return applySortBy(result, exploreFilters.sortBy);
-  }, [needs, search, categoryFilter, statusFilter, exploreFilters.sortBy]);
+  }, [needs, search, categoryFilter, statusFilter, exploreFilters.sortBy, houseFilter.applyHouseFilter]);
 
   return (
     <div className="space-y-4">
