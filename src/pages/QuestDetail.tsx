@@ -911,7 +911,7 @@ export default function QuestDetail() {
                     onAccept={(text) => setEditDesc(text)}
                   />
                 </div>
-                <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" />
+                <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={2000} className="resize-none min-h-[120px]" />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Link / Website URL</label>
