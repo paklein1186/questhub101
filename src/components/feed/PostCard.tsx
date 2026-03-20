@@ -485,17 +485,27 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
       )}
       {/* Header */}
       <div className="flex items-start gap-3">
-        <Link to={`/users/${post.author_user_id}`}>
+        {(post as any).posted_as_entity_type && (post as any).posted_as_label ? (
           <Avatar className="h-9 w-9">
-            <AvatarImage src={post.author?.avatar_url ?? undefined} />
-            <AvatarFallback>{post.author?.name?.[0] || "?"}</AvatarFallback>
+            <AvatarFallback>{(post as any).posted_as_label?.[0] || "?"}</AvatarFallback>
           </Avatar>
-        </Link>
+        ) : (
+          <Link to={`/users/${post.author_user_id}`}>
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={post.author?.avatar_url ?? undefined} />
+              <AvatarFallback>{post.author?.name?.[0] || "?"}</AvatarFallback>
+            </Avatar>
+          </Link>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Link to={`/users/${post.author_user_id}`} className="text-sm font-medium hover:underline">
-              {post.author?.name || "Unknown"}
-            </Link>
+            {(post as any).posted_as_entity_type && (post as any).posted_as_label ? (
+              <span className="text-sm font-medium">{(post as any).posted_as_label}</span>
+            ) : (
+              <Link to={`/users/${post.author_user_id}`} className="text-sm font-medium hover:underline">
+                {post.author?.name || "Unknown"}
+              </Link>
+            )}
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
