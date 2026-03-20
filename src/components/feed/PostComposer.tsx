@@ -230,6 +230,9 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         topicIds: selectedTopicIds,
         visibility: showVisibilityPicker ? visibility : "public",
         roomId,
+        postedAsEntityType: postAs?.entityType || null,
+        postedAsEntityId: postAs?.entityId || null,
+        postedAsLabel: postAs?.label || null,
       });
 
       // Emit $CTG for post published
