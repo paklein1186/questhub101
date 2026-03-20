@@ -437,7 +437,20 @@ export default function QuestCreate() {
         );
       }
 
-      // Insert accepted AI subtasks (with ctg_reward)
+      // Insert local needs
+      if (localNeeds.length > 0) {
+        await supabase.from("quest_needs" as any).insert(
+          localNeeds.map(n => ({
+            quest_id: quest.id,
+            title: n.title,
+            description: n.description || null,
+            category: n.category,
+            status: n.status,
+            created_by_user_id: currentUser.id,
+          }))
+        );
+      }
+
       const acceptedSubtasks = aiSubtasks.filter(s => s.accepted);
       if (acceptedSubtasks.length > 0) {
         await supabase.from("quest_subtasks").insert(

@@ -59,6 +59,21 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
   const qc = useQueryClient();
 
   const isOwner = currentUser.id === questOwnerId;
+  // Allow quest participants with ADMIN role to also manage needs
+  const { data: participantRole } = useQuery({
+    queryKey: ["quest-participant-role", questId, currentUser.id],
+    enabled: !!questId && !!currentUser.id && !isOwner,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_participants")
+        .select("role")
+        .eq("quest_id", questId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      return data?.role ?? null;
+    },
+  });
+  const canEdit = isOwner || participantRole === "ADMIN";
 
   const { data: needs = [], isLoading } = useQuery({
     queryKey: ["quest-needs", questId],
