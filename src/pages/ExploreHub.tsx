@@ -32,7 +32,7 @@ import { AddJobDialog } from "@/components/AddJobDialog";
 import AgentsMarketplace from "./AgentsMarketplace";
 import OpportunitiesExplore from "./OpportunitiesExplore";
 
-const VALID_TABS_AUTH = ["entities", "quests", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH = ["entities", "quests", "jobs", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses", "agents", "jobs", "territories"];
 const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "territories"];
@@ -233,9 +233,9 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
   const exploreTabs: TabDefinition[] = useMemo(() => [
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")} <HintTooltip {...HINTS.tooltips.exploreEntities} /></> },
     { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></>, visible: !isGuest },
+    { value: "jobs", label: <><HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities</>, visible: !isCreative },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
     { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")} <HintTooltip {...HINTS.tooltips.exploreAgents} /></> },
-    { value: "jobs", label: <><HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities</>, visible: !isCreative },
     { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")} <HintTooltip {...HINTS.tooltips.exploreHouses} /></> },
     { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {t("explore.courses")}</> },
     { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> {t("tabs.humans")}</>, visible: !isGuest },
@@ -280,15 +280,15 @@ function QuestsSubTabs() {
 }
 
 function JobsSubTabs() {
-  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("positions");
+  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("opportunities");
   return (
     <div>
       <div className="flex gap-2 mb-4">
-        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
-          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
-        </Button>
         <Button variant={sub === "opportunities" ? "default" : "outline"} size="sm" onClick={() => setSub("opportunities")}>
           <HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities
+        </Button>
+        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
+          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
         </Button>
         <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>
           <Swords className="h-3.5 w-3.5 mr-1" /> Quests
