@@ -60,6 +60,7 @@ import { QuestExploreTab } from "@/components/quest/QuestExploreTab";
 import { QuestWorkTab } from "@/components/quest/QuestWorkTab";
 import { QuestActivityTab } from "@/components/quest/QuestActivityTab";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { PostAsSelector, type PostAsEntity } from "@/components/feed/PostAsSelector";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
