@@ -329,30 +329,6 @@ function CreateForm({ linkedType, linkedId, defaultTerritoryId, onDone, onBack }
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this natural system…" rows={4} />
       </div>
 
-      {/* Tags */}
-      <div>
-        <Label>Tags</Label>
-        <div className="flex gap-2 mb-2">
-          <Input
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            placeholder="Add tag…"
-            className="flex-1"
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
-          />
-          <Button type="button" size="sm" variant="outline" onClick={addTag} disabled={!tagInput.trim()}>Add</Button>
-        </div>
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {tags.map((t) => (
-              <Badge key={t} variant="secondary" className="text-xs gap-1">
-                {t}
-                <button onClick={() => setTags(tags.filter((x) => x !== t))}><X className="h-2.5 w-2.5" /></button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Actions */}
       <div className="flex justify-between pt-2">
