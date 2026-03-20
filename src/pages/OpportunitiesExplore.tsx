@@ -35,7 +35,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_needs")
-        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status)")
+        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status, quest_topics(topic_id))")
         .in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
         .limit(100);
@@ -75,8 +75,13 @@ export default function OpportunitiesExplore({ bare }: Props) {
       }
       return true;
     });
+    // Apply house/topic filter
+    result = houseFilter.applyHouseFilter(
+      result,
+      (item: any) => ((item.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id),
+    );
     return applySortBy(result, exploreFilters.sortBy);
-  }, [needs, search, categoryFilter, statusFilter, exploreFilters.sortBy]);
+  }, [needs, search, categoryFilter, statusFilter, exploreFilters.sortBy, houseFilter.applyHouseFilter]);
 
   return (
     <div className="space-y-4">
