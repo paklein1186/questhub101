@@ -95,11 +95,11 @@ export const VOTING_THRESHOLDS = {
 
 // ─── Governance Bodies ─────────────────────────────────────
 export const GOVERNANCE_BODIES = [
-  { name: "Pod Council", minLevel: 4, description: "Local collaborative governance" },
-  { name: "Guild Council", minLevel: 6, description: "Guild-level decision making" },
-  { name: "Territory Council", minLevel: 11, description: "Territorial governance and coordination" },
-  { name: "Translocal Assembly", minLevel: 12, description: "Cross-territory strategic coordination", extraReq: "3+ territories" },
-  { name: "Strategic Steward Council", minLevel: 15, description: "Highest stewardship body (capped membership)" },
+  { name: "Pod Council", minLevel: 1, description: "Local collaborative governance" },
+  { name: "Guild Council", minLevel: 1, description: "Guild-level decision making" },
+  { name: "Territory Council", minLevel: 1, description: "Territorial governance and coordination" },
+  { name: "Translocal Assembly", minLevel: 1, description: "Cross-territory strategic coordination", extraReq: "3+ territories" },
+  { name: "Strategic Steward Council", minLevel: 1, description: "Highest stewardship body (capped membership)" },
 ] as const;
 
 // ─── Level-gated feature check ─────────────────────────────
