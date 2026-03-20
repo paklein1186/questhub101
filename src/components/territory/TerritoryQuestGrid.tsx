@@ -274,7 +274,7 @@ export function TerritoryQuestGrid({
             </Badge>
           </div>
           {canCreateQuest && (
-            <Link to={`/quests/create?territory=${territoryId}`}>
+             <Link to={`/quests/new?territory=${territoryId}`}>
               <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs">
                 <Plus className="h-3.5 w-3.5" /> New Quest
               </Button>
