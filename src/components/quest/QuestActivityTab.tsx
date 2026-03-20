@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -19,6 +19,7 @@ const updateIcons: Record<string, typeof Sparkles> = {
   CALL_FOR_HELP: Megaphone,
   REFLECTION: BookOpen,
   GENERAL: MessageCircle,
+  OPPORTUNITY: Lightbulb,
 };
 
 interface QuestActivityTabProps {
@@ -160,7 +161,20 @@ export function QuestActivityTab({
                   <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}</span>
                 </div>
                 <h4 className="font-display font-semibold mt-1">{update.title}</h4>
-                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
+                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                  {(update.content || "").split(/(\[.*?\]\(.*?\))/).map((part: string, idx: number) => {
+                    const linkMatch = part.match(/^\[(.*?)\]\((.*?)\)$/);
+                    if (linkMatch) {
+                      return <Link key={idx} to={linkMatch[2]} className="text-primary hover:underline font-medium">{linkMatch[1]}</Link>;
+                    }
+                    // Render **bold** text
+                    return part.split(/(\*\*.*?\*\*)/).map((seg: string, sIdx: number) => {
+                      const boldMatch = seg.match(/^\*\*(.*?)\*\*$/);
+                      if (boldMatch) return <strong key={`${idx}-${sIdx}`}>{boldMatch[1]}</strong>;
+                      return <span key={`${idx}-${sIdx}`}>{seg}</span>;
+                    });
+                  })}
+                </p>
                 {update.image_url && (
                   <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg">
                     <img src={update.image_url} alt="" className="w-full h-auto" />

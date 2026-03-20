@@ -129,6 +129,17 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
       payload.created_by_user_id = currentUser.id;
       const { error } = await supabase.from("quest_needs" as any).insert(payload);
       if (error) { toast({ title: "Error saving", variant: "destructive" }); setSaving(false); return; }
+      // Auto-post an update for the new opportunity
+      const catLabel = NEED_CATEGORIES.find(c => c.value === form.category)?.label ?? form.category;
+      await supabase.from("quest_updates").insert({
+        quest_id: questId,
+        author_id: currentUser.id,
+        title: `🆕 New opportunity: ${form.title.trim()}`,
+        content: `A new **${catLabel}** opportunity has been posted: **${form.title.trim()}**${form.description.trim() ? `\n\n${form.description.trim()}` : ""}\n\n[View in Explore tab →](${window.location.pathname}?tab=explore)`,
+        type: "OPPORTUNITY",
+        visibility: "PUBLIC",
+      });
+      qc.invalidateQueries({ queryKey: ["quest-updates", questId] });
       toast({ title: "Need added" });
     }
     qc.invalidateQueries({ queryKey: ["quest-needs", questId] });
