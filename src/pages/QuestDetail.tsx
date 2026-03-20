@@ -61,6 +61,7 @@ import { QuestWorkTab } from "@/components/quest/QuestWorkTab";
 import { QuestActivityTab } from "@/components/quest/QuestActivityTab";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { PostAsSelector, type PostAsEntity } from "@/components/feed/PostAsSelector";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
@@ -371,6 +372,7 @@ export default function QuestDetail() {
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
   const [editFundingType, setEditFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
 
   // Quest features config (read-only, managed on Settings page)
   const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
@@ -1008,9 +1010,14 @@ export default function QuestDetail() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
-                  <MapPin className="h-3.5 w-3.5" /> Territories
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" /> Territories
+                  </label>
+                  <Button size="sm" variant="outline" type="button" onClick={() => setShowTerritoryWizard(true)}>
+                    <MapPin className="h-3.5 w-3.5 mr-1" /> Create new territory
+                  </Button>
+                </div>
                 <div className="flex items-center gap-2 mb-2">
                   <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories((allTerritoriesList ?? []).map((t: any) => t.id))}>Select all</Button>
                   <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories([])} disabled={editTerritories.length === 0}>Clear all</Button>
@@ -1027,6 +1034,15 @@ export default function QuestDetail() {
                     </Badge>
                   ))}
                 </div>
+                {showTerritoryWizard && (
+                  <TerritoryCreateWizard
+                    open={showTerritoryWizard}
+                    onClose={() => {
+                      setShowTerritoryWizard(false);
+                      qc.invalidateQueries({ queryKey: ["territories"] });
+                    }}
+                  />
+                )}
               </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
               {/* Danger Zone */}
