@@ -159,7 +159,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
         <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           <Lightbulb className="h-8 w-8 mx-auto mb-2 opacity-40" />
           <p>No needs listed yet.</p>
-          {!readOnly && isOwner && (
+          {!readOnly && canEdit && (
             <p className="mt-1 text-xs">Add what this quest requires — skills, funding, tools, volunteers…</p>
           )}
         </div>
