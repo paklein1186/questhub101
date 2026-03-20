@@ -113,22 +113,20 @@ export function canAccessFeature(level: number, requiredLevel: number): boolean 
 
 // ─── Governance Tier Helpers ───────────────────────────────
 export function getGovernanceTier(level: number): string {
-  if (level >= 13) return "steward";
-  if (level >= 9) return "propose";
-  if (level >= 5) return "vote";
+  if (level >= 1) return "steward";
   return "participate";
 }
 
 export function canVote(level: number): boolean {
-  return level >= 5;
+  return level >= 1;
 }
 
 export function canPropose(level: number): boolean {
-  return level >= 9;
+  return level >= 1;
 }
 
 export function isStewardEligible(level: number): boolean {
-  return level >= 13;
+  return level >= 1;
 }
 
 // ─── XP Action Rewards (updated with cross-territory) ─────
