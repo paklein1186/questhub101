@@ -102,6 +102,17 @@ export default function CompanyDetail() {
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
 
+  // ─── Auto-translation ───
+  const { i18n } = useTranslation();
+  const companyTrFields = useMemo(() => [
+    { fieldName: "name", originalText: company?.name ?? null },
+    { fieldName: "description", originalText: company?.description ?? null },
+  ], [company?.name, company?.description]);
+  const { translations: companyTr } = useContentTranslations("COMPANY", id, companyTrFields);
+  useAutoTranslateEntity("COMPANY", id, companyTrFields, companyTr);
+  const trName = (i18n.language !== "en" && companyTr.name?.isTranslated ? companyTr.name.text : null) ?? company?.name;
+  const trDesc = (i18n.language !== "en" && companyTr.description?.isTranslated ? companyTr.description.text : null) ?? company?.description;
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
   if (company.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This traditional organization has been removed.</p></PageShell>;
