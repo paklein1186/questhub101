@@ -83,6 +83,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
   const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>(initialTerritoryIds ?? []);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(initialTopicIds ?? []);
   const [visibility, setVisibility] = useState<string>("public");
+  const [postAs, setPostAs] = useState<import("@/components/feed/PostAsSelector").PostAsEntity | null>(null);
 
   const imgRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
