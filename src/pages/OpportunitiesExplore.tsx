@@ -89,7 +89,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
       <ExploreFilters
         filters={exploreFilters}
         onChange={setExploreFilters}
-        config={{ showTopics: false, showTerritories: false }}
+        config={{ showTopics: true, showTerritories: true }}
         houseFilter={{
           active: houseFilter.houseFilterActive,
           onToggle: houseFilter.setHouseFilterActive,
