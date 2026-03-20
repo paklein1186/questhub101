@@ -19,6 +19,7 @@ const updateIcons: Record<string, typeof Sparkles> = {
   CALL_FOR_HELP: Megaphone,
   REFLECTION: BookOpen,
   GENERAL: MessageCircle,
+  OPPORTUNITY: Lightbulb,
 };
 
 interface QuestActivityTabProps {
