@@ -1199,14 +1199,38 @@ export default function QuestCreate() {
               </Button>
             </div>
             {(territories ?? []).length > 0 && (
-              <SearchableTagPicker
-                label=""
-                items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
-                selectedIds={selectedTerritories}
-                onToggle={toggleTerritory}
-                onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
-                onClearAll={() => setSelectedTerritories([])}
-              />
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  {(["all", "location", "bioregion"] as const).map(f => (
+                    <Button
+                      key={f}
+                      variant={territoryFilter === f ? "default" : "outline"}
+                      size="sm"
+                      type="button"
+                      className="h-6 text-xs"
+                      onClick={() => setTerritoryFilter(f)}
+                    >
+                      {f === "all" ? "All" : f === "location" ? "Locations" : "Bioregions"}
+                    </Button>
+                  ))}
+                </div>
+                <SearchableTagPicker
+                  label=""
+                  items={(territories ?? []).filter((t: any) => {
+                    if (territoryFilter === "bioregion") return t.level === "BIOREGION";
+                    if (territoryFilter === "location") return t.level !== "BIOREGION";
+                    return true;
+                  }).map(t => ({ id: t.id, name: t.name }))}
+                  selectedIds={selectedTerritories}
+                  onToggle={toggleTerritory}
+                  onSelectAll={() => setSelectedTerritories((territories ?? []).filter((t: any) => {
+                    if (territoryFilter === "bioregion") return t.level === "BIOREGION";
+                    if (territoryFilter === "location") return t.level !== "BIOREGION";
+                    return true;
+                  }).map(t => t.id))}
+                  onClearAll={() => setSelectedTerritories([])}
+                />
+              </>
             )}
           </div>
           {showTerritoryWizard && (
