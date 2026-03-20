@@ -134,7 +134,151 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   const [addCtgAmount, setAddCtgAmount] = useState("");
   const [addingSaving, setAddingSaving] = useState(false);
 
-  // ── OCU sub-settings ──
+  // ── General tab state ──
+  const { data: allTopicsList } = useTopics();
+  const { data: allTerritoriesList } = useTerritories();
+  const { data: participants } = useQuestParticipants(questId);
+  const { grantXp, grantCredits, spendCredits } = useXpCredits();
+
+  const [editTitle, setEditTitle] = useState(quest.title || "");
+  const [editDesc, setEditDesc] = useState(quest.description || "");
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState((quest as any).website_url || "");
+  const [editStatus, setEditStatus] = useState<QuestStatus>((quest.status as QuestStatus) || QuestStatus.OPEN);
+  const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>(quest.cover_image_url ?? undefined);
+  const [editCoverFocalY, setEditCoverFocalY] = useState((quest as any).cover_focal_y ?? 50);
+  const [editQuestNature, setEditQuestNature] = useState((quest as any).quest_nature || "PROJECT");
+  const [editPriceFiat, setEditPriceFiat] = useState(String(quest.price_fiat ?? 0));
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
+
+  // Topics & territories from quest
+  const { data: questTopics } = useQuery({
+    queryKey: ["quest-topics-edit", questId],
+    queryFn: async () => {
+      const { data } = await supabase.from("quest_topics").select("topic_id").eq("quest_id", questId);
+      return (data ?? []).map((r: any) => r.topic_id as string);
+    },
+  });
+  const { data: questTerritories } = useQuery({
+    queryKey: ["quest-territories-edit", questId],
+    queryFn: async () => {
+      const { data } = await supabase.from("quest_territories").select("territory_id").eq("quest_id", questId);
+      return (data ?? []).map((r: any) => r.territory_id as string);
+    },
+  });
+  const [editTopics, setEditTopics] = useState<string[]>([]);
+  const [editTerritories, setEditTerritories] = useState<string[]>([]);
+  const [topicsInitialized, setTopicsInitialized] = useState(false);
+  const [territoriesInitialized, setTerritoriesInitialized] = useState(false);
+
+  // Sync from fetched data once
+  if (questTopics && !topicsInitialized) {
+    setEditTopics(questTopics);
+    setTopicsInitialized(true);
+  }
+  if (questTerritories && !territoriesInitialized) {
+    setEditTerritories(questTerritories);
+    setTerritoriesInitialized(true);
+  }
+
+  const saveGeneral = async () => {
+    const fiat = Number(editPriceFiat) || 0;
+    const credits = Number(creditReward) || 0;
+    const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
+    const isDraft = editStatus === QuestStatus.DRAFT;
+    const previousStatus = quest.status;
+    const isBecomingCompleted = editStatus === QuestStatus.COMPLETED && previousStatus !== QuestStatus.COMPLETED;
+    const isBecomingCancelled = editStatus === QuestStatus.CANCELLED && previousStatus !== QuestStatus.CANCELLED;
+
+    await supabase.from("quests").update({
+      title: editTitle.trim() || quest.title,
+      description: editDesc.trim() || null,
+      website_url: editWebsiteUrl.trim() || null,
+      status: editStatus as any,
+      is_draft: isDraft,
+      cover_image_url: editCoverImageUrl || null,
+      cover_focal_y: editCoverFocalY,
+      credit_reward: credits,
+      price_fiat: fiat,
+      monetization_type: monType as any,
+      credit_budget: Number(creditBudget) || 0,
+      allow_fundraising: allowFundraising,
+      funding_goal_credits: fundingGoal ? Number(fundingGoal) : null,
+      quest_nature: editQuestNature,
+      funding_type: fundingType,
+    } as any).eq("id", questId);
+
+    // Update topics
+    await supabase.from("quest_topics").delete().eq("quest_id", questId);
+    if (editTopics.length > 0) {
+      await supabase.from("quest_topics").insert(editTopics.map((topic_id) => ({ quest_id: questId, topic_id })));
+    }
+    // Update territories
+    await supabase.from("quest_territories").delete().eq("quest_id", questId);
+    if (editTerritories.length > 0) {
+      await supabase.from("quest_territories" as any).insert(editTerritories.map((territory_id) => ({ quest_id: questId, territory_id })));
+    }
+
+    // Quest Completion: award XP & credits
+    if (isBecomingCompleted) {
+      await grantXp(quest.created_by_user_id, {
+        type: XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR,
+        relatedEntityType: "quest",
+        relatedEntityId: questId,
+      });
+      const activeParticipants = (participants || []).filter(
+        (p: any) => p.status === "ACCEPTED" && p.user_id !== quest.created_by_user_id
+      );
+      for (const p of activeParticipants) {
+        await grantXp(p.user_id, {
+          type: XP_EVENT_TYPES.QUEST_COMPLETED_USER,
+          relatedEntityType: "quest",
+          relatedEntityId: questId,
+        }, true);
+      }
+      const creditRewardPerUser = quest.credit_reward;
+      if (creditRewardPerUser > 0) {
+        const allEligible = (participants || []).filter((p: any) => p.status === "ACCEPTED");
+        for (const p of allEligible) {
+          await grantCredits(p.user_id, {
+            type: CREDIT_TX_TYPES.QUEST_REWARD_EARNED,
+            amount: creditRewardPerUser,
+            source: `Quest completed: ${quest.title}`,
+            relatedEntityType: "quest",
+            relatedEntityId: questId,
+          }, true);
+        }
+        toast({ title: `${creditRewardPerUser} credits awarded to ${allEligible.length} participant(s)` });
+      }
+      const creditBudgetVal = Number((quest as any).credit_budget) || 0;
+      if (creditBudgetVal > 0 && currentUser.id) {
+        await spendCredits(currentUser.id, {
+          type: CREDIT_TX_TYPES.QUEST_BUDGET_SPENT,
+          amount: creditBudgetVal,
+          source: `Quest budget: ${quest.title}`,
+          relatedEntityType: "quest",
+          relatedEntityId: questId,
+        });
+      }
+      toast({ title: "🎉 Quest completed!", description: "XP and rewards have been distributed to all participants." });
+    }
+
+    if (isBecomingCancelled && (quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
+      const { error: refundError } = await supabase.rpc("refund_quest_funding" as any, { _quest_id: questId });
+      if (refundError) {
+        toast({ title: "Refund failed", description: refundError.message, variant: "destructive" });
+      } else {
+        toast({ title: "Credits refunded" });
+      }
+    }
+
+    qc.invalidateQueries({ queryKey: ["quest", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-topics-edit", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-territories-edit", questId] });
+    toast({ title: "Quest updated" });
+  };
+
+
   const ocuConfig = typeof (quest as any).features_config === "object" && (quest as any).features_config?.ocu
     ? (quest as any).features_config.ocu
     : {};
