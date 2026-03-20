@@ -596,12 +596,29 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
                       <Hash className="h-3.5 w-3.5" /> Topics
                     </label>
-                    <div className="flex items-center gap-2 mb-2">
+                     <div className="flex items-center gap-2 mb-2">
                       <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics((allTopicsList ?? []).map((t: any) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics([])} disabled={editTopics.length === 0}>Clear all</Button>
+                      <span className="mx-1 text-muted-foreground text-xs">|</span>
+                      {(["all", "topics", "houses"] as const).map(f => (
+                        <Button
+                          key={f}
+                          variant={topicFilter === f ? "default" : "outline"}
+                          size="sm"
+                          type="button"
+                          className="h-6 text-xs"
+                          onClick={() => setTopicFilter(f)}
+                        >
+                          {f === "all" ? "All" : f === "topics" ? "Topics" : "Houses"}
+                        </Button>
+                      ))}
                     </div>
                     <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
-                      {(allTopicsList ?? []).map((t: any) => (
+                      {(allTopicsList ?? []).filter((t: any) => {
+                        if (topicFilter === "houses") return t.name?.startsWith("House of");
+                        if (topicFilter === "topics") return !t.name?.startsWith("House of");
+                        return true;
+                      }).map((t: any) => (
                         <Badge
                           key={t.id}
                           variant={editTopics.includes(t.id) ? "default" : "outline"}
