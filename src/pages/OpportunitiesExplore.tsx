@@ -73,6 +73,11 @@ export default function OpportunitiesExplore({ bare }: Props) {
         if (statusFilter === "open" && s !== "open") return false;
         if (statusFilter === "in_progress" && s !== "in_progress") return false;
       }
+      // Topic filter from Filters panel
+      if (exploreFilters.topicIds.length > 0) {
+        const questTopics = ((need.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id);
+        if (!questTopics.some((tid: string) => exploreFilters.topicIds.includes(tid))) return false;
+      }
       return true;
     });
     // Apply house/topic filter
@@ -81,7 +86,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
       (item: any) => ((item.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id),
     );
     return applySortBy(result, exploreFilters.sortBy);
-  }, [needs, search, categoryFilter, statusFilter, exploreFilters.sortBy, houseFilter.applyHouseFilter]);
+  }, [needs, search, categoryFilter, statusFilter, exploreFilters, houseFilter.applyHouseFilter]);
 
   return (
     <div className="space-y-4">
@@ -89,7 +94,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
       <ExploreFilters
         filters={exploreFilters}
         onChange={setExploreFilters}
-        config={{ showTopics: false, showTerritories: false }}
+        config={{ showTopics: true, showTerritories: true }}
         houseFilter={{
           active: houseFilter.houseFilterActive,
           onToggle: houseFilter.setHouseFilterActive,
