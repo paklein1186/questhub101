@@ -449,6 +449,9 @@ export default function QuestDetail() {
     } else {
       await supabase.from("quest_updates").insert({
         quest_id: quest.id, author_id: currentUser.id, title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft, visibility: uVisibility,
+        posted_as_entity_type: uPostAs?.entityType || null,
+        posted_as_entity_id: uPostAs?.entityId || null,
+        posted_as_label: uPostAs?.label || null,
       } as any);
 
       // Notify participants & followers for published (non-draft) updates
