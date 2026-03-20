@@ -87,10 +87,10 @@ export function getNewRightsAtLevel(level: number) {
 
 // ─── Governance Voting Thresholds ──────────────────────────
 export const VOTING_THRESHOLDS = {
-  pod: 4,
-  guild: 6,
-  territory: 11,
-  platform: 14,
+  pod: 1,
+  guild: 1,
+  territory: 1,
+  platform: 1,
 } as const;
 
 // ─── Governance Bodies ─────────────────────────────────────
