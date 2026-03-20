@@ -167,6 +167,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   });
   const [editTopics, setEditTopics] = useState<string[]>([]);
   const [editTerritories, setEditTerritories] = useState<string[]>([]);
+  const [territoryFilter, setTerritoryFilter] = useState<"all" | "location" | "bioregion">("all");
   const [topicsInitialized, setTopicsInitialized] = useState(false);
   const [territoriesInitialized, setTerritoriesInitialized] = useState(false);
 
