@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb, Plus, Pencil, Trash2, MapPin } from "lucide-react";
 import { QuestNature } from "@/types/enums";
 import {
   QUEST_NATURE_LABELS,
@@ -40,6 +40,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, Building2, Handshake, X as XIcon } from "lucide-react";
+import { NEED_CATEGORIES, NEED_STATUSES } from "@/components/quest/QuestNeedsManager";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 
 interface AiSuggestion {
   description: string;
@@ -203,6 +206,29 @@ export default function QuestCreate() {
   const [ctgEnabled, setCtgEnabled] = useState(false);
   const [ocuEnabled, setOcuEnabled] = useState(false);
   const { rate: coinEurRate, toEur } = useCoinsRate();
+
+  // Local needs (saved after quest creation)
+  interface LocalNeed { id: string; title: string; description: string; category: string; status: string; }
+  const [localNeeds, setLocalNeeds] = useState<LocalNeed[]>([]);
+  const [needDialogOpen, setNeedDialogOpen] = useState(false);
+  const [editingNeedId, setEditingNeedId] = useState<string | null>(null);
+  const [needForm, setNeedForm] = useState({ title: "", description: "", category: "GENERAL", status: "OPEN" });
+
+  const openCreateNeed = () => { setEditingNeedId(null); setNeedForm({ title: "", description: "", category: "GENERAL", status: "OPEN" }); setNeedDialogOpen(true); };
+  const openEditNeed = (n: LocalNeed) => { setEditingNeedId(n.id); setNeedForm({ title: n.title, description: n.description, category: n.category, status: n.status }); setNeedDialogOpen(true); };
+  const saveLocalNeed = () => {
+    if (!needForm.title.trim()) return;
+    if (editingNeedId) {
+      setLocalNeeds(prev => prev.map(n => n.id === editingNeedId ? { ...n, ...needForm } : n));
+    } else {
+      setLocalNeeds(prev => [...prev, { ...needForm, id: crypto.randomUUID() }]);
+    }
+    setNeedDialogOpen(false);
+  };
+  const deleteLocalNeed = (id: string) => setLocalNeeds(prev => prev.filter(n => n.id !== id));
+
+  // Territory wizard overlay
+  const [showTerritoryWizard, setShowTerritoryWizard] = useState(false);
 
   // Auto-enable OCU if the guild has ocu_default_enabled
   useEffect(() => {
@@ -411,7 +437,20 @@ export default function QuestCreate() {
         );
       }
 
-      // Insert accepted AI subtasks (with ctg_reward)
+      // Insert local needs
+      if (localNeeds.length > 0) {
+        await supabase.from("quest_needs" as any).insert(
+          localNeeds.map(n => ({
+            quest_id: quest.id,
+            title: n.title,
+            description: n.description || null,
+            category: n.category,
+            status: n.status,
+            created_by_user_id: currentUser.id,
+          }))
+        );
+      }
+
       const acceptedSubtasks = aiSubtasks.filter(s => s.accepted);
       if (acceptedSubtasks.length > 0) {
         await supabase.from("quest_subtasks").insert(
@@ -967,17 +1006,105 @@ export default function QuestCreate() {
 
           <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
 
-          {/* Needs */}
+          {/* Needs (inline editor) */}
           <div className="rounded-lg border border-border p-4 space-y-3">
-            <div>
+            <div className="flex items-center justify-between">
               <label className="text-sm font-semibold flex items-center gap-1.5">
                 <Lightbulb className="h-4 w-4 text-primary" /> Needs <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                You can add specific needs (skills, tools, volunteers…) after creating the quest via its Settings page.
-              </p>
+              <Button size="sm" variant="default" onClick={openCreateNeed}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Add Need
+              </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Describe what this quest requires — skills, funding, tools, volunteers…
+            </p>
+            {localNeeds.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                <Lightbulb className="h-6 w-6 mx-auto mb-1 opacity-40" />
+                <p>No needs added yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {localNeeds.map(need => {
+                  const cat = NEED_CATEGORIES.find(c => c.value === need.category);
+                  const statusColor: Record<string, string> = {
+                    OPEN: "bg-primary/10 text-primary border-primary/30",
+                    ACTIVE: "bg-amber-500/10 text-amber-700 border-amber-500/30",
+                    MET: "bg-green-500/10 text-green-700 border-green-500/30",
+                  };
+                  return (
+                    <div key={need.id} className="rounded-lg border border-border bg-card p-3 flex items-start gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm">{need.title}</span>
+                          <Badge variant="outline" className={`text-xs ${statusColor[need.status] ?? ""}`}>
+                            {NEED_STATUSES.find(s => s.value === need.status)?.label ?? need.status}
+                          </Badge>
+                          {cat && <Badge variant="secondary" className="text-xs">{cat.label}</Badge>}
+                        </div>
+                        {need.description && <p className="text-xs text-muted-foreground">{need.description}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditNeed(need)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteLocalNeed(need.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
+
+          {/* Need Create/Edit Dialog */}
+          <Dialog open={needDialogOpen} onOpenChange={setNeedDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingNeedId ? "Edit Need" : "Add a Need"}</DialogTitle>
+                <DialogDescription>Describe what this quest needs from the community.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Title <span className="text-destructive">*</span></label>
+                  <Input value={needForm.title} onChange={e => setNeedForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. UX designer for 2 weeks" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Description</label>
+                  <Textarea value={needForm.description} onChange={e => setNeedForm(f => ({ ...f, description: e.target.value }))} placeholder="More details…" rows={3} className="resize-none" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Category</label>
+                    <Select value={needForm.category} onValueChange={v => setNeedForm(f => ({ ...f, category: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {NEED_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Status</label>
+                    <Select value={needForm.status} onValueChange={v => setNeedForm(f => ({ ...f, status: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {NEED_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setNeedDialogOpen(false)}>Cancel</Button>
+                <Button onClick={saveLocalNeed} disabled={!needForm.title.trim()}>
+                  {editingNeedId ? "Update" : "Add Need"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Funding Pools — only for PROJECT / ONGOING_MISSION */}
           {(questNature === QuestNature.PROJECT || questNature === ("ONGOING_MISSION" as QuestNature)) && (
@@ -1048,15 +1175,27 @@ export default function QuestCreate() {
             />
           )}
 
-          {(territories ?? []).length > 0 && (
-            <SearchableTagPicker
-              label="Territories"
-              items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
-              selectedIds={selectedTerritories}
-              onToggle={toggleTerritory}
-              onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
-              onClearAll={() => setSelectedTerritories([])}
-            />
+          {/* Territories with Create New button */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">Territories</span>
+              <Button size="sm" variant="outline" onClick={() => setShowTerritoryWizard(true)}>
+                <MapPin className="h-3.5 w-3.5 mr-1" /> Create new territory
+              </Button>
+            </div>
+            {(territories ?? []).length > 0 && (
+              <SearchableTagPicker
+                label=""
+                items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
+                selectedIds={selectedTerritories}
+                onToggle={toggleTerritory}
+                onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
+                onClearAll={() => setSelectedTerritories([])}
+              />
+            )}
+          </div>
+          {showTerritoryWizard && (
+            <TerritoryCreateWizard open={showTerritoryWizard} onClose={() => { setShowTerritoryWizard(false); qc.invalidateQueries({ queryKey: ["territories"] }); }} />
           )}
 
           <div className="flex items-center gap-2">

@@ -59,6 +59,21 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
   const qc = useQueryClient();
 
   const isOwner = currentUser.id === questOwnerId;
+  // Allow quest participants with ADMIN role to also manage needs
+  const { data: participantRole } = useQuery({
+    queryKey: ["quest-participant-role", questId, currentUser.id],
+    enabled: !!questId && !!currentUser.id && !isOwner,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_participants")
+        .select("role")
+        .eq("quest_id", questId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      return data?.role ?? null;
+    },
+  });
+  const canEdit = isOwner || participantRole === "ADMIN";
 
   const { data: needs = [], isLoading } = useQuery({
     queryKey: ["quest-needs", questId],
@@ -132,7 +147,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
 
   return (
     <div className="space-y-3">
-      {!readOnly && isOwner && (
+      {!readOnly && canEdit && (
         <div className="flex justify-end">
           <Button size="sm" variant="default" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Add Opportunity
@@ -144,7 +159,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
         <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           <Lightbulb className="h-8 w-8 mx-auto mb-2 opacity-40" />
           <p>No needs listed yet.</p>
-          {!readOnly && isOwner && (
+          {!readOnly && canEdit && (
             <p className="mt-1 text-xs">Add what this quest requires — skills, funding, tools, volunteers…</p>
           )}
         </div>
@@ -171,7 +186,7 @@ export function QuestNeedsManager({ questId, questOwnerId, readOnly = false }: Q
                     <p className="text-xs text-muted-foreground leading-relaxed">{need.description}</p>
                   )}
                 </div>
-                {!readOnly && isOwner && (
+                {!readOnly && canEdit && (
                   <div className="flex items-center gap-1 shrink-0">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(need)}>
                       <Pencil className="h-3.5 w-3.5" />
