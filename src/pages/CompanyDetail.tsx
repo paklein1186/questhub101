@@ -117,29 +117,6 @@ export default function CompanyDetail() {
   const isAdmin = isLoggedIn && (memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email));
   const isMember = !!currentMembership;
 
-  const createQuest = async () => {
-    if (!qTitle.trim()) return;
-    const { error } = await supabase.from("quests").insert({
-      title: qTitle.trim(), description: qDesc.trim() || null,
-      status: "OPEN" as any, monetization_type: "PAID" as any,
-      reward_xp: Number(qRewardXp) || 100, is_featured: false,
-      created_by_user_id: currentUser.id,
-      guild_id: qGuildId || null, company_id: company.id,
-      owner_type: "COMPANY", owner_id: company.id,
-    } as any);
-    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
-    // Emit $CTG for quest creation
-    supabase.rpc('emit_ctg_for_contribution', {
-      p_user_id: currentUser.id,
-      p_contribution_type: 'quest_created',
-      p_related_entity_id: company.id,
-      p_related_entity_type: 'company',
-    } as any).then(() => {});
-    qc.invalidateQueries({ queryKey: ["quests-for-company", id] });
-    setQuestOpen(false); setQTitle(""); setQDesc(""); setQGuildId(""); setQRewardXp("100");
-    toast({ title: "Quest created!" });
-  };
-
   const createService = async () => {
     if (!svcTitle.trim()) return;
     const { error } = await supabase.from("services").insert({
