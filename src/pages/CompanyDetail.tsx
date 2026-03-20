@@ -78,13 +78,6 @@ export default function CompanyDetail() {
     return next;
   }, { replace: true });
 
-  // Quest creation state
-  const [questOpen, setQuestOpen] = useState(false);
-  const [qTitle, setQTitle] = useState("");
-  const [qDesc, setQDesc] = useState("");
-  const [qGuildId, setQGuildId] = useState("");
-  const [qRewardXp, setQRewardXp] = useState("100");
-
   // Service creation state
   const [svcOpen, setSvcOpen] = useState(false);
   const [svcTitle, setSvcTitle] = useState("");
