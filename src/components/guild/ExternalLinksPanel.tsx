@@ -41,6 +41,13 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
   const [addOpen, setAddOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
+  const isEmbedded = (() => {
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true;
+    }
+  })();
 
   const addLink = () => {
     if (!label.trim() || !url.trim()) return;
@@ -82,7 +89,7 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
             >
               <a
                 href={link.url}
-                target="_blank"
+                target={isEmbedded ? "_top" : "_blank"}
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
