@@ -829,14 +829,18 @@ export default function QuestDetail() {
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
         {(questTr.description?.text || quest.description) && (
-          <GuestContentGate blur>
-            <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+            <GuestContentGate
+              blur
+              previewText={questTr.description?.text || quest.description || ""}
+              previewSentences={3}
+            >
               <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{questTr.description?.text || quest.description}</p>
-              {questTr.description?.isTranslated && (
-                <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>
-              )}
-            </div>
-          </GuestContentGate>
+            </GuestContentGate>
+            {questTr.description?.isTranslated && (
+              <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>
+            )}
+          </div>
         )}
         {(quest as any).website_url && (
           <a
