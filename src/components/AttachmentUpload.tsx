@@ -247,13 +247,10 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
                 ) : (
                   <a
                     href={`/documents/${att.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="truncate flex-1 font-medium hover:text-primary transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const popup = window.open(`/documents/${att.id}`, "_blank", "noopener,noreferrer");
-                      if (!popup) window.open(`/documents/${att.id}`, "_top");
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {displayTitle}
                   </a>
