@@ -10,6 +10,7 @@ interface AuthUser {
   avatarUrl?: string;
   role: string;
   hasCompletedOnboarding: boolean;
+  onboardingSkipped: boolean;
 }
 
 interface AuthContextType {
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("user_id, email, name, avatar_url, role, has_completed_onboarding, preferred_language")
+      .select("user_id, email, name, avatar_url, role, has_completed_onboarding, preferred_language, onboarding_skipped")
       .eq("user_id", userId)
       .single();
     if (data) {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatarUrl: data.avatar_url ?? undefined,
         role: data.role,
         hasCompletedOnboarding: data.has_completed_onboarding,
+        onboardingSkipped: !!(data as any).onboarding_skipped,
       });
       // Sync language preference
       const lang = (data as any).preferred_language;
