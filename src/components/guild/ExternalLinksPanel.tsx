@@ -41,13 +41,6 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
   const [addOpen, setAddOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
-  const isEmbedded = (() => {
-    try {
-      return window.self !== window.top;
-    } catch {
-      return true;
-    }
-  })();
 
   const addLink = () => {
     if (!label.trim() || !url.trim()) return;
@@ -88,9 +81,7 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
               className="group relative flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 hover:shadow-sm transition-all"
             >
               <a
-                href={link.url}
-                target={isEmbedded ? "_top" : "_blank"}
-                rel="noopener noreferrer"
+                href={`/external-resource?url=${encodeURIComponent(link.url)}&label=${encodeURIComponent(link.label)}`}
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
                 {getLinkIcon(link.url)}
