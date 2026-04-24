@@ -137,6 +137,10 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [signingUp, setSigningUp] = useState(false);
+  // When true, the user wants to skip the long onboarding wizard and stay
+  // on the page they came from. The full onboarding is then surfaced via a
+  // dismissable banner once they're logged in.
+  const [skipPersonalization, setSkipPersonalization] = useState(false);
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
