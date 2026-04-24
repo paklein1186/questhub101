@@ -6288,6 +6288,7 @@ export type Database = {
           maker_xp: number
           milestone_popups_enabled: boolean
           name: string
+          onboarding_skipped: boolean
           path_step: number | null
           persona_confidence: number | null
           persona_source: string | null
@@ -6364,6 +6365,7 @@ export type Database = {
           maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
+          onboarding_skipped?: boolean
           path_step?: number | null
           persona_confidence?: number | null
           persona_source?: string | null
@@ -6440,6 +6442,7 @@ export type Database = {
           maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
+          onboarding_skipped?: boolean
           path_step?: number | null
           persona_confidence?: number | null
           persona_source?: string | null
