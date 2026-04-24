@@ -115,8 +115,12 @@ export function SearchableTagPicker({
         )}
       </div>
 
-      {/* Items */}
-      <ScrollArea style={{ maxHeight }} className="rounded-md border border-border">
+      {/* Items — Radix ScrollArea needs an explicit height (not max-height) on the
+          root for the inner viewport to engage scrolling. */}
+      <ScrollArea
+        style={{ height: maxHeight }}
+        className="rounded-md border border-border"
+      >
         <div
           className={cn(
             "p-2",
