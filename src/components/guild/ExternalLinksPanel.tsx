@@ -41,6 +41,13 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
   const [addOpen, setAddOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
+  const externalTarget = (() => {
+    try {
+      return window.self !== window.top ? "_top" : "_blank";
+    } catch {
+      return "_top";
+    }
+  })();
 
   const addLink = () => {
     if (!label.trim() || !url.trim()) return;
