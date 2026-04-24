@@ -55,7 +55,12 @@ const TARGET_ROUTES: Record<string, string> = {
   course: "/courses/",
   event: "/events/",
   territory: "/territories/",
-  post: "/feed",
+};
+
+// Custom URL builders for target types that don't follow path/{id} convention
+const TARGET_CUSTOM_URL: Record<string, (id: string) => string> = {
+  post: (id) => `/feed?post=${id}`,
+  feed_post: (id) => `/feed?post=${id}`,
 };
 
 export function FollowingActivity() {
@@ -92,6 +97,19 @@ export function FollowingActivity() {
           .order("created_at", { ascending: false })
           .limit(20);
         activities = data ?? [];
+      }
+
+      // Resolve quest_proposal target_ids → parent quest_id (so clicks land on the quest)
+      const proposalIds = activities
+        .filter((a: any) => a.target_type === "quest_proposal" && a.target_id)
+        .map((a: any) => a.target_id);
+      const proposalToQuest = new Map<string, string>();
+      if (proposalIds.length > 0) {
+        const { data: proposals } = await supabase
+          .from("quest_proposals")
+          .select("id, quest_id")
+          .in("id", proposalIds);
+        (proposals ?? []).forEach((p: any) => proposalToQuest.set(p.id, p.quest_id));
       }
 
       // Fetch recent posts from followed users + entity contexts
@@ -185,14 +203,16 @@ export function FollowingActivity() {
       }
 
       for (const a of activities) {
+        const isProposal = a.target_type === "quest_proposal";
+        const resolvedQuestId = isProposal ? proposalToQuest.get(a.target_id) : null;
         merged.push({
           id: a.id,
           type: "activity",
           created_at: a.created_at,
           author: profileMap.get(a.actor_user_id),
           action_type: a.action_type,
-          target_type: a.target_type,
-          target_id: a.target_id,
+          target_type: resolvedQuestId ? "quest" : a.target_type,
+          target_id: resolvedQuestId ?? a.target_id,
           target_name: a.target_name,
         });
       }
@@ -247,7 +267,13 @@ export function FollowingActivity() {
                   if (base) navigate(`${base}${item.context_id}`);
                 }
               } else if (item.target_type && item.target_id) {
-                const base = TARGET_ROUTES[item.target_type.toLowerCase()];
+                const tt = item.target_type.toLowerCase();
+                const customBuilder = TARGET_CUSTOM_URL[tt];
+                if (customBuilder) {
+                  navigate(customBuilder(item.target_id));
+                  return;
+                }
+                const base = TARGET_ROUTES[tt];
                 if (base) navigate(`${base}${item.target_id}`);
               }
             }}
