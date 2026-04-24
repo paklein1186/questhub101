@@ -89,7 +89,7 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
             >
               <a
                 href={link.url}
-                target={externalTarget}
+                target={isEmbedded ? "_top" : "_blank"}
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
