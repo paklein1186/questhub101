@@ -203,14 +203,16 @@ export function FollowingActivity() {
       }
 
       for (const a of activities) {
+        const isProposal = a.target_type === "quest_proposal";
+        const resolvedQuestId = isProposal ? proposalToQuest.get(a.target_id) : null;
         merged.push({
           id: a.id,
           type: "activity",
           created_at: a.created_at,
           author: profileMap.get(a.actor_user_id),
           action_type: a.action_type,
-          target_type: a.target_type,
-          target_id: a.target_id,
+          target_type: resolvedQuestId ? "quest" : a.target_type,
+          target_id: resolvedQuestId ?? a.target_id,
           target_name: a.target_name,
         });
       }
