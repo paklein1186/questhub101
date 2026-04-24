@@ -21,6 +21,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories, useCreateGuild, useCreatePod, useQuests } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
+import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import { SUGGESTED_DEFAULT_ROLES } from "@/lib/permissions";
 import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums";
 import { normalizeUrl } from "@/components/SocialLinks";
@@ -631,17 +632,27 @@ Respond ONLY in this exact JSON format, no markdown:
               onToggle={toggleTopic}
               variant="checkboxes"
             />
-            <SearchableTagPicker
-              label="Territories"
-              items={territories.map(territory => ({
-                id: territory.id,
-                name: territory.name,
-                suggested: scrapedTerritoryIds.includes(territory.id),
-              }))}
-              selectedIds={selectedTerritoryIds}
-              onToggle={toggleTerritory}
-              variant="checkboxes"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Don't see your territory?</span>
+                <AddTerritoryDialog
+                  onCreated={(id) => {
+                    if (!selectedTerritoryIds.includes(id)) toggleTerritory(id);
+                  }}
+                />
+              </div>
+              <SearchableTagPicker
+                label="Territories"
+                items={territories.map(territory => ({
+                  id: territory.id,
+                  name: territory.name,
+                  suggested: scrapedTerritoryIds.includes(territory.id),
+                }))}
+                selectedIds={selectedTerritoryIds}
+                onToggle={toggleTerritory}
+                variant="checkboxes"
+              />
+            </div>
           </div>
         );
 
