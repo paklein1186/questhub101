@@ -134,6 +134,19 @@ export default function NetworkActivityTab() {
         (updates ?? []).forEach((u: any) => questUpdateMap.set(u.id, u.quest_id));
       }
 
+      // Resolve quest_proposal target_ids → parent quest_id
+      const proposalIds = data
+        .filter((a: any) => a.target_type === "quest_proposal" && a.target_id)
+        .map((a: any) => a.target_id);
+      const proposalToQuest = new Map<string, string>();
+      if (proposalIds.length > 0) {
+        const { data: proposals } = await supabase
+          .from("quest_proposals")
+          .select("id, quest_id")
+          .in("id", proposalIds);
+        (proposals ?? []).forEach((p: any) => proposalToQuest.set(p.id, p.quest_id));
+      }
+
       // Resolve missing target_name for followed entries
       const missingNameEntries = data.filter(
         (a: any) => !a.target_name && a.target_id && a.target_type
@@ -171,12 +184,20 @@ export default function NetworkActivityTab() {
 
       return data.map((a: any) => {
         const profile = profileMap.get(a.actor_user_id);
-        const resolved_link_id =
-          a.target_type === "quest_update"
-            ? (questUpdateMap.get(a.target_id) ?? a.target_id)
-            : a.target_id;
+        let resolved_link_id = a.target_id;
+        let effective_target_type = a.target_type;
+        if (a.target_type === "quest_update") {
+          resolved_link_id = questUpdateMap.get(a.target_id) ?? a.target_id;
+        } else if (a.target_type === "quest_proposal") {
+          const qid = proposalToQuest.get(a.target_id);
+          if (qid) {
+            resolved_link_id = qid;
+            effective_target_type = "quest";
+          }
+        }
         return {
           ...a,
+          target_type: effective_target_type,
           resolved_link_id,
           target_name: a.target_name || nameMap.get(a.target_id) || null,
           actor_name: profile?.name || "Someone",
