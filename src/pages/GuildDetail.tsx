@@ -472,7 +472,7 @@ export default function GuildDetail() {
               <Badge variant="secondary" className="capitalize">{(guild.type || "guild").toLowerCase()}</Badge>
               <span>Created by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
-            <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{trDesc}</p></GuestContentGate>
+            <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}><p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{trDesc}</p></GuestContentGate>
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 flex-wrap">
               <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth("follow this guild", toggleFollow)}>
@@ -567,14 +567,14 @@ export default function GuildDetail() {
         {/* ═══════════ OVERVIEW TAB ═══════════ */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {guild.description && (
-            <GuestContentGate blur>
-              <div>
-                <h3 className="font-display font-semibold mb-2">About</h3>
-                <div className="rounded-xl border border-border bg-card/50 p-4">
+            <div>
+              <h3 className="font-display font-semibold mb-2">About</h3>
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}>
                   <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
-                </div>
+                </GuestContentGate>
               </div>
-            </GuestContentGate>
+            </div>
           )}
 
           <div>

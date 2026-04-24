@@ -706,7 +706,34 @@ export default function QuestDetail() {
                 💰 Mission
               </Badge>
             )}
-            <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP <HintTooltip {...HINTS.tooltips.questXP} /></span>
+            {(() => {
+              const coinsAvail = Number((quest as any).coins_escrow ?? (quest as any).coins_budget ?? 0);
+              const ctgAvail = Number((quest as any).ctg_escrow ?? (quest as any).ctg_budget ?? (quest as any).credit_budget ?? quest.credit_reward ?? 0);
+              const fiatPrice = quest.price_fiat > 0 ? quest.price_fiat / 100 : 0;
+              if (coinsAvail > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-amber-600">
+                    🟩 {coinsAvail.toLocaleString()} Coins
+                    <span className="text-xs text-muted-foreground font-normal">≈ €{(coinsAvail * coinsRate).toFixed(2)}</span>
+                  </span>
+                );
+              }
+              if (ctgAvail > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-emerald-600">
+                    🌱 {ctgAvail.toLocaleString()} $CTG
+                  </span>
+                );
+              }
+              if (fiatPrice > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-amber-600">
+                    <CreditCard className="h-5 w-5" /> €{fiatPrice.toFixed(2)}
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </div>
         </div>
 
@@ -802,14 +829,18 @@ export default function QuestDetail() {
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
         {(questTr.description?.text || quest.description) && (
-          <GuestContentGate blur>
-            <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+            <GuestContentGate
+              blur
+              previewText={questTr.description?.text || quest.description || ""}
+              previewSentences={3}
+            >
               <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{questTr.description?.text || quest.description}</p>
-              {questTr.description?.isTranslated && (
-                <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>
-              )}
-            </div>
-          </GuestContentGate>
+            </GuestContentGate>
+            {questTr.description?.isTranslated && (
+              <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>
+            )}
+          </div>
         )}
         {(quest as any).website_url && (
           <a

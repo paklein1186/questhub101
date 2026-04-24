@@ -402,11 +402,11 @@ export default function ServiceDetail() {
         </div>
 
         {svc.description && (
-          <GuestContentGate blur>
-            <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
+            <GuestContentGate blur previewText={svc.description} previewSentences={3}>
               <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{svc.description}</p>
-            </div>
-          </GuestContentGate>
+            </GuestContentGate>
+          </div>
         )}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
