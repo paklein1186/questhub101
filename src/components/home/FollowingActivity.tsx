@@ -252,7 +252,13 @@ export function FollowingActivity() {
                   if (base) navigate(`${base}${item.context_id}`);
                 }
               } else if (item.target_type && item.target_id) {
-                const base = TARGET_ROUTES[item.target_type.toLowerCase()];
+                const tt = item.target_type.toLowerCase();
+                const customBuilder = TARGET_CUSTOM_URL[tt];
+                if (customBuilder) {
+                  navigate(customBuilder(item.target_id));
+                  return;
+                }
+                const base = TARGET_ROUTES[tt];
                 if (base) navigate(`${base}${item.target_id}`);
               }
             }}
