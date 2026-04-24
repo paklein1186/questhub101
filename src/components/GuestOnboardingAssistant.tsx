@@ -838,9 +838,23 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
                     </div>
                   </div>
 
+                  <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border border-dashed border-border p-2.5 hover:border-primary/40 hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={skipPersonalization}
+                      onChange={(e) => setSkipPersonalization(e.target.checked)}
+                      className="mt-0.5 h-3.5 w-3.5 rounded border-border accent-primary cursor-pointer"
+                    />
+                    <span className="flex-1 leading-snug">
+                      <span className="font-medium text-foreground">Skip personalization for now</span>
+                      <br />
+                      Just create my account and take me back to where I was. I'll personalize my profile later.
+                    </span>
+                  </label>
+
                   <Button type="submit" className="w-full" disabled={signingUp}>
                     {signingUp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                    Create account
+                    {skipPersonalization ? "Create account & continue" : "Create account"}
                   </Button>
                 </form>
 
