@@ -159,6 +159,7 @@ import AgentDetail from "./pages/AgentDetail";
 import WebhookSpecPage from "./pages/WebhookSpecPage";
 import MyAgents from "./pages/MyAgents";
 import DocumentRedirect from "./pages/DocumentRedirect";
+import ExternalResourceRedirect from "./pages/ExternalResourceRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
 import NaturalSystemPage from "./pages/NaturalSystemPage";
@@ -291,6 +292,7 @@ const App = () => (
                 <Route path="/agents/:id" element={<AgentDetail />} />
                 <Route path="/my-agents" element={<RequireAuth><MyAgents /></RequireAuth>} />
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
+                <Route path="/external-resource" element={<ExternalResourceRedirect />} />
                 <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
                 <Route path="/site/:websiteSlug/:pageSlug" element={<PublicWebsite />} />
                 <Route path="/book/:id" element={<PublicBooking />} />
