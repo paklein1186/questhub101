@@ -134,6 +134,19 @@ export default function NetworkActivityTab() {
         (updates ?? []).forEach((u: any) => questUpdateMap.set(u.id, u.quest_id));
       }
 
+      // Resolve quest_proposal target_ids → parent quest_id
+      const proposalIds = data
+        .filter((a: any) => a.target_type === "quest_proposal" && a.target_id)
+        .map((a: any) => a.target_id);
+      const proposalToQuest = new Map<string, string>();
+      if (proposalIds.length > 0) {
+        const { data: proposals } = await supabase
+          .from("quest_proposals")
+          .select("id, quest_id")
+          .in("id", proposalIds);
+        (proposals ?? []).forEach((p: any) => proposalToQuest.set(p.id, p.quest_id));
+      }
+
       // Resolve missing target_name for followed entries
       const missingNameEntries = data.filter(
         (a: any) => !a.target_name && a.target_id && a.target_type
