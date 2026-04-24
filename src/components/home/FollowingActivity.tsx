@@ -55,7 +55,12 @@ const TARGET_ROUTES: Record<string, string> = {
   course: "/courses/",
   event: "/events/",
   territory: "/territories/",
-  post: "/feed",
+};
+
+// Custom URL builders for target types that don't follow path/{id} convention
+const TARGET_CUSTOM_URL: Record<string, (id: string) => string> = {
+  post: (id) => `/feed?post=${id}`,
+  feed_post: (id) => `/feed?post=${id}`,
 };
 
 export function FollowingActivity() {
