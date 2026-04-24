@@ -221,7 +221,7 @@ export default function CompanyDetail() {
             </div>
         </div>
 
-        {trDesc && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{trDesc}</p></GuestContentGate>}
+        {trDesc && <GuestContentGate blur previewText={trDesc} previewSentences={3}><p className="text-muted-foreground max-w-2xl mb-3">{trDesc}</p></GuestContentGate>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
@@ -261,14 +261,14 @@ export default function CompanyDetail() {
         {/* Overview */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {company.description && (
-            <GuestContentGate blur>
-              <div>
-                <h3 className="font-display font-semibold mb-2">About</h3>
-                <div className="rounded-xl border border-border bg-card/50 p-4">
+            <div>
+              <h3 className="font-display font-semibold mb-2">About</h3>
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}>
                   <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
-                </div>
+                </GuestContentGate>
               </div>
-            </GuestContentGate>
+            </div>
           )}
 
           {/* Unit details */}

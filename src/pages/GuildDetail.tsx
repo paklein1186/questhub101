@@ -567,14 +567,14 @@ export default function GuildDetail() {
         {/* ═══════════ OVERVIEW TAB ═══════════ */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {guild.description && (
-            <GuestContentGate blur>
-              <div>
-                <h3 className="font-display font-semibold mb-2">About</h3>
-                <div className="rounded-xl border border-border bg-card/50 p-4">
+            <div>
+              <h3 className="font-display font-semibold mb-2">About</h3>
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}>
                   <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
-                </div>
+                </GuestContentGate>
               </div>
-            </GuestContentGate>
+            </div>
           )}
 
           <div>
