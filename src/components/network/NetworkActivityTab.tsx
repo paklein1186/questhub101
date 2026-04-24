@@ -184,12 +184,20 @@ export default function NetworkActivityTab() {
 
       return data.map((a: any) => {
         const profile = profileMap.get(a.actor_user_id);
-        const resolved_link_id =
-          a.target_type === "quest_update"
-            ? (questUpdateMap.get(a.target_id) ?? a.target_id)
-            : a.target_id;
+        let resolved_link_id = a.target_id;
+        let effective_target_type = a.target_type;
+        if (a.target_type === "quest_update") {
+          resolved_link_id = questUpdateMap.get(a.target_id) ?? a.target_id;
+        } else if (a.target_type === "quest_proposal") {
+          const qid = proposalToQuest.get(a.target_id);
+          if (qid) {
+            resolved_link_id = qid;
+            effective_target_type = "quest";
+          }
+        }
         return {
           ...a,
+          target_type: effective_target_type,
           resolved_link_id,
           target_name: a.target_name || nameMap.get(a.target_id) || null,
           actor_name: profile?.name || "Someone",
