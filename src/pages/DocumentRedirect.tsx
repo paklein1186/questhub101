@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileX, Download, ExternalLink, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -60,63 +60,11 @@ export default function DocumentRedirect() {
     );
   }
 
+  // Hand the attachment off to the universal external-resource page, which
+  // performs an immediate top-level navigation. This keeps Brave/uBlock from
+  // ever seeing a *.supabase.co URL embedded in our own DOM (which they
+  // block as ERR_BLOCKED_BY_CLIENT).
   const fileName = att.file_name || "document";
-  const isImage = att.mime_type?.startsWith("image/");
-  const isPdf = att.mime_type === "application/pdf";
-  const canPreview = isImage || isPdf;
-
-  return (
-    <div className="container max-w-4xl mx-auto py-8 px-4 space-y-4">
-      <div className="rounded-lg border border-border bg-card p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="font-display font-semibold text-lg truncate">{fileName}</h1>
-            {att.mime_type && (
-              <p className="text-xs text-muted-foreground mt-1">{att.mime_type}</p>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button asChild variant="outline" size="sm">
-              <a href={att.file_url} download={fileName} rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-2" /> Download
-              </a>
-            </Button>
-            <Button asChild size="sm">
-              <a href={att.file_url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" /> Open in new tab
-              </a>
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground bg-muted/40 rounded-md p-2.5">
-          <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-          <p>
-            If the file doesn't open, your browser's ad-blocker or privacy
-            shield (e.g. Brave Shields) may be blocking the storage domain.
-            Use the <strong>Download</strong> button or temporarily disable
-            shields for this site.
-          </p>
-        </div>
-      </div>
-
-      {canPreview && (
-        <div className="rounded-lg border border-border overflow-hidden bg-muted/30">
-          {isImage ? (
-            <img
-              src={att.file_url}
-              alt={fileName}
-              className="w-full h-auto max-h-[80vh] object-contain mx-auto"
-            />
-          ) : (
-            <iframe
-              src={att.file_url}
-              title={fileName}
-              className="w-full h-[80vh] border-0"
-            />
-          )}
-        </div>
-      )}
-    </div>
-  );
+  const target = `/external-resource?url=${encodeURIComponent(att.file_url)}&label=${encodeURIComponent(fileName)}`;
+  return <Navigate to={target} replace />;
 }
