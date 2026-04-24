@@ -375,10 +375,17 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           const { data: { session } } = await supabase.auth.getSession();
           const uid = session?.user?.id;
           if (uid) {
-            await supabase.from("profiles").update({
+            const profileUpdate: Record<string, any> = {
               persona_type: mappedPersona,
               persona_source: "guest_onboarding",
-            }).eq("user_id", uid);
+            };
+            if (skipPersonalization) {
+              // Mark onboarding as completed so RequireAuth lets the user through,
+              // but flag it as "skipped" so we can show the reminder banner.
+              profileUpdate.has_completed_onboarding = true;
+              profileUpdate.onboarding_skipped = true;
+            }
+            await supabase.from("profiles").update(profileUpdate).eq("user_id", uid);
 
             if (topicIds.length > 0) {
               const topicRows = topicIds.map((tid: string) => ({ user_id: uid, topic_id: tid }));
@@ -392,8 +399,18 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
       handleOpenChange(false);
       if (!skipPostSignupNavigation) {
-        // Navigate to onboarding wizard
-        navigate("/onboarding");
+        if (skipPersonalization) {
+          // Stay on the current page — they came here from a quest/profile/entity
+          // and just want to keep reading/interacting. The reminder banner will
+          // nudge them to complete onboarding later.
+          toast({
+            title: "Welcome aboard!",
+            description: "You can complete your profile anytime from the banner at the top.",
+          });
+        } else {
+          // Navigate to onboarding wizard
+          navigate("/onboarding");
+        }
       }
       // If skipPostSignupNavigation is true, the parent page handles the post-signup flow
     }
