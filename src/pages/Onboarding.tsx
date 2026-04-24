@@ -381,6 +381,7 @@ export default function Onboarding() {
         bio: bio.trim() || null,
         location: location.trim() || null,
         has_completed_onboarding: true,
+        onboarding_skipped: false,
         persona_type: personaType,
         persona_source: "onboarding_intent",
         preferred_language: preferredLang,

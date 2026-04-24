@@ -137,6 +137,10 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [signingUp, setSigningUp] = useState(false);
+  // When true, the user wants to skip the long onboarding wizard and stay
+  // on the page they came from. The full onboarding is then surfaced via a
+  // dismissable banner once they're logged in.
+  const [skipPersonalization, setSkipPersonalization] = useState(false);
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -371,10 +375,17 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           const { data: { session } } = await supabase.auth.getSession();
           const uid = session?.user?.id;
           if (uid) {
-            await supabase.from("profiles").update({
+            const profileUpdate: Record<string, any> = {
               persona_type: mappedPersona,
               persona_source: "guest_onboarding",
-            }).eq("user_id", uid);
+            };
+            if (skipPersonalization) {
+              // Mark onboarding as completed so RequireAuth lets the user through,
+              // but flag it as "skipped" so we can show the reminder banner.
+              profileUpdate.has_completed_onboarding = true;
+              profileUpdate.onboarding_skipped = true;
+            }
+            await supabase.from("profiles").update(profileUpdate).eq("user_id", uid);
 
             if (topicIds.length > 0) {
               const topicRows = topicIds.map((tid: string) => ({ user_id: uid, topic_id: tid }));
@@ -388,8 +399,18 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
       handleOpenChange(false);
       if (!skipPostSignupNavigation) {
-        // Navigate to onboarding wizard
-        navigate("/onboarding");
+        if (skipPersonalization) {
+          // Stay on the current page — they came here from a quest/profile/entity
+          // and just want to keep reading/interacting. The reminder banner will
+          // nudge them to complete onboarding later.
+          toast({
+            title: "Welcome aboard!",
+            description: "You can complete your profile anytime from the banner at the top.",
+          });
+        } else {
+          // Navigate to onboarding wizard
+          navigate("/onboarding");
+        }
       }
       // If skipPostSignupNavigation is true, the parent page handles the post-signup flow
     }
@@ -817,9 +838,23 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
                     </div>
                   </div>
 
+                  <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border border-dashed border-border p-2.5 hover:border-primary/40 hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={skipPersonalization}
+                      onChange={(e) => setSkipPersonalization(e.target.checked)}
+                      className="mt-0.5 h-3.5 w-3.5 rounded border-border accent-primary cursor-pointer"
+                    />
+                    <span className="flex-1 leading-snug">
+                      <span className="font-medium text-foreground">Skip personalization for now</span>
+                      <br />
+                      Just create my account and take me back to where I was. I'll personalize my profile later.
+                    </span>
+                  </label>
+
                   <Button type="submit" className="w-full" disabled={signingUp}>
                     {signingUp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                    Create account
+                    {skipPersonalization ? "Create account & continue" : "Create account"}
                   </Button>
                 </form>
 
