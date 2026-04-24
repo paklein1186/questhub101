@@ -82,6 +82,8 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
             >
               <a
                 href={`/external-resource?url=${encodeURIComponent(link.url)}&label=${encodeURIComponent(link.label)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
                 {getLinkIcon(link.url)}
