@@ -706,7 +706,34 @@ export default function QuestDetail() {
                 💰 Mission
               </Badge>
             )}
-            <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP <HintTooltip {...HINTS.tooltips.questXP} /></span>
+            {(() => {
+              const coinsAvail = Number((quest as any).coins_escrow ?? (quest as any).coins_budget ?? 0);
+              const ctgAvail = Number((quest as any).ctg_escrow ?? (quest as any).ctg_budget ?? (quest as any).credit_budget ?? quest.credit_reward ?? 0);
+              const fiatPrice = quest.price_fiat > 0 ? quest.price_fiat / 100 : 0;
+              if (coinsAvail > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-amber-600">
+                    🟩 {coinsAvail.toLocaleString()} Coins
+                    <span className="text-xs text-muted-foreground font-normal">≈ €{(coinsAvail * coinsRate).toFixed(2)}</span>
+                  </span>
+                );
+              }
+              if (ctgAvail > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-emerald-600">
+                    🌱 {ctgAvail.toLocaleString()} $CTG
+                  </span>
+                );
+              }
+              if (fiatPrice > 0) {
+                return (
+                  <span className="flex items-center gap-1.5 text-lg font-bold text-amber-600">
+                    <CreditCard className="h-5 w-5" /> €{fiatPrice.toFixed(2)}
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </div>
         </div>
 
