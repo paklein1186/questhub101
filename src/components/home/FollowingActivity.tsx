@@ -99,6 +99,19 @@ export function FollowingActivity() {
         activities = data ?? [];
       }
 
+      // Resolve quest_proposal target_ids → parent quest_id (so clicks land on the quest)
+      const proposalIds = activities
+        .filter((a: any) => a.target_type === "quest_proposal" && a.target_id)
+        .map((a: any) => a.target_id);
+      const proposalToQuest = new Map<string, string>();
+      if (proposalIds.length > 0) {
+        const { data: proposals } = await supabase
+          .from("quest_proposals")
+          .select("id, quest_id")
+          .in("id", proposalIds);
+        (proposals ?? []).forEach((p: any) => proposalToQuest.set(p.id, p.quest_id));
+      }
+
       // Fetch recent posts from followed users + entity contexts
       const orParts: string[] = [];
       if (followedUserIds.length > 0) {
