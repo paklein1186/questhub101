@@ -155,6 +155,7 @@ async function fetchManualItems(supabase: any, section: any, scope: string) {
     .from(table)
     .select(`id, ${nameCol}, ${descCol}, web_tags, public_visibility, web_scopes, featured_order`)
     .in("id", section.selected_ids)
+    .eq("is_deleted", false)
     .neq("public_visibility", "private")
     .contains("web_scopes", [scope]);
 
