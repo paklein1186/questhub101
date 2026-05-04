@@ -144,11 +144,11 @@ export default function WorkHub() {
           )}
           <div className="grid gap-3 md:grid-cols-2">
             {nonIdeaQuests.map((qp: any, i: number) => (
-              <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+              <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="relative">
                 <Link to={`/quests/${qp.quest_id}`} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                   <Thumb src={qp.quests?.cover_image_url} fallback={questPattern} alt={qp.quests?.title || "Quest"} />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
                       <h4 className="font-display font-semibold truncate">{qp.quests?.title}</h4>
                       <span className="flex items-center gap-1 text-xs font-semibold text-primary shrink-0"><Zap className="h-3 w-3" /> {qp.quests?.reward_xp}</span>
                     </div>
@@ -159,6 +159,17 @@ export default function WorkHub() {
                     </div>
                   </div>
                 </Link>
+                {currentUser.id && (
+                  <div className="absolute top-2 right-2 bg-background/80 backdrop-blur rounded-md">
+                    <QuestStarButton
+                      questId={qp.quest_id}
+                      pinned={pinnedSet.has(qp.quest_id)}
+                      scope="user"
+                      userId={currentUser.id}
+                      invalidateKeys={[["user-pinned-quests", currentUser.id]]}
+                    />
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
