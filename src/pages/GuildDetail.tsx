@@ -509,7 +509,7 @@ export default function GuildDetail() {
       </motion.div>
 
       <SectionBanner {...HINTS.banners.guildFirst} />
-      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
+      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview" && v !== "work") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         <div className="flex items-center gap-1">
           <TabsList>
             <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 mr-1" /> Overview</TabsTrigger>
