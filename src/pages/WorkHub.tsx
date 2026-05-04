@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Compass, CircleDot, Zap, Building2, Shield, Users } from "lucide-react";
 import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts, useUserGuildMemberships } from "@/hooks/useEntityQueries";
+import { useUserPinnedQuests } from "@/hooks/useUserPinnedQuests";
+import { QuestStarButton } from "@/components/QuestStarButton";
 import { useMyCompanyMemberships } from "@/hooks/useNetworkData";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
@@ -60,10 +62,32 @@ export default function WorkHub() {
   const { data: drafts } = useMyDrafts(currentUser.id || undefined);
   const { data: myGuilds } = useUserGuildMemberships(currentUser.id || undefined);
   const { data: myCompanies } = useMyCompanyMemberships(currentUser.id || "");
+  const { data: pinnedQuests } = useUserPinnedQuests(currentUser.id || undefined);
+  const pinnedSet = useMemo(() => new Set((pinnedQuests || []).map((p) => p.quest_id)), [pinnedQuests]);
+  const pinnedAtMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (pinnedQuests || []).forEach((p) => m.set(p.quest_id, p.pinned_at));
+    return m;
+  }, [pinnedQuests]);
 
   const questsList = myQuests || [];
-  const ideasList = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) === "IDEA");
-  const nonIdeaQuests = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) !== "IDEA");
+  const sortedQuestsList = useMemo(() => {
+    const arr = [...questsList];
+    arr.sort((a: any, b: any) => {
+      const ap = pinnedSet.has(a.quest_id) ? 1 : 0;
+      const bp = pinnedSet.has(b.quest_id) ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      if (ap === 1) {
+        return new Date(pinnedAtMap.get(b.quest_id)!).getTime() - new Date(pinnedAtMap.get(a.quest_id)!).getTime();
+      }
+      const at = new Date(a.quests?.updated_at || a.quests?.created_at || 0).getTime();
+      const bt = new Date(b.quests?.updated_at || b.quests?.created_at || 0).getTime();
+      return bt - at;
+    });
+    return arr;
+  }, [questsList, pinnedSet, pinnedAtMap]);
+  const ideasList = sortedQuestsList.filter((qp: any) => (qp.quests?.quest_nature as string) === "IDEA");
+  const nonIdeaQuests = sortedQuestsList.filter((qp: any) => (qp.quests?.quest_nature as string) !== "IDEA");
   const podsList = myPods || [];
   const servicesList = myServices || [];
   const guildsList = myGuilds || [];
