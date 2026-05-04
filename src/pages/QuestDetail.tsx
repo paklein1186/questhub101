@@ -437,6 +437,7 @@ export default function QuestDetail() {
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
   const isGuildAdmin = !!guildMembership && ["admin", "moderator", "owner"].includes(guildMembership.role);
+  const isCompanyAdmin = !!companyMembership && ["admin", "moderator", "owner", "source"].includes((companyMembership as any).role);
 
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
