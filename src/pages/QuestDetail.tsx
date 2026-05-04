@@ -406,6 +406,21 @@ export default function QuestDetail() {
     },
   });
 
+  // Check if user is admin of the linked organization (company)
+  const { data: companyMembership } = useQuery({
+    queryKey: ["company-membership-check", quest?.company_id, currentUser.id],
+    enabled: !!quest?.company_id && !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_members" as any)
+        .select("role")
+        .eq("company_id", quest!.company_id!)
+        .eq("user_id", currentUser.id!)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
