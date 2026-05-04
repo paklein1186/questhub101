@@ -11,8 +11,8 @@ const corsHeaders = {
 const LIMITS: Record<string, { max: number; windowSeconds: number }> = {
   comment:        { max: 10, windowSeconds: 60 },
   direct_message: { max: 20, windowSeconds: 60 },
-  quest_creation: { max: 3,  windowSeconds: 3600 },
-  pod_creation:   { max: 3,  windowSeconds: 3600 },
+  quest_creation: { max: 20, windowSeconds: 3600 },
+  pod_creation:   { max: 20, windowSeconds: 3600 },
 };
 
 serve(async (req) => {
