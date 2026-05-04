@@ -509,7 +509,7 @@ export default function GuildDetail() {
       </motion.div>
 
       <SectionBanner {...HINTS.banners.guildFirst} />
-      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
+      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview" && v !== "work") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         <div className="flex items-center gap-1">
           <TabsList>
             <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 mr-1" /> Overview</TabsTrigger>
@@ -749,10 +749,19 @@ export default function GuildDetail() {
               )}
             </div>
             <PendingAffiliationRequests entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
-            <EntityQuestsFilters quests={quests}>
+            {!isLoggedIn && quests.some((q: any) => q.pinned_at) && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300 mb-3">
+                ⭐ Showing featured quests only. <button className="underline font-medium" onClick={() => { setAuthPromptAction("explore all quests"); setAuthPromptOpen(true); }}>Sign up</button> to see them all.
+              </div>
+            )}
+            <EntityQuestsFilters quests={isLoggedIn ? quests : quests.filter((q: any) => q.pinned_at)}>
               {(filtered, viewMode) => (
                 <>
-                  {filtered.length === 0 && <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />}
+                  {filtered.length === 0 && (
+                    isLoggedIn
+                      ? <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />
+                      : <p className="text-sm text-muted-foreground text-center py-6">No featured quests yet. <button className="underline" onClick={() => { setAuthPromptAction("explore all quests"); setAuthPromptOpen(true); }}>Sign up</button> to see all quests.</p>
+                  )}
                   <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                     {filtered.map((q: any) => (
                       <div key={q.id} className="relative">
