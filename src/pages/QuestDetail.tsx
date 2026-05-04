@@ -406,6 +406,21 @@ export default function QuestDetail() {
     },
   });
 
+  // Check if user is admin of the linked organization (company)
+  const { data: companyMembership } = useQuery({
+    queryKey: ["company-membership-check", quest?.company_id, currentUser.id],
+    enabled: !!quest?.company_id && !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_members" as any)
+        .select("role")
+        .eq("company_id", quest!.company_id!)
+        .eq("user_id", currentUser.id!)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
@@ -422,6 +437,7 @@ export default function QuestDetail() {
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
   const isGuildAdmin = !!guildMembership && ["admin", "moderator", "owner"].includes(guildMembership.role);
+  const isCompanyAdmin = !!companyMembership && ["admin", "moderator", "owner", "source"].includes((companyMembership as any).role);
 
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
@@ -881,12 +897,62 @@ export default function QuestDetail() {
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" asChild><Link to={`/quests/${quest.id}/settings`}><Pencil className="h-4 w-4 mr-1" /> Edit / Settings</Link></Button>}
             
-            {isOwner && !isCancelled && (
-              <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
-                <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
-                {isHighlighted ? "Featured" : "Feature"}
-              </Button>
-            )}
+            {(isOwner || isGuildAdmin || isCompanyAdmin) && !isCancelled && (() => {
+              const entityPinned = !!(quest as any).pinned_at;
+              const entityLabel = quest.guild_id ? "Guild Work tab" : quest.company_id ? "Organization Work tab" : null;
+              const togglePinEntity = async () => {
+                const { error } = await supabase
+                  .from("quests")
+                  .update({ pinned_at: entityPinned ? null : new Date().toISOString() })
+                  .eq("id", quest.id);
+                if (error) {
+                  toast({
+                    title: "Couldn't update highlight",
+                    description: error.message?.includes("limit reached") ? "You can highlight at most 5 quests per entity." : error.message,
+                    variant: "destructive",
+                  });
+                } else {
+                  toast({ title: entityPinned ? "Removed from entity highlights" : "Featured on entity Work tab", duration: 1500 });
+                  qc.invalidateQueries({ queryKey: ["quest", id] });
+                  if (quest.guild_id) qc.invalidateQueries({ queryKey: ["quests-for-guild", quest.guild_id] });
+                  if (quest.company_id) qc.invalidateQueries({ queryKey: ["quests-for-company", quest.company_id] });
+                }
+              };
+
+              // No entity context → keep simple toggle for profile only
+              if (!entityLabel || !(isGuildAdmin || isCompanyAdmin)) {
+                return isOwner ? (
+                  <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
+                    <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
+                    {isHighlighted ? "Featured" : "Feature"}
+                  </Button>
+                ) : null;
+              }
+
+              const anyHighlighted = isHighlighted || entityPinned;
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Star className={`h-4 w-4 mr-1 ${anyHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
+                      {anyHighlighted ? "Featured" : "Feature"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {isOwner && (
+                      <DropdownMenuItem onClick={toggleHighlight}>
+                        <Star className={`h-4 w-4 mr-2 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
+                        {isHighlighted ? "Remove from your profile" : "Feature on your profile"}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={togglePinEntity}>
+                      <Star className={`h-4 w-4 mr-2 ${entityPinned ? "text-amber-500 fill-amber-500" : ""}`} />
+                      {entityPinned ? `Remove from ${entityLabel}` : `Feature on ${entityLabel}`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })()}
             {canPostUpdate && !isCancelled && (
               <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUPostAs(null); } }}>
                 <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
