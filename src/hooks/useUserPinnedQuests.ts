@@ -10,7 +10,7 @@ export function useUserPinnedQuests(userId: string | undefined) {
         .select("quest_id, pinned_at")
         .eq("user_id", userId!);
       if (error) throw error;
-      return (data || []) as { quest_id: string; pinned_at: string }[];
+      return ((data || []) as unknown) as { quest_id: string; pinned_at: string }[];
     },
     enabled: !!userId,
     staleTime: 30_000,
