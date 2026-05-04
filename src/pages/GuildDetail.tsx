@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { EntityQuestsFilters } from "@/components/EntityQuestsFilters";
+import { QuestStarButton } from "@/components/QuestStarButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
@@ -754,14 +755,26 @@ export default function GuildDetail() {
                   {filtered.length === 0 && <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />}
                   <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                     {filtered.map((q: any) => (
-                      <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                        {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
-                          {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
-                          <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace(/_/g, " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}{(q as any)._subtasks && (q as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(q as any)._subtasks.done}/{(q as any)._subtasks.total}</Badge>}</div>
-                        </div>
-                      </Link>
+                      <div key={q.id} className="relative">
+                        <Link to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+                          {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
+                          <div className="p-4">
+                            <div className="flex items-center justify-between gap-2"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
+                            {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
+                            <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace(/_/g, " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}{(q as any)._subtasks && (q as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(q as any)._subtasks.done}/{(q as any)._subtasks.total}</Badge>}</div>
+                          </div>
+                        </Link>
+                        {isAdmin && (
+                          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur rounded-md">
+                            <QuestStarButton
+                              questId={q.id}
+                              pinned={!!q.pinned_at}
+                              scope="entity"
+                              invalidateKeys={[["quests-for-guild", id]]}
+                            />
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </>

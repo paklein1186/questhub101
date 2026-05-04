@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { EntityQuestsFilters } from "@/components/EntityQuestsFilters";
+import { QuestStarButton } from "@/components/QuestStarButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { ServicesList } from "@/components/ServicesList";
 import { CommentThread } from "@/components/CommentThread";
@@ -378,13 +379,25 @@ export default function CompanyDetail() {
                 {filtered.length === 0 && <p className="text-muted-foreground">No quests match filters.</p>}
                 <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                   {filtered.map((quest: any) => (
-                    <Link key={quest.id} to={`/quests/${quest.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-1"><h4 className="font-display font-semibold truncate">{quest.title}</h4><span className="flex items-center gap-1 text-sm font-semibold text-primary shrink-0"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span></div>
-                        {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>}
-                        <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace(/_/g, " ")}</Badge>{(quest as any)._subtasks && (quest as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(quest as any)._subtasks.done}/{(quest as any)._subtasks.total}</Badge>}</div>
-                      </div>
-                    </Link>
+                    <div key={quest.id} className="relative">
+                      <Link to={`/quests/${quest.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+                        <div className="p-4">
+                          <div className="flex items-center justify-between gap-2 mb-1"><h4 className="font-display font-semibold truncate">{quest.title}</h4><span className="flex items-center gap-1 text-sm font-semibold text-primary shrink-0"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span></div>
+                          {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>}
+                          <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace(/_/g, " ")}</Badge>{(quest as any)._subtasks && (quest as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(quest as any)._subtasks.done}/{(quest as any)._subtasks.total}</Badge>}</div>
+                        </div>
+                      </Link>
+                      {isAdmin && (
+                        <div className="absolute top-2 right-2 bg-background/80 backdrop-blur rounded-md">
+                          <QuestStarButton
+                            questId={quest.id}
+                            pinned={!!quest.pinned_at}
+                            scope="entity"
+                            invalidateKeys={[["quests-for-company", company.id]]}
+                          />
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </>

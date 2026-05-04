@@ -7419,6 +7419,7 @@ export type Database = {
           pie_frozen_at: string | null
           pie_frozen_by: string | null
           pie_snapshot: Json | null
+          pinned_at: string | null
           price_currency: string
           price_fiat: number
           priority: string
@@ -7488,6 +7489,7 @@ export type Database = {
           pie_frozen_at?: string | null
           pie_frozen_by?: string | null
           pie_snapshot?: Json | null
+          pinned_at?: string | null
           price_currency?: string
           price_fiat?: number
           priority?: string
@@ -7557,6 +7559,7 @@ export type Database = {
           pie_frozen_at?: string | null
           pie_frozen_by?: string | null
           pie_snapshot?: Json | null
+          pinned_at?: string | null
           price_currency?: string
           price_fiat?: number
           priority?: string
@@ -9557,6 +9560,32 @@ export type Database = {
             columns: ["milestone_id"]
             isOneToOne: false
             referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_pinned_quests: {
+        Row: {
+          pinned_at: string
+          quest_id: string
+          user_id: string
+        }
+        Insert: {
+          pinned_at?: string
+          quest_id: string
+          user_id: string
+        }
+        Update: {
+          pinned_at?: string
+          quest_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pinned_quests_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]

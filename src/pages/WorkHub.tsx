@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Compass, CircleDot, Zap, Building2, Shield, Users } from "lucide-react";
 import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts, useUserGuildMemberships } from "@/hooks/useEntityQueries";
+import { useUserPinnedQuests } from "@/hooks/useUserPinnedQuests";
+import { QuestStarButton } from "@/components/QuestStarButton";
 import { useMyCompanyMemberships } from "@/hooks/useNetworkData";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
@@ -60,10 +62,32 @@ export default function WorkHub() {
   const { data: drafts } = useMyDrafts(currentUser.id || undefined);
   const { data: myGuilds } = useUserGuildMemberships(currentUser.id || undefined);
   const { data: myCompanies } = useMyCompanyMemberships(currentUser.id || "");
+  const { data: pinnedQuests } = useUserPinnedQuests(currentUser.id || undefined);
+  const pinnedSet = useMemo(() => new Set((pinnedQuests || []).map((p) => p.quest_id)), [pinnedQuests]);
+  const pinnedAtMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (pinnedQuests || []).forEach((p) => m.set(p.quest_id, p.pinned_at));
+    return m;
+  }, [pinnedQuests]);
 
   const questsList = myQuests || [];
-  const ideasList = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) === "IDEA");
-  const nonIdeaQuests = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) !== "IDEA");
+  const sortedQuestsList = useMemo(() => {
+    const arr = [...questsList];
+    arr.sort((a: any, b: any) => {
+      const ap = pinnedSet.has(a.quest_id) ? 1 : 0;
+      const bp = pinnedSet.has(b.quest_id) ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      if (ap === 1) {
+        return new Date(pinnedAtMap.get(b.quest_id)!).getTime() - new Date(pinnedAtMap.get(a.quest_id)!).getTime();
+      }
+      const at = new Date(a.quests?.updated_at || a.quests?.created_at || 0).getTime();
+      const bt = new Date(b.quests?.updated_at || b.quests?.created_at || 0).getTime();
+      return bt - at;
+    });
+    return arr;
+  }, [questsList, pinnedSet, pinnedAtMap]);
+  const ideasList = sortedQuestsList.filter((qp: any) => (qp.quests?.quest_nature as string) === "IDEA");
+  const nonIdeaQuests = sortedQuestsList.filter((qp: any) => (qp.quests?.quest_nature as string) !== "IDEA");
   const podsList = myPods || [];
   const servicesList = myServices || [];
   const guildsList = myGuilds || [];
@@ -120,11 +144,11 @@ export default function WorkHub() {
           )}
           <div className="grid gap-3 md:grid-cols-2">
             {nonIdeaQuests.map((qp: any, i: number) => (
-              <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+              <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="relative">
                 <Link to={`/quests/${qp.quest_id}`} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                   <Thumb src={qp.quests?.cover_image_url} fallback={questPattern} alt={qp.quests?.title || "Quest"} />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
                       <h4 className="font-display font-semibold truncate">{qp.quests?.title}</h4>
                       <span className="flex items-center gap-1 text-xs font-semibold text-primary shrink-0"><Zap className="h-3 w-3" /> {qp.quests?.reward_xp}</span>
                     </div>
@@ -135,6 +159,17 @@ export default function WorkHub() {
                     </div>
                   </div>
                 </Link>
+                {currentUser.id && (
+                  <div className="absolute top-2 right-2 bg-background/80 backdrop-blur rounded-md">
+                    <QuestStarButton
+                      questId={qp.quest_id}
+                      pinned={pinnedSet.has(qp.quest_id)}
+                      scope="user"
+                      userId={currentUser.id}
+                      invalidateKeys={[["user-pinned-quests", currentUser.id]]}
+                    />
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
