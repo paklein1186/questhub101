@@ -23,7 +23,7 @@ const KANBAN_COLUMNS = [
   { key: "COMPLETED", label: "Completed" },
 ];
 
-type SortMode = "status" | "recent" | "budget";
+type SortMode = "recent" | "status" | "budget";
 type ViewMode = "list" | "grid" | "kanban";
 
 interface EntityQuestsFiltersProps {
@@ -35,7 +35,7 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
   const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortMode>("status");
+  const [sortBy, setSortBy] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [ocuFilter, setOcuFilter] = useState(false);
 
@@ -74,7 +74,11 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
       const ORDER: Record<string, number> = { ACTIVE: 0, OPEN_FOR_PROPOSALS: 1, OPEN: 2, DRAFT: 3, COMPLETED: 4, CANCELLED: 5 };
       result.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
     } else if (sortBy === "recent") {
-      result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      result.sort((a, b) => {
+        const at = new Date(a.updated_at || a.created_at).getTime();
+        const bt = new Date(b.updated_at || b.created_at).getTime();
+        return bt - at;
+      });
     } else if (sortBy === "budget") {
       result.sort((a, b) => {
         const aVal = (a as any).coins_budget ?? (a as any).coin_budget
@@ -84,6 +88,16 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
         return Number(bVal) - Number(aVal);
       });
     }
+    // Pinned/highlighted quests always rise to the top, preserving their internal order
+    result.sort((a, b) => {
+      const ap = a.pinned_at ? 1 : 0;
+      const bp = b.pinned_at ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      if (ap === 1 && bp === 1) {
+        return new Date(b.pinned_at).getTime() - new Date(a.pinned_at).getTime();
+      }
+      return 0;
+    });
     return result;
   }, [quests, statusFilter, search, sortBy, ocuFilter]);
 
@@ -142,11 +156,11 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
             size="sm"
             className="h-8 gap-1 text-xs"
             onClick={() =>
-              setSortBy(sortBy === "status" ? "recent" : sortBy === "recent" ? "budget" : "status")
+              setSortBy(sortBy === "recent" ? "status" : sortBy === "status" ? "budget" : "recent")
             }
           >
             <ArrowDownUp className="h-3.5 w-3.5" />
-            {sortBy === "status" ? "Status" : sortBy === "recent" ? "Recent" : "Budget"}
+            {sortBy === "recent" ? "Recent" : sortBy === "status" ? "Status" : "Budget"}
           </Button>
 
           {/* View mode toggle */}
