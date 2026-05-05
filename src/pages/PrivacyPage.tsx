@@ -24,7 +24,7 @@ export default function PrivacyPage({ embedded }: { embedded?: boolean }) {
       </ContentSection>
 
       <ContentSection title={t("privacyPage.s5Title")}>
-        <p>{t("privacyPage.s5P").replace("<a>", '<a href="/cookies" class="text-primary hover:underline">').replace("</a>", "</a>")}</p>
+        <p dangerouslySetInnerHTML={{ __html: t("privacyPage.s5P").replace(/<a /g, '<a class="text-primary hover:underline" ') }} />
       </ContentSection>
 
       <ContentSection title={t("privacyPage.s6Title")}>
