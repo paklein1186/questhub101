@@ -5,6 +5,10 @@ export default function TermsPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   return (
     <ContentPageShell embedded={embedded} title={t("pages.terms.title")} subtitle={t("pages.terms.subtitle")}>
+      <p
+        className="text-muted-foreground leading-relaxed mb-6"
+        dangerouslySetInnerHTML={{ __html: t("termsPage.intro").replace(/<a /g, '<a class="text-primary hover:underline" ') }}
+      />
       <ContentSection title={t("termsPage.s1Title")}><p>{t("termsPage.s1P")}</p></ContentSection>
       <ContentSection title={t("termsPage.s2Title")}><p>{t("termsPage.s2P")}</p></ContentSection>
       <ContentSection title={t("termsPage.s3Title")}><p>{t("termsPage.s3P")}</p></ContentSection>
