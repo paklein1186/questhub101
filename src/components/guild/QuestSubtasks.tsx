@@ -100,31 +100,41 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   });
   const subtaskTrMap = new Map(subtaskTranslations.map((t: any) => [t.entity_id, t.translated_text]));
 
-  // Fetch quest participants (+ creator) for assignee picker
+  // Fetch assignable people: quest creator + approved participants + parent entity members (guild/company)
   const { data: guildMembers = [] } = useQuery({
-    queryKey: ["quest-participants-for-subtasks", questId],
+    queryKey: ["quest-assignable-people", questId],
     queryFn: async () => {
-      // Get approved participants
       const { data: parts } = await supabase
         .from("quest_participants")
         .select("user_id")
         .eq("quest_id", questId)
         .eq("status", "APPROVED");
-      // Also get the quest creator
       const { data: quest } = await supabase
         .from("quests")
-        .select("created_by_user_id")
+        .select("created_by_user_id, owner_type, owner_id, owner_guild_id, owner_company_id, guild_id, company_id")
         .eq("id", questId)
         .single();
-      const participantIds = (parts || []).map((p: any) => p.user_id);
-      if (quest?.created_by_user_id && !participantIds.includes(quest.created_by_user_id)) {
-        participantIds.push(quest.created_by_user_id);
+      const ids = new Set<string>();
+      (parts || []).forEach((p: any) => p.user_id && ids.add(p.user_id));
+      if (quest?.created_by_user_id) ids.add(quest.created_by_user_id);
+
+      // Resolve parent entity members
+      const guildId = quest?.owner_guild_id || quest?.guild_id || (quest?.owner_type === "GUILD" ? quest?.owner_id : null);
+      const companyId = quest?.owner_company_id || quest?.company_id || (quest?.owner_type === "COMPANY" ? quest?.owner_id : null);
+      if (guildId) {
+        const { data: gm } = await supabase.from("guild_members").select("user_id").eq("guild_id", guildId);
+        (gm || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
       }
-      if (participantIds.length === 0) return [];
+      if (companyId) {
+        const { data: cm } = await supabase.from("company_members").select("user_id").eq("company_id", companyId);
+        (cm || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
+      }
+      const list = Array.from(ids);
+      if (list.length === 0) return [];
       const { data: profiles } = await supabase
         .from("profiles_public")
         .select("user_id, name, avatar_url")
-        .in("user_id", participantIds);
+        .in("user_id", list);
       return profiles || [];
     },
     enabled: !!questId,
