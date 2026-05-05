@@ -111,16 +111,16 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         .eq("status", "APPROVED");
       const { data: quest } = await supabase
         .from("quests")
-        .select("created_by_user_id, owner_type, owner_id, owner_guild_id, owner_company_id, guild_id, company_id")
+        .select("created_by_user_id, owner_type, owner_id, guild_id, company_id")
         .eq("id", questId)
         .single();
       const ids = new Set<string>();
       (parts || []).forEach((p: any) => p.user_id && ids.add(p.user_id));
-      if (quest?.created_by_user_id) ids.add(quest.created_by_user_id);
+      if ((quest as any)?.created_by_user_id) ids.add((quest as any).created_by_user_id);
 
       // Resolve parent entity members
-      const guildId = quest?.owner_guild_id || quest?.guild_id || (quest?.owner_type === "GUILD" ? quest?.owner_id : null);
-      const companyId = quest?.owner_company_id || quest?.company_id || (quest?.owner_type === "COMPANY" ? quest?.owner_id : null);
+      const guildId = (quest as any)?.guild_id || ((quest as any)?.owner_type === "GUILD" ? (quest as any)?.owner_id : null);
+      const companyId = (quest as any)?.company_id || ((quest as any)?.owner_type === "COMPANY" ? (quest as any)?.owner_id : null);
       if (guildId) {
         const { data: gm } = await supabase.from("guild_members").select("user_id").eq("guild_id", guildId);
         (gm || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
