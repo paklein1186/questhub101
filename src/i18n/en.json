@@ -290,61 +290,441 @@
     "editTranslation": "Edit translation"
   },
   "landing": {
-    "heroLine1": "Human-powered.",
-    "heroLine2": "AI-augmented.",
-    "heroLine3": "Game-changing.",
+    "badge": "Regeneration · Impact · Community",
+    "heroTitle1": "Human-powered.",
+    "heroTitle2": "AI-augmented.",
+    "heroTitle3": "Game-changing.",
     "heroSubtitle": "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
-    "joinAsGamechanger": "Join as a Gamechanger",
-    "joinAsEcosystem": "Join as an Ecosystem Builder",
+    "joinGamechanger": "Join as a Gamechanger",
+    "joinEcosystem": "Join as an Ecosystem Builder",
+    "exploreFirst": "Explore first",
     "howItWorks": "How it works",
-    "step1Title": "Create your profile",
-    "step1Desc": "Choose your topics (Houses) and territories to shape your experience.",
-    "step2Title": "Join or create quests",
-    "step2Desc": "Find meaningful missions and form pods to collaborate on impact projects.",
-    "step3Title": "Connect with guilds & peers",
-    "step3Desc": "Join guilds, follow companies, and grow your regenerative network.",
-    "step4Title": "Offer your expertise",
-    "step4Desc": "List services, get booked, and earn XP for your contributions.",
-    "whoIsItFor": "Who is it for?",
-    "whoSubtitle": "Whether you're a practitioner, a network facilitator, or a company with impact ambitions — there's a place for you.",
-    "gamechangers": "Gamechangers",
-    "gamechangersSub": "Consultants, facilitators, practitioners",
-    "gc1": "Find meaningful missions aligned with your values",
-    "gc2": "Share knowledge and build your reputation",
-    "gc3": "Earn XP and track your contribution index",
-    "signUpAsGamechanger": "Sign up as Gamechanger",
-    "ecosystemBuilders": "Ecosystem Builders",
-    "ecosystemBuildersSub": "Guilds, networks, third spaces",
-    "eb1": "Structure quests and coordinate action",
-    "eb2": "Host pods for peer learning groups",
-    "eb3": "Curate a vibrant learning network",
-    "createAGuild": "Create a guild",
-    "companiesInstitutions": "Companies & Institutions",
-    "companiesInstitutionsSub": "Organisations with impact ambitions",
-    "ci1": "Post impact quests to find collaborators",
-    "ci2": "Book experts for your projects",
-    "ci3": "Support territories and build credibility",
-    "postQuestAsCompany": "Post a quest as a company",
+    "step": "Step {{n}}",
+    "steps": {
+      "profile": {
+        "title": "Create your profile",
+        "desc": "Choose your topics (Houses) and territories to shape your experience."
+      },
+      "quests": {
+        "title": "Join or create quests",
+        "desc": "Find meaningful missions and form pods to collaborate on impact projects."
+      },
+      "guilds": {
+        "title": "Connect with guilds & peers",
+        "desc": "Join guilds, follow companies, and grow your regenerative network."
+      },
+      "services": {
+        "title": "Offer your expertise",
+        "desc": "List services, get booked, and earn XP for your contributions."
+      }
+    },
+    "forWhom": "Who is it for?",
+    "forWhomSub": "Whether you're a practitioner, a network facilitator, or a company with impact ambitions — there's a place for you.",
+    "personas": {
+      "gamechangers": {
+        "title": "Gamechangers",
+        "subtitle": "Consultants, facilitators, practitioners",
+        "p1": "Find meaningful missions aligned with your values",
+        "p2": "Share knowledge and build your reputation",
+        "p3": "Earn XP and track your contribution index",
+        "cta": "Sign up as Gamechanger"
+      },
+      "ecosystemBuilders": {
+        "title": "Ecosystem Builders",
+        "subtitle": "Guilds, networks, third spaces",
+        "p1": "Structure quests and coordinate action",
+        "p2": "Host pods for peer learning groups",
+        "p3": "Curate a vibrant learning network",
+        "cta": "Create a guild"
+      },
+      "companies": {
+        "title": "Companies & Institutions",
+        "subtitle": "Organisations with impact ambitions",
+        "p1": "Post impact quests to find collaborators",
+        "p2": "Book experts for your projects",
+        "p3": "Support territories and build credibility",
+        "cta": "Post a quest as a company"
+      }
+    },
     "featuredQuests": "Featured Quests",
-    "openMissions": "Open missions waiting for your contribution.",
+    "featuredQuestsSub": "Open missions waiting for your contribution.",
     "noFeaturedQuests": "No featured quests yet.",
     "seeAllQuests": "See all quests",
     "topicHouses": "Topic Houses",
-    "browseThematic": "Browse thematic communities shaping the future.",
-    "browseAllTopics": "Browse all topics",
-    "trustAndLearning": "Trust & Learning",
-    "trustSubtitle": "Your contributions build a visible reputation — no résumé needed.",
-    "xpContribution": "XP & Contribution Index",
-    "xpContributionDesc": "Earn experience points for every quest you complete and service you deliver.",
-    "achievements": "Achievements",
-    "achievementsDesc": "Unlock badges for milestones — your track record speaks for itself.",
-    "pods": "Pods",
-    "podsDesc": "Small learning & action groups that keep you accountable and connected.",
-    "readyToImpact": "Ready to make an impact?",
-    "joinNetwork": "Join a growing network of changemakers across territories.",
-    "createYourAccount": "Create your account",
+    "topicHousesSub": "Browse thematic communities shaping the future.",
+    "browseTopics": "Browse all topics",
+    "trustTitle": "Trust & Learning",
+    "trustSub": "Your contributions build a visible reputation — no résumé needed.",
+    "trust": {
+      "xp": {
+        "title": "XP & Contribution Index",
+        "desc": "Earn experience points for every quest you complete and service you deliver."
+      },
+      "achievements": {
+        "title": "Achievements",
+        "desc": "Unlock badges for milestones — your track record speaks for itself."
+      },
+      "pods": {
+        "title": "Pods",
+        "desc": "Small learning & action groups that keep you accountable and connected."
+      }
+    },
+    "ctaTitle": "Ready to make an impact?",
+    "ctaSub": "Join a growing network of changemakers across territories.",
+    "createAccount": "Create your account",
     "explorePlatform": "Explore the platform",
-    "regeneration": "Regeneration · Impact · Community"
+    "welcome": {
+      "tagline": "Human-powered · AI-augmented · Game-changing",
+      "question": "What brings you here?",
+      "sub": "Choose your path — we'll shape your experience around it.",
+      "changeLater": "You can always change your path later in your settings.",
+      "discover": "Discover",
+      "login": "Log in",
+      "personas": {
+        "creative": {
+          "title": "I'm a Creator",
+          "subtitle": "Artist, writer, musician, filmmaker, designer, performer",
+          "tagline": "Start creations, join circles, share skill sessions"
+        },
+        "impact": {
+          "title": "I'm an Impact Builder",
+          "subtitle": "Consultant, facilitator, practitioner, ecosystem builder",
+          "tagline": "Launch missions, join guilds, offer services"
+        },
+        "hybrid": {
+          "title": "I'm Both",
+          "subtitle": "Creative meets strategic — I bridge imagination and structure",
+          "tagline": "Quests, guilds, services & sessions — your way"
+        },
+        "organization": {
+          "title": "I represent an organization",
+          "subtitle": "Public institution, company, university, foundation, or NGO",
+          "tagline": "Contribute, collaborate, launch initiatives in the ecosystem"
+        },
+        "browse": {
+          "title": "Just Exploring",
+          "subtitle": "I want to see what's here before choosing",
+          "tagline": "Browse quests, communities, and services"
+        }
+      }
+    },
+    "stats": {
+      "quests": "active missions",
+      "guilds": "guilds",
+      "territories": "territories",
+      "members": "members"
+    },
+    "progression": {
+      "title": "How you grow here",
+      "sub": "Every {{unit}} earns XP. XP unlocks governance rights.",
+      "levels": "Levels {{levels}}"
+    },
+    "services": {
+      "empty": "No services yet — be the first to offer one!",
+      "seeAll": "See all services"
+    },
+    "impact": {
+      "hero": {
+        "badge": "Missions · Guilds · Territories",
+        "title1": "A home for",
+        "title2": "operators,",
+        "title3": "builders,",
+        "title4": "catalysts.",
+        "sub": "Find missions, collaborators, guilds, and partners to move territories forward.",
+        "cta1": "Start a Mission",
+        "cta2": "Offer a Service",
+        "cta3": "Join a Guild",
+        "piLink": "Need clarity? Talk to Pi."
+      },
+      "whatYouCanDo": "What you can do",
+      "cards": {
+        "mission": {
+          "title": "Launch a Mission",
+          "text": "Share a challenge, project, or transformation you want to drive."
+        },
+        "service": {
+          "title": "Offer Your Expertise",
+          "text": "Consulting, facilitation, governance, design, engineering, research."
+        },
+        "guild": {
+          "title": "Join a Guild",
+          "text": "Collaborate with structured networks across territories and ecosystems."
+        }
+      },
+      "territory": {
+        "title": "Anchored in territories",
+        "sub": "Missions on changethegame are always linked to a place — a bioregion, a city, a watershed. Your work leaves a trace.",
+        "active": "{{count}} active missions",
+        "stewards": "{{count}} stewards"
+      },
+      "trust": {
+        "title": "A reputation you can see",
+        "sub": "The Trust Graph makes your track record visible — across 5 dimensions, endorsed by your collaborators.",
+        "dimensions": [
+          "Skill",
+          "Reliability",
+          "Collaboration",
+          "Stewardship",
+          "Financial"
+        ]
+      },
+      "services": {
+        "title": "Book or offer expertise",
+        "sub": "Consultants, facilitators, coaches, researchers — find or become one."
+      },
+      "org": {
+        "title": "Representing an organization?",
+        "sub": "Foundations, NGOs, companies and institutions have their own path.",
+        "cta": "Join as an Organization"
+      },
+      "manifesto": {
+        "title": "Why this network exists",
+        "p1": "We believe systemic change needs collective intelligence, aligned stakeholders, and shared missions.",
+        "p2": "This is a place to coordinate, collaborate, and multiply your impact across ecosystems."
+      },
+      "cta": {
+        "title": "Ready to make an impact?",
+        "sub": "Join a growing network of changemakers across territories.",
+        "btn1": "Create your account",
+        "btn2": "Explore the platform"
+      }
+    },
+    "creative": {
+      "hero": {
+        "badge": "Art · Expression · Collaboration",
+        "title1": "A world for",
+        "title2": "creators,",
+        "title3": "dreamers,",
+        "title4": "makers.",
+        "sub": "Your art, your stories, your movement, your sound — find their people here.",
+        "cta1": "Begin a Creation",
+        "cta2": "Offer a Skill Session",
+        "cta3": "Join a Circle or Studio",
+        "piLink": "Or ask the Muse for guidance"
+      },
+      "muse": {
+        "title": "Meet your Muse",
+        "sub": "Each House of Art has its own AI guide — a creative companion shaped around your practice.",
+        "discover": "Discover your Muse"
+      },
+      "sessions": {
+        "title": "Skill Sessions & Courses",
+        "sub": "Learn from peers, share your craft, monetize your practice."
+      },
+      "ensembles": {
+        "title": "Circles & Ensembles",
+        "sub": "Small creative groups where things get made together.",
+        "cta": "Find a Circle"
+      },
+      "monetize": {
+        "title": "Make a living from your practice",
+        "step1": "Publish a Skill Session",
+        "step2": "Get Booked",
+        "step3": "Earn XP + Revenue"
+      },
+      "manifesto": {
+        "title": "Why creatives belong here",
+        "p1": "Art doesn't belong in silos. The most meaningful work happens at intersections — between disciplines, between people, between imagination and the world.",
+        "p2": "changethegame is built for makers who want their work to matter beyond the canvas."
+      },
+      "cta": {
+        "title": "Ready to create?",
+        "sub": "Join a world where your practice finds its audience, its collaborators, and its impact.",
+        "btn1": "Create your account",
+        "btn2": "Explore Houses of Art"
+      }
+    },
+    "hybrid": {
+      "hero": {
+        "badge": "Impact · Creativity · Both",
+        "title1": "Neither one thing.",
+        "title2": "Nor the other.",
+        "title3": "Both.",
+        "sub": "You move between imagination and structure. changethegame is designed for that.",
+        "cta1": "Start a Quest",
+        "cta2": "Offer a Session or Service",
+        "cta3": "Find Your Space",
+        "piLink": "Not sure where to start? Talk to Pi."
+      },
+      "dualTrack": {
+        "title": "A dual XP track — for the both/and",
+        "sub": "You earn XP in Maker specialization and Stewardship simultaneously. No either/or.",
+        "maker": {
+          "label": "Maker XP",
+          "desc": "Earned through creations, skill sessions, and courses"
+        },
+        "steward": {
+          "label": "Stewardship XP",
+          "desc": "Earned through missions, governance, and territorial contributions"
+        }
+      },
+      "examples": {
+        "title": "Who calls this home",
+        "items": [
+          {
+            "role": "Social entrepreneur",
+            "desc": "Runs impact quests and sells strategy sessions"
+          },
+          {
+            "role": "Artist-facilitator",
+            "desc": "Leads creative workshops and sits on guild councils"
+          },
+          {
+            "role": "Designer-consultant",
+            "desc": "Offers both design services and governance facilitation"
+          }
+        ]
+      },
+      "manifesto": {
+        "title": "Why hybrid people belong here",
+        "p1": "Some people don't fit a single box — they move between imagination and structure.",
+        "p2": "changethegame is designed for them: a place where ideas can become systems, and systems can inspire imagination."
+      },
+      "cta": {
+        "title": "Ready to bridge both worlds?",
+        "sub": "Join a network where creativity and impact amplify each other.",
+        "btn1": "Create your account",
+        "btn2": "Explore first"
+      }
+    },
+    "browse": {
+      "hero": {
+        "badge": "Discover · Connect · Contribute",
+        "title1": "A network for",
+        "title2": "changemakers,",
+        "title3": "creators,",
+        "title4": "builders.",
+        "sub": "Browse quests, communities, and services — see if this is the right place for you.",
+        "cta1": "Browse Everything",
+        "cta2": "Create an Account",
+        "piLink": "Not sure which path is yours? Talk to Pi."
+      },
+      "quiz": {
+        "title": "Find your path",
+        "sub": "Three questions to find where you belong.",
+        "q1": "I'm mainly here to…",
+        "q1Options": [
+          "Create & express",
+          "Change systems & territories",
+          "Both equally",
+          "Learn & explore"
+        ],
+        "q1Routes": [
+          "/landing/creative",
+          "/landing/impact",
+          "/landing/hybrid",
+          "/landing/browse"
+        ],
+        "q2": "I already have…",
+        "q2Options": [
+          "A creative practice",
+          "A professional/consultancy project",
+          "Both",
+          "Nothing yet — curious"
+        ],
+        "q3": "I'm looking for…",
+        "q3Options": [
+          "Collaborators for my work",
+          "An audience or clients",
+          "A community that gets me",
+          "I'm just exploring"
+        ],
+        "result": "Based on your answers, we suggest:",
+        "tryPath": "Try this path"
+      },
+      "piCta": {
+        "title": "Ask Pi — your AI guide",
+        "sub": "Describe what you're looking for in a sentence. Pi will suggest the right path, quests, and people for you.",
+        "btn": "Talk to Pi"
+      }
+    },
+    "org": {
+      "hero": {
+        "badge": "Organizations · Institutions · Impact",
+        "title1": "Your organization,",
+        "title2": "anchored in",
+        "title3": "living ecosystems.",
+        "sub": "Connect your institution with a network of changemakers, guilds, and territories.",
+        "cta1": "Join as an Organization",
+        "cta2": "Learn more",
+        "piLink": "Questions? Talk to Pi."
+      },
+      "types": {
+        "title": "Who joins as an organization",
+        "public": {
+          "label": "Public Sector",
+          "desc": "Government agencies, municipalities, public institutions"
+        },
+        "corp": {
+          "label": "Corporations",
+          "desc": "Companies bringing innovation and resources to the ecosystem"
+        },
+        "academic": {
+          "label": "Academics & Research",
+          "desc": "Universities, labs, and research institutions"
+        },
+        "foundation": {
+          "label": "Foundations",
+          "desc": "Philanthropic organizations driving systemic change"
+        },
+        "ngo": {
+          "label": "NGOs",
+          "desc": "Non-profits working on social and environmental impact"
+        }
+      },
+      "steps": {
+        "title": "How it works",
+        "s1": {
+          "n": "01",
+          "title": "Create your profile",
+          "desc": "Add your organization details — or let AI scrape your website to auto-fill."
+        },
+        "s2": {
+          "n": "02",
+          "title": "AI maps your mission",
+          "desc": "We match your topics, territories, and causes to the ecosystem."
+        },
+        "s3": {
+          "n": "03",
+          "title": "Launch opportunities",
+          "desc": "Post quests, jobs, or calls for proposals to find aligned talent."
+        },
+        "s4": {
+          "n": "04",
+          "title": "Match with builders",
+          "desc": "Discover guilds, users, and pods aligned with your mission."
+        }
+      },
+      "why": {
+        "title": "Why organizations join",
+        "access": {
+          "title": "Access talent",
+          "desc": "Find skilled individuals and guilds aligned with your mission."
+        },
+        "cfp": {
+          "title": "Launch calls for proposals",
+          "desc": "Create monetized quests open to the entire ecosystem."
+        },
+        "coop": {
+          "title": "Co-create with guilds",
+          "desc": "Partner with mission-driven communities."
+        },
+        "territory": {
+          "title": "Territorial impact",
+          "desc": "Strengthen your presence in specific territories."
+        },
+        "discover": {
+          "title": "Discover innovations",
+          "desc": "Explore regenerative practices and new approaches."
+        }
+      },
+      "cta": {
+        "title": "Ready to join the ecosystem?",
+        "sub": "Connect your organization to a living network of changemakers.",
+        "btn1": "Join as an Organization",
+        "btn2": "Explore the platform"
+      }
+    }
   },
   "agents": {
     "title": "AI Agents",
@@ -528,505 +908,6 @@
     "wall": "Wall"
   },
   "notifications": {
-    "title": "Notifications",
-    "markAllRead": "Mark all as read",
-    "noNotifications": "No notifications yet.",
-    "newMessage": "New message",
-    "newFollower": "New follower",
-    "questUpdate": "Quest update"
-  },
-  "errors": {
-    "somethingWentWrong": "Something went wrong",
-    "pageNotFound": "Page not found",
-    "unauthorized": "Unauthorized",
-    "forbidden": "Forbidden",
-    "networkError": "Network error",
-    "tryAgain": "Try again"
-  },
-  "pages": {
-    "about": { "title": "About changethegame", "subtitle": "Human-powered. AI-augmented. Game-changing." },
-    "manifesto": { "title": "The changethegame Manifesto", "subtitle": "A space to imagine together." },
-    "howItWorks": { "title": "How changethegame Works", "subtitle": "A collaborative ecosystem for quests, guilds, territories and AI-powered creativity." },
-    "cooperative": { "title": "The Coop-like Venture", "subtitle": "Become a co-owner of the platform you use." },
-    "shares": { "title": "Membership & Shares", "heading": "Co-own", "shareholders": "Shareholders" },
-    "plans": { "title": "Plans & Pricing", "subtitle": "Choose a plan that fits your level of activity. Credits power platform features — mission budgets stay in euros.", "dualEconomy": "Understanding the Dual Economy" },
-    "revenue": { "title": "Revenue Models & Economic Framework", "subtitle": "Transparency Statement on Economic Structure, Value Circulation, and Sustainability" },
-    "governance": { "title": "Governance Model", "subtitle": "Distributed, transparent, evolving." },
-    "roadmap": { "title": "Roadmap & Changelog", "subtitle": "What's coming next." },
-    "whatComesNext": { "title": "What Comes Next", "subtitle": "The platform grows with you. Here's what's on the way — and what you can shape." },
-    "guides": { "title": "Guides & Tutorials", "quickstart": "Quickstart", "indepth": "In‑depth Guides", "troubleshooting": "Troubleshooting", "askForHelp": "Ask for Help" },
-    "contact": { "title": "Contact", "subtitle": "We're here to support your quests." },
-    "support": { "title": "Guides & Support", "subtitle": "Everything you need to get started, learn, and grow." },
-    "bugReport": { "title": "Bug Reporting", "subtitle": "Help us improve changethegame." },
-    "ai": { "title": "What AI Can Do Here", "subtitle": "Augment your creativity, collaboration and coordination." },
-    "aiEthics": { "title": "AI Ethics & Transparency", "subtitle": "Responsible AI for a regenerative world." },
-    "territoryAgents": { "title": "Territory Agents", "subtitle": "AI agents dedicated to local ecosystems." },
-    "terms": { "title": "Terms of Service", "subtitle": "Last updated: February 10, 2026" },
-    "privacy": { "title": "Privacy Policy", "subtitle": "Your data, protected and respected." },
-    "cookies": { "title": "Cookies Policy", "subtitle": "Last updated: February 10, 2026" },
-    "security": { "title": "Security", "subtitle": "How we protect your data and the platform." },
-    "community": { "title": "Community Guidelines", "subtitle": "A safe, creative and regenerative space for all." },
-    "questsInfo": { "title": "Discover Quests", "subtitle": "Missions, projects, creative acts, and impact initiatives." },
-    "guildsInfo": { "title": "Find Guilds & Collectives", "subtitle": "Join communities that resonate with your mission or creativity." },
-    "companiesInfo": { "title": "Browse Traditional Organizations", "subtitle": "Professional organizations, institutions, agencies and pods." },
-    "coursesInfo": { "title": "Browse Courses", "subtitle": "Learn, create and evolve with community-powered lessons." },
-    "serviceInfo": { "title": "Offer a Service", "subtitle": "Share your skills with the ecosystem." },
-    "peopleInfo": { "title": "Explore People", "subtitle": "Meet collaborators, creators, innovators and change-makers." },
-    "territoriesInfo": { "title": "Territories & Topics", "subtitle": "Where geography meets imagination." },
-    "createQuest": { "title": "Create a Quest", "subtitle": "Turn your intention into a mission." },
-    "createGuild": { "title": "Create a Guild", "subtitle": "Gather people around a shared intention." },
-    "createCompany": { "title": "Create a Traditional Organization", "subtitle": "Bring your organization into the ecosystem." },
-    "networkHub": { "title": "My Network", "subtitle": "Your ecosystem at a glance." },
-    "trustGraph": { "title": "Open Trust Graph", "subtitle": "A transparent, human-powered reputation layer for the ecosystem." }
-  },
-  "hubs": {
-    "vision": { "title": "Vision", "subtitle": "Our philosophy, structure and roadmap." },
-    "ecosystem": { "title": "Ecosystem", "subtitle": "How value circulates and governance works." },
-    "legal": { "title": "Legal & Contact", "subtitle": "Privacy, terms and how to reach us." },
-    "tabs": {
-      "manifesto": "Manifesto",
-      "cooperative": "Cooperative",
-      "whatComesNext": "What's Next",
-      "useCases": "Use Cases",
-      "features": "Features",
-      "revenue": "Revenue Models",
-      "credits": "Credit Economy",
-      "trustGraph": "Trust Graph",
-      "governance": "Governance",
-      "ovn": "Open Value Network",
-      "funding": "Funding & OCU",
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "contact": "Contact"
-    }
-  },
-  "trustGraphPage": {
-    "whyTitle": "Why Trust Matters",
-    "whyP1": "In a world of noise, credentials, and self-promotion, how do you know who to collaborate with? Traditional platforms rely on ratings, reviews, or opaque algorithms. changethegame takes a different approach: a polymorphic attestation system where real people vouch for real contributions.",
-    "whyP2": "The Open Trust Graph replaces popularity metrics with meaningful, verifiable trust signals. It answers the question: \"Who has actually worked with this person, guild, or organisation — and what was the experience?\"",
-    "howTitle": "How It Works",
-    "howIntro": "Trust is expressed through TrustEdges — directed attestations from one node to another. Nodes can be Profiles, Guilds, Quests, Services, Companies, or Territories.",
-    "howItems": ["Anyone can give a trust attestation to another entity they've interacted with", "Each edge carries a score (1–5), optional tags, a note, and an evidence URL", "Edges can be public, network-visible, or private", "A global weighted score is calculated: Base 1 + (score × 0.2)", "Freshness matters: edges older than 24 months receive a 0.8× decay multiplier", "Trust is renewable: after 12 months, you're prompted to confirm or retract your attestation"],
-    "antiGamingTitle": "Anti-Gaming Safeguards",
-    "antiGamingIntro": "Trust must be earned, not gamed. The system enforces several constraints to maintain integrity:",
-    "antiGamingItems": ["Maximum 3 public trust edges per user per week", "6-month cooldown between the same node pair", "Reciprocal trust given within 48h without evidence receives a 50% XP reduction", "Periodic renewal: unconfirmed edges are marked as outdated after 18 months"],
-    "rewardsTitle": "Reputation & Rewards",
-    "rewardsIntro": "Trust attestations feed both the XP reputation system and the credit economy:",
-    "rewardsItems": ["Public edges award specialised XP (Stewardship, Maker, Community, Tech Commons, etc.)", "Monthly XP cap of 40 per category — overflow is stored and released gradually", "Credit bonuses for high-quality attestations (evidence-backed, marked 'Useful')", "Stewards receiving trust in their domain earn additional credits"],
-    "opennessTitle": "Openness & Interoperability",
-    "opennessP1": "The trust graph is designed to be open and portable. Public attestations are available via a public API endpoint compatible with JSON-LD and future Verifiable Credentials standards. This means trust data can be verified and consumed by external systems — no lock-in.",
-    "opennessItems": ["Public API: GET /trust-graph-public?node_type=…&node_id=…", "JSON-LD context: https://w3id.org/trust/v1", "Pagination, filtering by tag, edge type, or territory", "Only public + active edges are ever exposed"],
-    "platformTitle": "Trust Across the Platform",
-    "platformIntro": "Trust signals are woven into every part of the experience:",
-    "platformItems": ["Dedicated 'Trust' tab on every entity page (profile, guild, company, territory…)", "Trust badges and scores in search results and mini-cards", "'Top Trusted Members' ranking within guilds and territories", "A multi-step 'Give Trust' wizard with real-time limit validation", "Trust renewal dashboard in your Network settings"],
-    "ctaExplore": "Explore people",
-    "ctaCredits": "Credit economy",
-    "ctaGovernance": "Governance"
-  },
-  "aboutPage": {
-    "purpose": "Our Purpose",
-    "purposeText": "changethegame exists to help humans collaborate, create, and regenerate the world. We blend collective intelligence, creativity, territories, and AI-powered agents into a single ecosystem where anyone can launch quests, join guilds, offer services, and activate their region or community.",
-    "values": "What We Stand For",
-    "valuesList": ["Regeneration over extraction", "Collaboration over competition", "Collective intelligence over silos", "Territories as living ecosystems", "Creativity as a force for transformation", "AI as an amplifier of human agency"],
-    "whatYouCanDo": "What You Can Do Here",
-    "whatYouCanDoList": ["Launch or join quests", "Create or join guilds and collectives", "Offer services or skill sessions", "Start or join companies", "Explore territories, people, and ideas", "Learn with courses, sessions, and events", "Collaborate with AI agents dedicated to each unit"],
-    "trustTitle": "Trust & Reputation",
-    "trustText": "Reputation on changethegame isn't based on likes or self-reported CVs. It's built on the Open Trust Graph — a system where real people attest to real contributions. Trust edges carry scores, evidence, and tags, and they decay over time to stay relevant. This ensures that the people, guilds, and organisations you see have been genuinely vouched for.",
-    "visionTitle": "Our Vision",
-    "visionText": "A world where people, organizations, and territories collaborate fluidly to build a regenerative, creative and inclusive future — one quest at a time.",
-    "ctaHowItWorks": "How it works",
-    "ctaTrustGraph": "Open Trust Graph",
-    "ctaGovernance": "Governance model",
-    "ctaRoadmap": "Roadmap & Changelog"
-  },
-  "howItWorksPage": {
-    "step1Title": "1. Create Your Profile",
-    "step1Text": "Pick your Houses (interests), choose your Territory, and define your persona (Impact, Creative, or Hybrid).",
-    "step2Title": "2. Launch or Join Quests",
-    "step2Text": "Quests are missions, projects, or creative endeavors. You can:",
-    "step2Items": ["Start your own", "Join quests from others", "Propose contributions", "Fund quests with 🟩 Coins or 🌱 $CTG"],
-    "step3Title": "3. Join or Create Guilds",
-    "step3Text": "Guilds (or collectives) are communities united around shared themes. They offer:",
-    "step3Items": ["Internal tools (chat, docs, kanban, events)", "Shared quests", "Services", "Governance tools"],
-    "step4Title": "4. Offer or Book Services",
-    "step4Text": "Turn your skills into bookable sessions. Includes:",
-    "step4Items": ["Skill sessions (creative)", "Expertise services (impact)", "Calendars & bookings", "Optional monetization"],
-    "step5Title": "5. Companies & Pods",
-    "step5Text": "Companies represent your professional world. Pods are small, temporary groups created for specific quests or collaborations.",
-    "step6Title": "6. Territories & Houses",
-    "step6Text": "Territories anchor action in the real world. Houses represent topics, themes, interests and expertise.",
-    "step7Title": "7. AI Agents Everywhere",
-    "step7Text": "Every guild, quest, company or territory comes with an AI agent that:",
-    "step7Items": ["Helps coordinate", "Gives suggestions", "Creates summaries", "Proposes collaborators", "Drafts text", "Connects dots"],
-    "step8Title": "8. Coins, $CTG, XP & Reputation",
-    "step8Text": "Earn ⭐ XP for reputation, 🟩 Coins from funded quest pools, and 🌱 $CTG for contribution to the commons. Platform Credits are separate — they power platform features, not quest compensation.",
-    "stepFundingTitle": "Fund and distribute quest value",
-    "stepFundingText": "Quest creators can pre-fund a Coins and/or $CTG pool, or launch a fundraising campaign. When work is done, value is distributed via OCU pie, equal split, or manually — transparently, with full audit trail. Contribute half-days of work via the OCU module for proportional payout. Coins are withdrawable to real € via Stripe Connect.",
-    "step9Title": "9. The Open Trust Graph",
-    "step9Text": "Your reputation is built through trust attestations — not vanity metrics. When someone vouches for you, they create a TrustEdge with a score, tags, and optional evidence. These edges are visible on your profile and feed into your XP and credit rewards. Trust decays over time and must be periodically renewed, keeping the ecosystem honest and up to date.",
-    "step9Items": ["Give and receive trust attestations across all entity types", "Scores from 1–5 with tags, notes, and evidence links", "Anti-gaming: weekly limits, cooldowns, and reciprocal penalties", "Public edges are available via an open API (JSON-LD compatible)"],
-    "ctaCreateQuest": "Create a quest",
-    "ctaJoinGuild": "Join a guild",
-    "ctaTrustGraph": "Open Trust Graph",
-    "ctaExplorePeople": "Explore people"
-  },
-  "search": {
-    "placeholder": "Search…",
-    "inputPlaceholder": "Search users, guilds, quests, pods, services, companies…",
-    "noResults": "No results found.",
-    "advancedSearch": "Advanced search",
-    "advancedSearchFor": "Advanced search for \"{{query}}\"",
-    "users": "Users",
-    "guilds": "Guilds",
-    "quests": "Quests",
-    "pods": "Pods",
-    "services": "Services",
-    "companies": "Companies",
-    "territories": "Territories"
-  },
-  "wizard": {
-    "chooseType": "Choose type",
-    "getStarted": "Get started",
-    "nameAndDetails": "Name & details",
-    "topicsAndTerritories": "Topics & Territories",
-    "accessAndVisibility": "Access & visibility",
-    "branding": "Branding",
-    "reviewAndCreate": "Review & create",
-    "whatKind": "What kind of entity would you like to create?",
-    "haveWebsite": "Do you have a website?",
-    "pasteUrl": "Paste a URL and we'll auto-fill your entity's details — name, description, logo, and more.",
-    "importFromWebsite": "Import from website",
-    "importingData": "Importing data...",
-    "fillManually": "Fill in manually",
-    "prefilledFromWebsite": "Pre-filled from website — review and adjust below.",
-    "guild": "Guild",
-    "guildDesc": "A purposeful collective, network or community — swarmable and scalable around shared missions.",
-    "pod": "Pod",
-    "podDesc": "A small, purpose-free micro-team — lightweight and flexible for any project or study topic.",
-    "company": "Traditional Organization",
-    "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
-  },
-  "footer": {
-    "vision": "Vision",
-    "ecosystem": "Ecosystem",
-    "legal": "Legal",
-    "culture": "Culture",
-    "transparency": "Transparency",
-    "manifesto": "Manifesto",
-    "cooperative": "The Coop-like Venture",
-    "whatComesNext": "What Comes Next",
-    "useCases": "Use Cases",
-    "features": "Features & Vision",
-    "revenueModels": "Revenue Models",
-    "creditEconomy": "Credit Economy",
-    "governance": "Governance",
-    "privacy": "Data & Privacy",
-    "terms": "Terms",
-    "contact": "Contact",
-    "about": "About",
-    "tagline": "Human-powered. AI-augmented. Community-owned."
-  },
-  "landing": {
-    "badge": "Regeneration · Impact · Community",
-    "heroTitle1": "Human-powered.",
-    "heroTitle2": "AI-augmented.",
-    "heroTitle3": "Game-changing.",
-    "heroSubtitle": "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
-    "joinGamechanger": "Join as a Gamechanger",
-    "joinEcosystem": "Join as an Ecosystem Builder",
-    "exploreFirst": "Explore first",
-    "howItWorks": "How it works",
-    "step": "Step {{n}}",
-    "steps": {
-      "profile": { "title": "Create your profile", "desc": "Choose your topics (Houses) and territories to shape your experience." },
-      "quests": { "title": "Join or create quests", "desc": "Find meaningful missions and form pods to collaborate on impact projects." },
-      "guilds": { "title": "Connect with guilds & peers", "desc": "Join guilds, follow companies, and grow your regenerative network." },
-      "services": { "title": "Offer your expertise", "desc": "List services, get booked, and earn XP for your contributions." }
-    },
-    "forWhom": "Who is it for?",
-    "forWhomSub": "Whether you're a practitioner, a network facilitator, or a company with impact ambitions — there's a place for you.",
-    "personas": {
-      "gamechangers": {
-        "title": "Gamechangers",
-        "subtitle": "Consultants, facilitators, practitioners",
-        "p1": "Find meaningful missions aligned with your values",
-        "p2": "Share knowledge and build your reputation",
-        "p3": "Earn XP and track your contribution index",
-        "cta": "Sign up as Gamechanger"
-      },
-      "ecosystemBuilders": {
-        "title": "Ecosystem Builders",
-        "subtitle": "Guilds, networks, third spaces",
-        "p1": "Structure quests and coordinate action",
-        "p2": "Host pods for peer learning groups",
-        "p3": "Curate a vibrant learning network",
-        "cta": "Create a guild"
-      },
-      "companies": {
-        "title": "Companies & Institutions",
-        "subtitle": "Organisations with impact ambitions",
-        "p1": "Post impact quests to find collaborators",
-        "p2": "Book experts for your projects",
-        "p3": "Support territories and build credibility",
-        "cta": "Post a quest as a company"
-      }
-    },
-    "featuredQuests": "Featured Quests",
-    "featuredQuestsSub": "Open missions waiting for your contribution.",
-    "noFeaturedQuests": "No featured quests yet.",
-    "seeAllQuests": "See all quests",
-    "topicHouses": "Topic Houses",
-    "topicHousesSub": "Browse thematic communities shaping the future.",
-    "browseTopics": "Browse all topics",
-    "trustTitle": "Trust & Learning",
-    "trustSub": "Your contributions build a visible reputation — no résumé needed.",
-    "trust": {
-      "xp": { "title": "XP & Contribution Index", "desc": "Earn experience points for every quest you complete and service you deliver." },
-      "achievements": { "title": "Achievements", "desc": "Unlock badges for milestones — your track record speaks for itself." },
-      "pods": { "title": "Pods", "desc": "Small learning & action groups that keep you accountable and connected." }
-    },
-    "ctaTitle": "Ready to make an impact?",
-    "ctaSub": "Join a growing network of changemakers across territories.",
-    "createAccount": "Create your account",
-    "explorePlatform": "Explore the platform",
-    "welcome": {
-      "tagline": "Human-powered · AI-augmented · Game-changing",
-      "question": "What brings you here?",
-      "sub": "Choose your path — we'll shape your experience around it.",
-      "changeLater": "You can always change your path later in your settings.",
-      "discover": "Discover",
-      "login": "Log in",
-      "personas": {
-        "creative": { "title": "I'm a Creator", "subtitle": "Artist, writer, musician, filmmaker, designer, performer", "tagline": "Start creations, join circles, share skill sessions" },
-        "impact": { "title": "I'm an Impact Builder", "subtitle": "Consultant, facilitator, practitioner, ecosystem builder", "tagline": "Launch missions, join guilds, offer services" },
-        "hybrid": { "title": "I'm Both", "subtitle": "Creative meets strategic — I bridge imagination and structure", "tagline": "Quests, guilds, services & sessions — your way" },
-        "organization": { "title": "I represent an organization", "subtitle": "Public institution, company, university, foundation, or NGO", "tagline": "Contribute, collaborate, launch initiatives in the ecosystem" },
-        "browse": { "title": "Just Exploring", "subtitle": "I want to see what's here before choosing", "tagline": "Browse quests, communities, and services" }
-      }
-    },
-    "stats": {
-      "quests": "active missions",
-      "guilds": "guilds",
-      "territories": "territories",
-      "members": "members"
-    },
-    "progression": {
-      "title": "How you grow here",
-      "sub": "Every {{unit}} earns XP. XP unlocks governance rights.",
-      "levels": "Levels {{levels}}"
-    },
-    "services": {
-      "empty": "No services yet — be the first to offer one!",
-      "seeAll": "See all services"
-    },
-    "impact": {
-      "hero": {
-        "badge": "Missions · Guilds · Territories",
-        "title1": "A home for",
-        "title2": "operators,",
-        "title3": "builders,",
-        "title4": "catalysts.",
-        "sub": "Find missions, collaborators, guilds, and partners to move territories forward.",
-        "cta1": "Start a Mission",
-        "cta2": "Offer a Service",
-        "cta3": "Join a Guild",
-        "piLink": "Need clarity? Talk to Pi."
-      },
-      "whatYouCanDo": "What you can do",
-      "cards": {
-        "mission": { "title": "Launch a Mission", "text": "Share a challenge, project, or transformation you want to drive." },
-        "service": { "title": "Offer Your Expertise", "text": "Consulting, facilitation, governance, design, engineering, research." },
-        "guild": { "title": "Join a Guild", "text": "Collaborate with structured networks across territories and ecosystems." }
-      },
-      "territory": {
-        "title": "Anchored in territories",
-        "sub": "Missions on changethegame are always linked to a place — a bioregion, a city, a watershed. Your work leaves a trace.",
-        "active": "{{count}} active missions",
-        "stewards": "{{count}} stewards"
-      },
-      "trust": {
-        "title": "A reputation you can see",
-        "sub": "The Trust Graph makes your track record visible — across 5 dimensions, endorsed by your collaborators.",
-        "dimensions": ["Skill", "Reliability", "Collaboration", "Stewardship", "Financial"]
-      },
-      "services": {
-        "title": "Book or offer expertise",
-        "sub": "Consultants, facilitators, coaches, researchers — find or become one."
-      },
-      "org": {
-        "title": "Representing an organization?",
-        "sub": "Foundations, NGOs, companies and institutions have their own path.",
-        "cta": "Join as an Organization"
-      },
-      "manifesto": {
-        "title": "Why this network exists",
-        "p1": "We believe systemic change needs collective intelligence, aligned stakeholders, and shared missions.",
-        "p2": "This is a place to coordinate, collaborate, and multiply your impact across ecosystems."
-      },
-      "cta": {
-        "title": "Ready to make an impact?",
-        "sub": "Join a growing network of changemakers across territories.",
-        "btn1": "Create your account",
-        "btn2": "Explore the platform"
-      }
-    },
-    "creative": {
-      "hero": {
-        "badge": "Art · Expression · Collaboration",
-        "title1": "A world for",
-        "title2": "creators,",
-        "title3": "dreamers,",
-        "title4": "makers.",
-        "sub": "Your art, your stories, your movement, your sound — find their people here.",
-        "cta1": "Begin a Creation",
-        "cta2": "Offer a Skill Session",
-        "cta3": "Join a Circle or Studio",
-        "piLink": "Or ask the Muse for guidance"
-      },
-      "muse": {
-        "title": "Meet your Muse",
-        "sub": "Each House of Art has its own AI guide — a creative companion shaped around your practice.",
-        "discover": "Discover your Muse"
-      },
-      "sessions": {
-        "title": "Skill Sessions & Courses",
-        "sub": "Learn from peers, share your craft, monetize your practice."
-      },
-      "ensembles": {
-        "title": "Circles & Ensembles",
-        "sub": "Small creative groups where things get made together.",
-        "cta": "Find a Circle"
-      },
-      "monetize": {
-        "title": "Make a living from your practice",
-        "step1": "Publish a Skill Session",
-        "step2": "Get Booked",
-        "step3": "Earn XP + Revenue"
-      },
-      "manifesto": {
-        "title": "Why creatives belong here",
-        "p1": "Art doesn't belong in silos. The most meaningful work happens at intersections — between disciplines, between people, between imagination and the world.",
-        "p2": "changethegame is built for makers who want their work to matter beyond the canvas."
-      },
-      "cta": {
-        "title": "Ready to create?",
-        "sub": "Join a world where your practice finds its audience, its collaborators, and its impact.",
-        "btn1": "Create your account",
-        "btn2": "Explore Houses of Art"
-      }
-    },
-    "hybrid": {
-      "hero": {
-        "badge": "Impact · Creativity · Both",
-        "title1": "Neither one thing.",
-        "title2": "Nor the other.",
-        "title3": "Both.",
-        "sub": "You move between imagination and structure. changethegame is designed for that.",
-        "cta1": "Start a Quest",
-        "cta2": "Offer a Session or Service",
-        "cta3": "Find Your Space",
-        "piLink": "Not sure where to start? Talk to Pi."
-      },
-      "dualTrack": {
-        "title": "A dual XP track — for the both/and",
-        "sub": "You earn XP in Maker specialization and Stewardship simultaneously. No either/or.",
-        "maker": { "label": "Maker XP", "desc": "Earned through creations, skill sessions, and courses" },
-        "steward": { "label": "Stewardship XP", "desc": "Earned through missions, governance, and territorial contributions" }
-      },
-      "examples": {
-        "title": "Who calls this home",
-        "items": [
-          { "role": "Social entrepreneur", "desc": "Runs impact quests and sells strategy sessions" },
-          { "role": "Artist-facilitator", "desc": "Leads creative workshops and sits on guild councils" },
-          { "role": "Designer-consultant", "desc": "Offers both design services and governance facilitation" }
-        ]
-      },
-      "manifesto": {
-        "title": "Why hybrid people belong here",
-        "p1": "Some people don't fit a single box — they move between imagination and structure.",
-        "p2": "changethegame is designed for them: a place where ideas can become systems, and systems can inspire imagination."
-      },
-      "cta": {
-        "title": "Ready to bridge both worlds?",
-        "sub": "Join a network where creativity and impact amplify each other.",
-        "btn1": "Create your account",
-        "btn2": "Explore first"
-      }
-    },
-    "browse": {
-      "hero": {
-        "badge": "Discover · Connect · Contribute",
-        "title1": "A network for",
-        "title2": "changemakers,",
-        "title3": "creators,",
-        "title4": "builders.",
-        "sub": "Browse quests, communities, and services — see if this is the right place for you.",
-        "cta1": "Browse Everything",
-        "cta2": "Create an Account",
-        "piLink": "Not sure which path is yours? Talk to Pi."
-      },
-      "quiz": {
-        "title": "Find your path",
-        "sub": "Three questions to find where you belong.",
-        "q1": "I'm mainly here to…",
-        "q1Options": ["Create & express", "Change systems & territories", "Both equally", "Learn & explore"],
-        "q1Routes": ["/landing/creative", "/landing/impact", "/landing/hybrid", "/landing/browse"],
-        "q2": "I already have…",
-        "q2Options": ["A creative practice", "A professional/consultancy project", "Both", "Nothing yet — curious"],
-        "q3": "I'm looking for…",
-        "q3Options": ["Collaborators for my work", "An audience or clients", "A community that gets me", "I'm just exploring"],
-        "result": "Based on your answers, we suggest:",
-        "tryPath": "Try this path"
-      },
-      "piCta": {
-        "title": "Ask Pi — your AI guide",
-        "sub": "Describe what you're looking for in a sentence. Pi will suggest the right path, quests, and people for you.",
-        "btn": "Talk to Pi"
-      }
-    },
-    "org": {
-      "hero": {
-        "badge": "Organizations · Institutions · Impact",
-        "title1": "Your organization,",
-        "title2": "anchored in",
-        "title3": "living ecosystems.",
-        "sub": "Connect your institution with a network of changemakers, guilds, and territories.",
-        "cta1": "Join as an Organization",
-        "cta2": "Learn more",
-        "piLink": "Questions? Talk to Pi."
-      },
-      "types": {
-        "title": "Who joins as an organization",
-        "public": { "label": "Public Sector", "desc": "Government agencies, municipalities, public institutions" },
-        "corp": { "label": "Corporations", "desc": "Companies bringing innovation and resources to the ecosystem" },
-        "academic": { "label": "Academics & Research", "desc": "Universities, labs, and research institutions" },
-        "foundation": { "label": "Foundations", "desc": "Philanthropic organizations driving systemic change" },
-        "ngo": { "label": "NGOs", "desc": "Non-profits working on social and environmental impact" }
-      },
-      "steps": {
-        "title": "How it works",
-        "s1": { "n": "01", "title": "Create your profile", "desc": "Add your organization details — or let AI scrape your website to auto-fill." },
-        "s2": { "n": "02", "title": "AI maps your mission", "desc": "We match your topics, territories, and causes to the ecosystem." },
-        "s3": { "n": "03", "title": "Launch opportunities", "desc": "Post quests, jobs, or calls for proposals to find aligned talent." },
-        "s4": { "n": "04", "title": "Match with builders", "desc": "Discover guilds, users, and pods aligned with your mission." }
-      },
-      "why": {
-        "title": "Why organizations join",
-        "access": { "title": "Access talent", "desc": "Find skilled individuals and guilds aligned with your mission." },
-        "cfp": { "title": "Launch calls for proposals", "desc": "Create monetized quests open to the entire ecosystem." },
-        "coop": { "title": "Co-create with guilds", "desc": "Partner with mission-driven communities." },
-        "territory": { "title": "Territorial impact", "desc": "Strengthen your presence in specific territories." },
-        "discover": { "title": "Discover innovations", "desc": "Explore regenerative practices and new approaches." }
-      },
-      "cta": {
-        "title": "Ready to join the ecosystem?",
-        "sub": "Connect your organization to a living network of changemakers.",
-        "btn1": "Join as an Organization",
-        "btn2": "Explore the platform"
-      }
-    }
-  },
-  "notifications": {
     "pageTitle": "Notifications",
     "unread": "{{count}} unread",
     "noUnread": "No unread notifications.",
@@ -1129,102 +1010,419 @@
       "Admin (Unit)": "Admin (Unit)"
     }
   },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "pageNotFound": "Page not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "networkError": "Network error",
+    "tryAgain": "Try again"
+  },
+  "pages": {
+    "about": {
+      "title": "About changethegame",
+      "subtitle": "Human-powered. AI-augmented. Game-changing."
+    },
+    "manifesto": {
+      "title": "The changethegame Manifesto",
+      "subtitle": "A space to imagine together."
+    },
+    "howItWorks": {
+      "title": "How changethegame Works",
+      "subtitle": "A collaborative ecosystem for quests, guilds, territories and AI-powered creativity."
+    },
+    "cooperative": {
+      "title": "The Coop-like Venture",
+      "subtitle": "Become a co-owner of the platform you use."
+    },
+    "shares": {
+      "title": "Membership & Shares",
+      "heading": "Co-own",
+      "shareholders": "Shareholders"
+    },
+    "plans": {
+      "title": "Plans & Pricing",
+      "subtitle": "Choose a plan that fits your level of activity. Credits power platform features — mission budgets stay in euros.",
+      "dualEconomy": "Understanding the Dual Economy"
+    },
+    "revenue": {
+      "title": "Revenue Models & Economic Framework",
+      "subtitle": "Transparency Statement on Economic Structure, Value Circulation, and Sustainability"
+    },
+    "governance": {
+      "title": "Governance Model",
+      "subtitle": "Distributed, transparent, evolving."
+    },
+    "roadmap": {
+      "title": "Roadmap & Changelog",
+      "subtitle": "What's coming next."
+    },
+    "whatComesNext": {
+      "title": "What Comes Next",
+      "subtitle": "The platform grows with you. Here's what's on the way — and what you can shape."
+    },
+    "guides": {
+      "title": "Guides & Tutorials",
+      "quickstart": "Quickstart",
+      "indepth": "In‑depth Guides",
+      "troubleshooting": "Troubleshooting",
+      "askForHelp": "Ask for Help"
+    },
+    "contact": {
+      "title": "Contact",
+      "subtitle": "We're here to support your quests."
+    },
+    "support": {
+      "title": "Guides & Support",
+      "subtitle": "Everything you need to get started, learn, and grow."
+    },
+    "bugReport": {
+      "title": "Bug Reporting",
+      "subtitle": "Help us improve changethegame."
+    },
+    "ai": {
+      "title": "What AI Can Do Here",
+      "subtitle": "Augment your creativity, collaboration and coordination."
+    },
+    "aiEthics": {
+      "title": "AI Ethics & Transparency",
+      "subtitle": "Responsible AI for a regenerative world."
+    },
+    "territoryAgents": {
+      "title": "Territory Agents",
+      "subtitle": "AI agents dedicated to local ecosystems."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "subtitle": "Last updated: February 10, 2026"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "Your data, protected and respected."
+    },
+    "cookies": {
+      "title": "Cookies Policy",
+      "subtitle": "Last updated: February 10, 2026"
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "How we protect your data and the platform."
+    },
+    "community": {
+      "title": "Community Guidelines",
+      "subtitle": "A safe, creative and regenerative space for all."
+    },
+    "questsInfo": {
+      "title": "Discover Quests",
+      "subtitle": "Missions, projects, creative acts, and impact initiatives."
+    },
+    "guildsInfo": {
+      "title": "Find Guilds & Collectives",
+      "subtitle": "Join communities that resonate with your mission or creativity."
+    },
+    "companiesInfo": {
+      "title": "Browse Traditional Organizations",
+      "subtitle": "Professional organizations, institutions, agencies and pods."
+    },
+    "coursesInfo": {
+      "title": "Browse Courses",
+      "subtitle": "Learn, create and evolve with community-powered lessons."
+    },
+    "serviceInfo": {
+      "title": "Offer a Service",
+      "subtitle": "Share your skills with the ecosystem."
+    },
+    "peopleInfo": {
+      "title": "Explore People",
+      "subtitle": "Meet collaborators, creators, innovators and change-makers."
+    },
+    "territoriesInfo": {
+      "title": "Territories & Topics",
+      "subtitle": "Where geography meets imagination."
+    },
+    "createQuest": {
+      "title": "Create a Quest",
+      "subtitle": "Turn your intention into a mission."
+    },
+    "createGuild": {
+      "title": "Create a Guild",
+      "subtitle": "Gather people around a shared intention."
+    },
+    "createCompany": {
+      "title": "Create a Traditional Organization",
+      "subtitle": "Bring your organization into the ecosystem."
+    },
+    "networkHub": {
+      "title": "My Network",
+      "subtitle": "Your ecosystem at a glance."
+    },
+    "trustGraph": {
+      "title": "Open Trust Graph",
+      "subtitle": "A transparent, human-powered reputation layer for the ecosystem."
+    }
+  },
+  "hubs": {
+    "vision": {
+      "title": "Vision",
+      "subtitle": "Our philosophy, structure and roadmap."
+    },
+    "ecosystem": {
+      "title": "Ecosystem",
+      "subtitle": "How value circulates and governance works."
+    },
+    "legal": {
+      "title": "Legal & Contact",
+      "subtitle": "Privacy, terms and how to reach us."
+    },
+    "tabs": {
+      "manifesto": "Manifesto",
+      "cooperative": "Cooperative",
+      "whatComesNext": "What's Next",
+      "useCases": "Use Cases",
+      "features": "The Platform",
+      "revenue": "Revenue Models",
+      "credits": "Credit Economy",
+      "trustGraph": "Trust Graph",
+      "governance": "Governance",
+      "ovn": "Open Value Network",
+      "funding": "Funding & OCU",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact"
+    }
+  },
+  "trustGraphPage": {
+    "whyTitle": "Why Trust Matters",
+    "whyP1": "In a world of noise, credentials, and self-promotion, how do you know who to collaborate with? Traditional platforms rely on ratings, reviews, or opaque algorithms. changethegame takes a different approach: a polymorphic attestation system where real people vouch for real contributions.",
+    "whyP2": "The Open Trust Graph replaces popularity metrics with meaningful, verifiable trust signals. It answers the question: \"Who has actually worked with this person, guild, or organisation — and what was the experience?\"",
+    "howTitle": "How It Works",
+    "howIntro": "Trust is expressed through TrustEdges — directed attestations from one node to another. Nodes can be Profiles, Guilds, Quests, Services, Companies, or Territories.",
+    "howItems": [
+      "Anyone can give a trust attestation to another entity they've interacted with",
+      "Each edge carries a score (1–5), optional tags, a note, and an evidence URL",
+      "Edges can be public, network-visible, or private",
+      "A global weighted score is calculated: Base 1 + (score × 0.2)",
+      "Freshness matters: edges older than 24 months receive a 0.8× decay multiplier",
+      "Trust is renewable: after 12 months, you're prompted to confirm or retract your attestation"
+    ],
+    "antiGamingTitle": "Anti-Gaming Safeguards",
+    "antiGamingIntro": "Trust must be earned, not gamed. The system enforces several constraints to maintain integrity:",
+    "antiGamingItems": [
+      "Maximum 3 public trust edges per user per week",
+      "6-month cooldown between the same node pair",
+      "Reciprocal trust given within 48h without evidence receives a 50% XP reduction",
+      "Periodic renewal: unconfirmed edges are marked as outdated after 18 months"
+    ],
+    "rewardsTitle": "Reputation & Rewards",
+    "rewardsIntro": "Trust attestations feed both the XP reputation system and the credit economy:",
+    "rewardsItems": [
+      "Public edges award specialised XP (Stewardship, Maker, Community, Tech Commons, etc.)",
+      "Monthly XP cap of 40 per category — overflow is stored and released gradually",
+      "Credit bonuses for high-quality attestations (evidence-backed, marked 'Useful')",
+      "Stewards receiving trust in their domain earn additional credits"
+    ],
+    "opennessTitle": "Openness & Interoperability",
+    "opennessP1": "The trust graph is designed to be open and portable. Public attestations are available via a public API endpoint compatible with JSON-LD and future Verifiable Credentials standards. This means trust data can be verified and consumed by external systems — no lock-in.",
+    "opennessItems": [
+      "Public API: GET /trust-graph-public?node_type=…&node_id=…",
+      "JSON-LD context: https://w3id.org/trust/v1",
+      "Pagination, filtering by tag, edge type, or territory",
+      "Only public + active edges are ever exposed"
+    ],
+    "platformTitle": "Trust Across the Platform",
+    "platformIntro": "Trust signals are woven into every part of the experience:",
+    "platformItems": [
+      "Dedicated 'Trust' tab on every entity page (profile, guild, company, territory…)",
+      "Trust badges and scores in search results and mini-cards",
+      "'Top Trusted Members' ranking within guilds and territories",
+      "A multi-step 'Give Trust' wizard with real-time limit validation",
+      "Trust renewal dashboard in your Network settings"
+    ],
+    "ctaExplore": "Explore people",
+    "ctaCredits": "Credit economy",
+    "ctaGovernance": "Governance"
+  },
+  "aboutPage": {
+    "purpose": "Our Purpose",
+    "purposeText": "changethegame exists to help humans collaborate, create, and regenerate the world. We blend collective intelligence, creativity, territories, and AI-powered agents into a single ecosystem where anyone can launch quests, join guilds, offer services, and activate their region or community.",
+    "values": "What We Stand For",
+    "valuesList": [
+      "Regeneration over extraction",
+      "Cooperation over competition",
+      "Collective intelligence over silos",
+      "Territories as living ecosystems",
+      "Creativity as a force for transformation",
+      "AI as an amplifier of human agency"
+    ],
+    "whatYouCanDo": "What You Can Do Here",
+    "whatYouCanDoList": [
+      "Launch or join quests",
+      "Create or join guilds and collectives",
+      "Offer services or skill sessions",
+      "Start or join companies",
+      "Explore territories, people, and ideas",
+      "Learn with courses, sessions, and events",
+      "Collaborate with AI agents dedicated to each unit"
+    ],
+    "trustTitle": "Trust & Reputation",
+    "trustText": "Reputation on changethegame isn't based on likes or self-reported CVs. It's built on the Open Trust Graph — a system where real people attest to real contributions. Trust edges carry scores, evidence, and tags, and they decay over time to stay relevant. This ensures that the people, guilds, and organisations you see have been genuinely vouched for.",
+    "visionTitle": "Our Vision",
+    "visionText": "A world where people, organizations, and territories collaborate fluidly to build a regenerative, creative and inclusive future — one quest at a time.",
+    "ctaHowItWorks": "How it works",
+    "ctaTrustGraph": "Open Trust Graph",
+    "ctaGovernance": "Governance model",
+    "ctaRoadmap": "Roadmap & Changelog"
+  },
+  "howItWorksPage": {
+    "step1Title": "1. Create Your Profile",
+    "step1Text": "Pick your Houses (interests), choose your Territory, and define your persona (Impact, Creative, or Hybrid).",
+    "step2Title": "2. Launch or Join Quests",
+    "step2Text": "Quests are missions, projects, or creative endeavors. You can:",
+    "step2Items": [
+      "Start your own",
+      "Join quests from others",
+      "Propose contributions",
+      "Fund quests with 🟩 Coins or 🌱 $CTG"
+    ],
+    "step3Title": "3. Join or Create Guilds",
+    "step3Text": "Guilds (or collectives) are communities united around shared themes. They offer:",
+    "step3Items": [
+      "Internal tools (chat, docs, kanban, events)",
+      "Shared quests",
+      "Services",
+      "Governance tools"
+    ],
+    "step4Title": "4. Offer or Book Services",
+    "step4Text": "Turn your skills into bookable sessions. Includes:",
+    "step4Items": [
+      "Skill sessions (creative)",
+      "Expertise services (impact)",
+      "Calendars & bookings",
+      "Optional monetization"
+    ],
+    "step5Title": "5. Companies & Pods",
+    "step5Text": "Companies represent your professional world. Pods are small, temporary groups created for specific quests or collaborations.",
+    "step6Title": "6. Territories & Houses",
+    "step6Text": "Territories anchor action in the real world. Houses represent topics, themes, interests and expertise.",
+    "step7Title": "7. AI Agents Everywhere",
+    "step7Text": "Every guild, quest, company or territory comes with an AI agent that:",
+    "step7Items": [
+      "Helps coordinate",
+      "Gives suggestions",
+      "Creates summaries",
+      "Proposes collaborators",
+      "Drafts text",
+      "Connects dots"
+    ],
+    "step8Title": "8. Coins, $CTG, XP & Reputation",
+    "step8Text": "Earn ⭐ XP for reputation, 🟩 Coins from funded quest pools, and 🌱 $CTG for contribution to the commons. Platform Credits are separate — they power platform features, not quest compensation.",
+    "stepFundingTitle": "Fund and distribute quest value",
+    "stepFundingText": "Quest creators can pre-fund a Coins and/or $CTG pool, or launch a fundraising campaign. When work is done, value is distributed via OCU pie, equal split, or manually — transparently, with full audit trail. Contribute half-days of work via the OCU module for proportional payout. Coins are withdrawable to real € via Stripe Connect.",
+    "step9Title": "9. The Open Trust Graph",
+    "step9Text": "Your reputation is built through trust attestations — not vanity metrics. When someone vouches for you, they create a TrustEdge with a score, tags, and optional evidence. These edges are visible on your profile and feed into your XP and credit rewards. Trust decays over time and must be periodically renewed, keeping the ecosystem honest and up to date.",
+    "step9Items": [
+      "Give and receive trust attestations across all entity types",
+      "Scores from 1–5 with tags, notes, and evidence links",
+      "Anti-gaming: weekly limits, cooldowns, and reciprocal penalties",
+      "Public edges are available via an open API (JSON-LD compatible)"
+    ],
+    "ctaCreateQuest": "Create a quest",
+    "ctaJoinGuild": "Join a guild",
+    "ctaTrustGraph": "Open Trust Graph",
+    "ctaExplorePeople": "Explore people"
+  },
+  "search": {
+    "placeholder": "Search…",
+    "inputPlaceholder": "Search users, guilds, quests, pods, services, companies…",
+    "noResults": "No results found.",
+    "advancedSearch": "Advanced search",
+    "advancedSearchFor": "Advanced search for \"{{query}}\"",
+    "users": "Users",
+    "guilds": "Guilds",
+    "quests": "Quests",
+    "pods": "Pods",
+    "services": "Services",
+    "companies": "Companies",
+    "territories": "Territories"
+  },
+  "wizard": {
+    "chooseType": "Choose type",
+    "getStarted": "Get started",
+    "nameAndDetails": "Name & details",
+    "topicsAndTerritories": "Topics & Territories",
+    "accessAndVisibility": "Access & visibility",
+    "branding": "Branding",
+    "reviewAndCreate": "Review & create",
+    "whatKind": "What kind of entity would you like to create?",
+    "haveWebsite": "Do you have a website?",
+    "pasteUrl": "Paste a URL and we'll auto-fill your entity's details — name, description, logo, and more.",
+    "importFromWebsite": "Import from website",
+    "importingData": "Importing data...",
+    "fillManually": "Fill in manually",
+    "prefilledFromWebsite": "Pre-filled from website — review and adjust below.",
+    "guild": "Guild",
+    "guildDesc": "A purposeful collective, network or community — swarmable and scalable around shared missions.",
+    "pod": "Pod",
+    "podDesc": "A small, purpose-free micro-team — lightweight and flexible for any project or study topic.",
+    "company": "Traditional Organization",
+    "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
+  },
+  "footer": {
+    "vision": "Vision",
+    "ecosystem": "Ecosystem",
+    "legal": "Legal",
+    "culture": "Culture",
+    "transparency": "Transparency",
+    "manifesto": "Manifesto",
+    "cooperative": "The Coop-like Venture",
+    "whatComesNext": "What Comes Next",
+    "useCases": "Use Cases",
+    "features": "The Platform",
+    "revenueModels": "Revenue Models",
+    "creditEconomy": "Credit Economy",
+    "governance": "Governance",
+    "privacy": "Data & Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "about": "About",
+    "tagline": "Human-powered. AI-augmented. Community-owned."
+  },
   "manifestoPage": {
-    "believe1": "We believe people can create extraordinary things when they are seen, supported and connected.",
-    "believe2": "We believe human collectives can work with traditional organisations.",
-    "believe3": "We believe creativity and impact are not separate.",
-    "believe4": "We believe territories are alive and deserve to be understood.",
-    "believe5": "We believe collaboration is a form of beauty.",
+    "believe1": "We believe people can create extraordinary things when they are seen, trusted, and supported.",
+    "believe2": "We believe recognition — making the invisible visible — is the foundation of fair cooperation.",
+    "believe3": "We believe creativity and impact are inseparable.",
+    "believe4": "We believe territories are alive, carry their own knowledge, and deserve to be understood from within — through the expertise of those who inhabit them.",
+    "believe5": "We believe cooperation is a form of beauty.",
     "believe6": "We believe technology should amplify the human, not replace it.",
     "believe7": "We believe ownership should be shared.",
     "believe8": "We believe the future is built one quest at a time.",
-    "believe9": "We believe living systems should be involved in territorial governance.",
+    "believe9": "We believe living systems should have a voice in territorial governance.",
+    "believe10": "We believe trust is not given — it is built, through action, through recognition, through time.",
     "existsSo": "changethegame exists so people can:",
-    "can1": "create without permission,",
-    "can2": "act with others,",
-    "can3": "learn from each other,",
-    "can4": "and transform the places they live in.",
-    "movement": "This is our movement, our coop-like venture, our little rebellion.",
-    "notAttention": "We're not here to take attention.",
+    "can1": "cooperate without waiting for permission,",
+    "can2": "draw on their own expertise and the resources of their territories,",
+    "can3": "learn from each other and build trust through action,",
+    "can4": "and regenerate the places they live in.",
+    "movement": "This is our cooperative venture, our shared infrastructure, our quiet revolution.",
+    "notAttention": "We're not here to capture attention.",
     "powerBack": "We're here to give people <em>their power back</em>.",
     "letsChange": "Let's change the game.",
     "together": "Together."
   },
-  "cooperativePage": {
-    "badge": "Coop-like Venture",
-    "heroTitle": "A platform owned by the people who use it.",
-    "heroDesc": "changethegame is not just a tool. It is a shared infrastructure — built, governed, and owned collectively by its members. We chose a coop-like structure because the tools we use to collaborate should belong to the people who collaborate.",
-    "whyTitle": "Why a coop-like structure?",
-    "memberOwned": "Member-owned",
-    "memberOwnedDesc": "Humans who contribute shape what gets built. Ownership is earned through participation, not just capital.",
-    "democraticGov": "Democratic governance",
-    "democraticGovDesc": "Decisions are made collectively. Governance weight is a hybrid of XP reputation and shareholding — not money alone.",
-    "surplusReinvested": "Surplus reinvested",
-    "surplusReinvestedDesc": "Annual surplus is split across reinvestment, shareholders, treasury, and solidarity — never extracted for private gain.",
-    "threeShareClasses": "Three share classes",
-    "threeShareClassesDesc": "Each class reflects a different form of commitment — from strategic stewardship to day-to-day participation.",
-    "classATitle": "Class A — Guardians",
-    "classASubtitle": "Strategic stewardship · High-conviction commitment",
-    "classAHoldersMax": "30–40 holders max",
-    "classADesc": "Class A members are the foundational stewards of changethegame. They hold deep governance rights, participate in strategic decisions, and take long-term responsibility for the mission. Their involvement goes beyond investment — they co-define the direction of the venture.",
-    "rights": "Rights",
-    "classARights": ["Full governance voting rights", "Steward Council eligibility", "Strategic decision participation", "Dividend eligibility (annual surplus)", "Access to all assemblies & sprints", "Priority input on the product roadmap"],
-    "economicTerms": "Economic terms",
-    "minimumTicket": "Minimum ticket",
-    "targetRange": "Target range",
-    "maximumHolders": "Maximum holders",
-    "governanceWeight": "Governance weight",
-    "xpPlusShareholding": "XP + shareholding",
-    "classAAccessNote": "Access is by application only. We look for long-term alignment, not just capital.",
-    "applyClassA": "Apply for Class A",
-    "classBTitle": "Class B — Stewards",
-    "classBSubtitle": "Active participation · Open to all Humans",
-    "openAccess": "Open access",
-    "classBDesc": "Class B is open to any Human on the platform who wants to go beyond using the tool — and actually own a piece of it. Stewards support the project financially, influence its direction, and participate in governance proportional to their XP level and contribution history.",
-    "classBRights": ["Proportional governance voting (XP-weighted)", "Access to member assemblies & gatherings", "Roadmap influence and feature voting", "Dividend eligibility (annual surplus)", "Visibility as a platform co-owner", "Early access to new features"],
-    "pricePerShare": "Price per share",
-    "xpRequired": "XP required",
-    "level5Vote": "Level 5+ to vote",
-    "transferable": "Transferable",
-    "noMissionBound": "No (mission-bound)",
-    "classBGovNote": "Governance rights scale with XP: levels 5–8 unlock voting, 9–12 proposals, 13–15 council eligibility.",
-    "joinClassB": "Join as a Class B Steward",
-    "classCTitle": "Class C — Strategic Partners",
-    "classCSubtitle": "Institutional · Foundations · Impact investors",
-    "byInvitation": "By invitation",
-    "classCDesc": "Class C shares are designed for institutions, foundations, public bodies, and long-term aligned organizations that want to participate structurally in the platform's governance and ecosystem development. Not investors — infrastructure partners committed to mission resilience.",
-    "classCRights": ["Governance participation & ecosystem oversight", "Dividend eligibility (annual surplus)", "Visibility as ecosystem partner", "Strategic consultation access", "Treasury oversight participation", "Long-term mission co-stewardship"],
-    "commitments": "Commitments",
-    "classCCommitments": ["Support long-term ecosystem resilience", "Avoid extractive influence", "Respect territorial autonomy", "Protect mission integrity"],
-    "classCNote": "Not publicly tradable. Bound by mission protection clause. Requires strategic alignment review.",
-    "requestStrategic": "Request Strategic Participation",
-    "howGovWorks": "How governance works",
-    "howGovDesc": "Governance weight is a hybrid of XP (non-transferable reputation earned through activity) and shareholding. XP is the primary gating mechanism — money alone does not grant influence.",
-    "participate": "Participate",
-    "commentVote": "Comment & Vote",
-    "propose": "Propose",
-    "stewardCouncil": "Steward Council",
-    "xpNeverDecays": "XP never decays and cannot be purchased. A +10% XP bonus applies to contributions made outside a member's primary territory, incentivising cross-ecosystem activity.",
-    "surplusTitle": "Where the surplus goes",
-    "surplusDesc": "Annual surplus is never extracted. It is redistributed across four pools defined by member governance.",
-    "reinvestment": "Reinvestment",
-    "reinvestmentDesc": "Platform development & infrastructure",
-    "shareholders": "Shareholders",
-    "shareholdersDesc": "Dividend distribution to all share classes",
-    "ecosystemTreasury": "Ecosystem Treasury",
-    "ecosystemTreasuryDesc": "Collective reserves & commons funding",
-    "solidarityFund": "Solidarity Fund",
-    "solidarityFundDesc": "Support for under-resourced members",
-    "contributionTitle": "What your contribution funds",
-    "contributionItems": ["Infrastructure & hosting for the global platform", "AI development reinforcing collective intelligence", "Territorial intelligence & memory tools", "Community support, assemblies & gatherings", "New features shaped by members' needs", "Solidarity support for under-resourced Humans"],
-    "ctaTitle": "Ready to co-own the platform you use?",
-    "ctaDesc": "Join as a Class B Steward — open to all active Humans.",
-    "becomeCoOwner": "Become a co-owner",
-    "viewShares": "View shares"
-  },
   "whatComesNextPage": {
     "upcoming": "Here are upcoming pieces we're weaving:",
-    "items": ["AI-led collective onboarding", "Territory memory expansion", "XP + Credits evolution", "Pods with expiration time", "Multi-creator quests", "Partnered guild ecosystems", "More expressive creative tools", "Deep cross-territory analytics", "Multi-language contextual translation", "Coop-like governance directly in the UI"],
+    "items": [
+      "Coop-like governance directly in the UI",
+      "Multi-creator quests",
+      "Partnered guild ecosystems",
+      "Territory memory expansion",
+      "XP + Credits evolution",
+      "Pods with expiration time",
+      "More expressive creative tools",
+      "Deep cross-territory analytics",
+      "Multi-language contextual translation",
+      "AI-assisted collective onboarding"
+    ],
     "haveIdea": "Have an idea, a wild thought, a frustration, or a wish?",
     "tellUs": "Tell us.",
     "weListen": "We listen.",
@@ -1237,12 +1435,21 @@
   "cooperativeVenturePage": {
     "badge": "Coop-like Venture",
     "heroTitle": "A platform owned by the people who use it.",
-    "heroDesc": "changethegame is not just a tool. It is a shared infrastructure — built, governed, and owned collectively by its members. We chose a coop-like structure because the tools we use to collaborate should belong to the people who collaborate.",
+    "heroDesc": "changethegame is not just a tool. It is a shared infrastructure — built, governed, and owned collectively by its members. We chose a coop-like structure because the tools we use to cooperate should belong to the people who cooperate.",
     "whyTitle": "Why a coop-like structure?",
     "whyCards": [
-      { "title": "Member-owned", "desc": "Humans who contribute shape what gets built. Ownership is earned through participation, not just capital." },
-      { "title": "Democratic governance", "desc": "Decisions are made collectively. Governance weight is a hybrid of XP reputation and shareholding — not money alone." },
-      { "title": "Surplus reinvested", "desc": "Annual surplus is split across reinvestment, shareholders, treasury, and solidarity — never extracted for private gain." }
+      {
+        "title": "Member-owned",
+        "desc": "Humans who contribute shape what gets built. Ownership is earned through participation, not just capital."
+      },
+      {
+        "title": "Democratic governance",
+        "desc": "Decisions are made collectively. Governance weight is a hybrid of XP reputation and shareholding — not money alone."
+      },
+      {
+        "title": "Surplus reinvested",
+        "desc": "Annual surplus is split across reinvestment, shareholders, treasury, and solidarity — never extracted for private gain."
+      }
     ],
     "shareClassesTitle": "Three share classes",
     "shareClassesSubtitle": "Each class reflects a different form of commitment — from strategic stewardship to day-to-day participation.",
@@ -1251,7 +1458,14 @@
     "classABadge": "30–40 holders max",
     "classADesc": "Class A members are the foundational stewards of changethegame. They hold deep governance rights, participate in strategic decisions, and take long-term responsibility for the mission. Their involvement goes beyond investment — they co-define the direction of the venture.",
     "rights": "Rights",
-    "classARights": ["Full governance voting rights", "Steward Council eligibility", "Strategic decision participation", "Dividend eligibility (annual surplus)", "Access to all assemblies & sprints", "Priority input on the product roadmap"],
+    "classARights": [
+      "Full governance voting rights",
+      "Steward Council eligibility",
+      "Strategic decision participation",
+      "Dividend eligibility (annual surplus)",
+      "Access to all assemblies & sprints",
+      "Priority input on the product roadmap"
+    ],
     "economicTerms": "Economic terms",
     "classAMinTicket": "Minimum ticket",
     "classAMinTicketVal": "€25,000",
@@ -1267,7 +1481,14 @@
     "classBSub": "Active participation · Open to all Humans",
     "classBBadge": "Open access",
     "classBDesc": "Class B is open to any Human on the platform who wants to go beyond using the tool — and actually own a piece of it. Stewards support the project financially, influence its direction, and participate in governance proportional to their XP level and contribution history.",
-    "classBRights": ["Proportional governance voting (XP-weighted)", "Access to member assemblies & gatherings", "Roadmap influence and feature voting", "Dividend eligibility (annual surplus)", "Visibility as a platform co-owner", "Early access to new features"],
+    "classBRights": [
+      "Proportional governance voting (XP-weighted)",
+      "Access to member assemblies & gatherings",
+      "Roadmap influence and feature voting",
+      "Dividend eligibility (annual surplus)",
+      "Visibility as a platform co-owner",
+      "Early access to new features"
+    ],
     "classBPrice": "Price per share",
     "classBPriceVal": "€10",
     "classBGovWeight": "Governance weight",
@@ -1282,27 +1503,67 @@
     "classCSub": "Institutional · Foundations · Impact investors",
     "classCBadge": "By invitation",
     "classCDesc": "Class C shares are designed for institutions, foundations, public bodies, and long-term aligned organizations that want to participate structurally in the platform's governance and ecosystem development. Not investors — infrastructure partners committed to mission resilience.",
-    "classCRights": ["Governance participation & ecosystem oversight", "Dividend eligibility (annual surplus)", "Visibility as ecosystem partner", "Strategic consultation access", "Treasury oversight participation", "Long-term mission co-stewardship"],
+    "classCRights": [
+      "Governance participation & ecosystem oversight",
+      "Dividend eligibility (annual surplus)",
+      "Visibility as ecosystem partner",
+      "Strategic consultation access",
+      "Treasury oversight participation",
+      "Long-term mission co-stewardship"
+    ],
     "commitments": "Commitments",
-    "classCCommitments": ["Support long-term ecosystem resilience", "Avoid extractive influence", "Respect territorial autonomy", "Protect mission integrity"],
+    "classCCommitments": [
+      "Support long-term ecosystem resilience",
+      "Avoid extractive influence",
+      "Respect territorial autonomy",
+      "Protect mission integrity"
+    ],
     "classCNote": "Not publicly tradable. Bound by mission protection clause. Requires strategic alignment review.",
     "requestClassC": "Request Strategic Participation",
     "governanceTitle": "How governance works",
     "governanceDesc": "Governance weight is a hybrid of XP (non-transferable reputation earned through activity) and shareholding. XP is the primary gating mechanism — money alone does not grant influence.",
     "govLevels": [
-      { "levels": "Levels 1–4", "right": "Participate" },
-      { "levels": "Levels 5–8", "right": "Comment & Vote" },
-      { "levels": "Levels 9–12", "right": "Propose" },
-      { "levels": "Levels 13–15", "right": "Steward Council" }
+      {
+        "levels": "Levels 1–4",
+        "right": "Participate"
+      },
+      {
+        "levels": "Levels 5–8",
+        "right": "Comment & Vote"
+      },
+      {
+        "levels": "Levels 9–12",
+        "right": "Propose"
+      },
+      {
+        "levels": "Levels 13–15",
+        "right": "Steward Council"
+      }
     ],
     "govXPNote": "XP never decays and cannot be purchased. A +10% XP bonus applies to contributions made outside a member's primary territory, incentivising cross-ecosystem activity.",
     "surplusTitle": "Where the surplus goes",
     "surplusDesc": "Annual surplus is never extracted. It is redistributed across four pools defined by member governance.",
     "surplusPools": [
-      { "pct": "40%", "label": "Reinvestment", "desc": "Platform development & infrastructure" },
-      { "pct": "30%", "label": "Shareholders", "desc": "Dividend distribution to all share classes" },
-      { "pct": "20%", "label": "Ecosystem Treasury", "desc": "Collective reserves & commons funding" },
-      { "pct": "10%", "label": "Solidarity Fund", "desc": "Support for under-resourced members" }
+      {
+        "pct": "40%",
+        "label": "Reinvestment",
+        "desc": "Platform development & infrastructure"
+      },
+      {
+        "pct": "30%",
+        "label": "Shareholders",
+        "desc": "Dividend distribution to all share classes"
+      },
+      {
+        "pct": "20%",
+        "label": "Ecosystem Treasury",
+        "desc": "Collective reserves & commons funding"
+      },
+      {
+        "pct": "10%",
+        "label": "Solidarity Fund",
+        "desc": "Support for under-resourced members"
+      }
     ],
     "contributionTitle": "What your contribution funds",
     "contributionItems": [
@@ -1323,19 +1584,130 @@
     "title": "10 Use Cases",
     "subtitle": "How changethegame supports freelancers, organizations, collectives, territories, ecosystem builders, citizens & communities.",
     "cases": [
-      { "title": "The Freelancer Who Wants to Shine", "audience": "Freelancers", "description": "A freelance designer or strategist builds a living profile enhanced by AI, presents services, past quests, causes & territories, receives reviews & XP, appears in talent searches, and gets paid in fiat or earns credits through contributions.", "features": ["AI-enhanced profile", "Services & portfolio", "XP reputation", "Skill-based search", "Fiat + credit payments"] },
-      { "title": "The Public Actor Looking for the Right Talent", "audience": "Organizations", "description": "A city, region, NGO, or company publishes open quests, searches talent by domain, cause and territory, creates temporary task forces mixing freelancers and guild members, and tracks progress & funding centrally.", "features": ["Open quests", "Talent search", "Task forces", "Central tracking"] },
-      { "title": "A Collective Organizing Its Actions", "audience": "Collectives", "description": "A community, choir, DAO, or citizen group creates a guild to access rituals & online gatherings, internal and public quests, shared task management, a co-financing pool (fiat + credits), and partnerships with other guilds.", "features": ["Rituals & gatherings", "Internal quests", "Shared tasks", "Co-financing", "Partnerships"] },
-      { "title": "Crowdfunded Quests for Collective Action", "audience": "Communities", "description": "A guild launches a regeneration project — mapping abandoned buildings, training volunteers, designing composting systems. Contributions flow in fiat or credits, volunteers earn XP, admins define milestones & roles, and AI assists in writing the project.", "features": ["Fiat + credit funding", "Volunteer XP", "Milestones", "AI writing assist"] },
-      { "title": "Personal Task Management Inside Every Quest", "audience": "Everyone", "description": "Every user creates their own task list, links tasks to quests, guilds, services or territories, gets AI suggestions to refine tasks, and drags tasks into quest timelines. A personal productivity system embedded inside a cooperative action ecosystem.", "features": ["Personal tasks", "Quest-linked", "AI task suggestions", "Timeline integration"] },
-      { "title": "Territorial Diagnosis for Decision Makers", "audience": "Territories", "description": "A local authority or changemaker uses the Territory Analyst AI to surface vulnerabilities, emerging opportunities, active actors & guilds, possible quests to launch, and recommended partners. This helps territories design evidence-based strategies.", "features": ["AI territory analysis", "Vulnerability mapping", "Actor discovery", "Strategy design"] },
-      { "title": "Real-World Community Activation", "audience": "Citizens", "description": "Users with shared motivations meet physically, organize walk-throughs, workshops, hackathons and rituals, sync events with guild calendars, and create local micro-communities inside larger guilds. A bridge between digital commons and real territory life.", "features": ["Physical meetups", "Events & rituals", "Calendar sync", "Local micro-communities"] },
-      { "title": "Multi-Currency Value Exchange", "audience": "Ecosystem builders", "description": "Participants interact using fiat for formal services, credits for contributions and symbolic exchanges, XP to grow reputation and unlock governance rights, and A/B shares to join long-term cooperative ownership. A regenerative economy powering a cooperative platform.", "features": ["Fiat", "Credits", "XP reputation", "Cooperative shares"] },
-      { "title": "AI Co-Pilots Supporting Each Persona", "audience": "Everyone", "description": "Specialized assistants serve every need: Territory Analyst for deep-dives, Community Strategist for engagement, Grant Writer for funding proposals, Content Creator for bios and pages, Coach for goal setting. Each generates XP and uses credits, reinforcing engagement loops.", "features": ["Territory Analyst", "Community Strategist", "Grant Writer", "Content Creator", "Coach"] },
-      { "title": "Collective Governance of a Digital Commons", "audience": "Co-owners", "description": "Users who accumulate XP vote on platform improvements, participate in micro-governance inside their guild, join circles steering territories or program tracks, propose new rules or shared resources, and eventually hold cooperative shares for deeper involvement.", "features": ["Democratic voting", "Guild governance", "Territory circles", "Cooperative shares"] }
+      {
+        "title": "The Freelancer Who Wants to Contribute",
+        "audience": "Freelancers",
+        "description": "A freelance designer or strategist builds a living profile enhanced by AI, presents services, past quests, causes & territories, receives peer recognition & XP, appears in talent searches, and gets compensated in fiat or earns credits through contributions.",
+        "features": [
+          "AI-enhanced profile",
+          "Services & portfolio",
+          "XP reputation",
+          "Skill-based search",
+          "Fiat + credit payments"
+        ]
+      },
+      {
+        "title": "The Public Actor Looking for the Right Talent",
+        "audience": "Organizations",
+        "description": "A city, region, NGO, or company publishes open quests, searches talent by domain, cause and territory, creates temporary task forces mixing freelancers and guild members, and tracks progress & funding centrally.",
+        "features": [
+          "Open quests",
+          "Talent search",
+          "Task forces",
+          "Central tracking"
+        ]
+      },
+      {
+        "title": "A Collective Organizing Its Actions",
+        "audience": "Collectives",
+        "description": "A community, choir, DAO, or citizen group creates a guild to access rituals & online gatherings, internal and public quests, shared task management, a co-financing pool (fiat + credits), and partnerships with other guilds.",
+        "features": [
+          "Rituals & gatherings",
+          "Internal quests",
+          "Shared tasks",
+          "Co-financing",
+          "Partnerships"
+        ]
+      },
+      {
+        "title": "Crowdfunded Quests for Collective Action",
+        "audience": "Communities",
+        "description": "A guild launches a regeneration project — mapping abandoned buildings, training volunteers, designing composting systems. Contributions flow in fiat or credits, volunteers earn XP, admins define milestones & roles, and AI assists in writing the project.",
+        "features": [
+          "Fiat + credit funding",
+          "Volunteer XP",
+          "Milestones",
+          "AI writing assist"
+        ]
+      },
+      {
+        "title": "Personal Task Management Inside Every Quest",
+        "audience": "Everyone",
+        "description": "Every user creates their own task list, links tasks to quests, guilds, services or territories, gets AI suggestions to refine tasks, and drags tasks into quest timelines. A personal productivity system embedded inside a cooperative action ecosystem.",
+        "features": [
+          "Personal tasks",
+          "Quest-linked",
+          "AI task suggestions",
+          "Timeline integration"
+        ]
+      },
+      {
+        "title": "Territorial Diagnosis for Decision Makers",
+        "audience": "Territories",
+        "description": "A local authority or changemaker uses the Territory Analyst AI to surface vulnerabilities, emerging opportunities, active actors & guilds, possible quests to launch, and recommended partners. This helps territories design evidence-based strategies.",
+        "features": [
+          "AI territory analysis",
+          "Vulnerability mapping",
+          "Actor discovery",
+          "Strategy design"
+        ]
+      },
+      {
+        "title": "Real-World Community Activation",
+        "audience": "Citizens",
+        "description": "Users with shared motivations meet physically, organize walk-throughs, workshops, hackathons and rituals, sync events with guild calendars, and create local micro-communities inside larger guilds. A bridge between digital commons and real territory life.",
+        "features": [
+          "Physical meetups",
+          "Events & rituals",
+          "Calendar sync",
+          "Local micro-communities"
+        ]
+      },
+      {
+        "title": "Multi-Currency Value Exchange",
+        "audience": "Ecosystem builders",
+        "description": "Participants interact using fiat for formal services, credits for contributions and symbolic exchanges, XP to grow reputation and unlock governance rights, and A/B shares to join long-term cooperative ownership. A regenerative economy powering a cooperative platform.",
+        "features": [
+          "Fiat",
+          "Credits",
+          "XP reputation",
+          "Cooperative shares"
+        ]
+      },
+      {
+        "title": "AI Co-Pilots Supporting Each Persona",
+        "audience": "Everyone",
+        "description": "Specialized assistants serve every need: Territory Analyst for deep-dives, Community Strategist for engagement, Grant Writer for funding proposals, Content Creator for bios and pages, Coach for goal setting. Each generates XP and uses credits, reinforcing engagement loops.",
+        "features": [
+          "Territory Analyst",
+          "Community Strategist",
+          "Grant Writer",
+          "Content Creator",
+          "Coach"
+        ]
+      },
+      {
+        "title": "Collective Governance of a Digital Commons",
+        "audience": "Co-owners",
+        "description": "Users who accumulate XP vote on platform improvements, participate in micro-governance inside their guild, join circles steering territories or program tracks, propose new rules or shared resources, and eventually hold cooperative shares for deeper involvement.",
+        "features": [
+          "Democratic voting",
+          "Guild governance",
+          "Territory circles",
+          "Cooperative shares"
+        ]
+      }
     ],
     "whoForTitle": "Who is changethegame for?",
-    "whoForList": ["Freelancers", "Organizations", "Collectives", "Territories", "Ecosystem Builders", "Citizens", "Communities"],
+    "whoForList": [
+      "Freelancers",
+      "Organizations",
+      "Collectives",
+      "Territories",
+      "Ecosystem Builders",
+      "Citizens",
+      "Communities"
+    ],
     "whoForDesc": "Across skills, missions, governance, funding, territorial analysis and real-world activation — changethegame is where human collaboration meets AI-augmented impact.",
     "audiences": {
       "Freelancers": "Freelancers",
@@ -1350,38 +1722,132 @@
     }
   },
   "productVisionPage": {
-    "title": "Product Vision 2026",
-    "subtitle": "The cooperative platform that turns people, communities and territories into engines of transformation.",
+    "title": "The Platform",
+    "subtitle": "changethegame.xyz is the cooperative platform that turns people, communities and territories into engines of transformation.",
     "ambitionTitle": "Our Ambition",
     "ambitionP1": "changethegame is a global digital cooperative designed for people, organizations and territories who want to act, collaborate and regenerate their ecosystems.",
-    "ambitionP2": "It is not a social network. It is not a marketplace. It is not a project management tool.",
+    "ambitionP2": "Beyond a social network. Beyond a marketplace. Beyond a project management tool.",
     "ambitionP3": "changethegame is an <1>action infrastructure</1> — where skills, missions, communities, territories, resources and collective intelligence turn into real-world impact.",
     "visionTitle": "Our Vision",
-    "visionItems": ["Individuals showcase talents, stories and contributions", "Collectives organize, fund and grow", "Organizations find the right people and launch missions", "Territories become readable, understandable and actionable", "Value circulates through multiple layers (fiat, Coins, $CTG contribution tokens, credits, XP)", "Everyone contributes to a shared digital commons", "AI acts as a co-pilot for transformation"],
+    "visionItems": [
+      "Individuals showcase talents, stories and contributions",
+      "Collectives organize, fund and grow",
+      "Organizations find the right people and launch missions",
+      "Territories become readable, understandable and actionable",
+      "Value circulates through multiple layers (fiat, Coins, $CTG contribution tokens, credits, XP)",
+      "Everyone contributes to a shared digital commons",
+      "AI acts as a co-pilot for transformation"
+    ],
     "pillarsTitle": "The Six Product Pillars",
     "pillars": [
-      { "title": "Living Profiles — Amplified by AI", "description": "Each user owns a living profile: skills, territories, causes, services, quests completed, XP level and community involvement.", "aiFeatures": ["Generate profile from CV / LinkedIn / text", "Identify ideal quests, roles or guilds", "Rewrite bios, pitches and project descriptions", "Suggest meaningful human connections", "Package services and expertise"], "goal": "Reduce friction, increase visibility, enhance impact." },
-      { "title": "Guilds — Communities Designed for Action", "description": "Autonomous communities with rituals & gatherings, members & roles, internal quests, partnerships, collective funding, shared knowledge and distributed governance.", "aiFeatures": ["Publish public quests", "Onboard organizations", "Co-finance missions", "Co-create learning environments", "Define rules, traditions & rituals"], "goal": "Structure communities so they can act with clarity, agency and collective intelligence." },
-      { "title": "Quests — The Engine of Value and Impact", "description": "Professional missions, community challenges, territorial actions, rituals, learning pathways, creative explorations and transition projects.", "aiFeatures": ["Funded via fiat, credits, XP sponsorship, guild or territorial funds", "Quest templates for structured missions", "AI co-writes, analyzes and recommends quests"], "goal": "Help individuals, organizations and territories turn needs into action." },
-      { "title": "Living Territories — Intelligence for Regeneration", "description": "Every territory has a dynamic portrait, AI-powered ecosystem analysis, maps of skills and actors, a territory feed of needs and signals, and territorial quests.", "aiFeatures": ["Collaborative territory builder module", "Territories become readable, understandable & mobilizable"], "goal": "Give local actors a live intelligence layer to guide transformation." },
-      { "title": "The Social Graph — Purposeful & Real-World Anchored", "description": "Connect people through shared causes, skills, place-based involvement, guild membership and project participation.", "aiFeatures": ["Augmented messaging (AI summaries, actions, recommendations)", "In-person meetings and explorations", "Hybrid events (rituals, masterclasses, gatherings)", "Cross-territory learning loops"], "goal": "Weave meaningful networks of practice, purpose and mutual support." },
-      { "title": "A Cooperative Multi-Economy", "description": "Value circulates through four complementary systems: fiat currency, credits (internal currency with slow demurrage), XP (reputation with 15 bio-inspired levels), and cooperative shares A/B/C.", "aiFeatures": ["Fiat for classic payments", "Credits earned through contributions, unlock tools & quests", "XP grants governance rights with territory multipliers", "Shares represent long-term cooperative ownership"], "goal": "Align money, recognition, cooperation and governance." }
+      {
+        "title": "Living Profiles — Amplified by AI",
+        "description": "Each user owns a living profile: skills, territories, causes, services, quests completed, XP level and community involvement.",
+        "aiFeatures": [
+          "Generate profile from CV / LinkedIn / text",
+          "Identify ideal quests, roles or guilds",
+          "Rewrite bios, pitches and project descriptions",
+          "Suggest meaningful human connections",
+          "Package services and expertise"
+        ],
+        "goal": "Reduce friction, increase visibility, enhance impact."
+      },
+      {
+        "title": "Guilds — Communities Designed for Action",
+        "description": "Autonomous communities with rituals & gatherings, members & roles, internal quests, partnerships, collective funding, shared knowledge and distributed governance.",
+        "aiFeatures": [
+          "Publish public quests",
+          "Onboard organizations",
+          "Co-finance missions",
+          "Co-create learning environments",
+          "Define rules, traditions & rituals"
+        ],
+        "goal": "Structure communities so they can act with clarity, agency and collective intelligence."
+      },
+      {
+        "title": "Quests — The Engine of Value and Impact",
+        "description": "Professional missions, community challenges, territorial actions, rituals, learning pathways, creative explorations and transition projects.",
+        "aiFeatures": [
+          "Funded via fiat, credits, XP sponsorship, guild or territorial funds",
+          "Quest templates for structured missions",
+          "AI co-writes, analyzes and recommends quests"
+        ],
+        "goal": "Help individuals, organizations and territories turn needs into action."
+      },
+      {
+        "title": "Living Territories — Intelligence for Regeneration",
+        "description": "Every territory has a dynamic portrait, AI-powered ecosystem analysis, maps of skills and actors, a territory feed of needs and signals, and territorial quests.",
+        "aiFeatures": [
+          "Collaborative territory builder module",
+          "Territories become readable, understandable & mobilizable"
+        ],
+        "goal": "Give local actors a live intelligence layer to guide transformation."
+      },
+      {
+        "title": "The Social Graph — Purposeful & Real-World Anchored",
+        "description": "Connect people through shared causes, skills, place-based involvement, guild membership and project participation.",
+        "aiFeatures": [
+          "Augmented messaging (AI summaries, actions, recommendations)",
+          "In-person meetings and explorations",
+          "Hybrid events (rituals, masterclasses, gatherings)",
+          "Cross-territory learning loops"
+        ],
+        "goal": "Weave meaningful networks of practice, purpose and mutual support."
+      },
+      {
+        "title": "A Cooperative Multi-Economy",
+        "description": "Value circulates through four complementary systems: fiat currency, credits (internal currency with slow demurrage), XP (reputation with 15 bio-inspired levels), and cooperative shares A/B/C.",
+        "aiFeatures": [
+          "Fiat for classic payments",
+          "Credits earned through contributions, unlock tools & quests",
+          "XP grants governance rights with territory multipliers",
+          "Shares represent long-term cooperative ownership"
+        ],
+        "goal": "Align money, recognition, cooperation and governance."
+      }
     ],
     "aiRoleTitle": "The Role of AI — A Constant Co-pilot",
-    "aiRoleItems": ["Structure ideas into quests", "Generate bios & proposals", "Summarize rituals & meetings", "Suggest connections & opportunities", "Diagnose territories", "Align tasks with missions", "Analyze collective signals"],
+    "aiRoleItems": [
+      "Structure ideas into quests",
+      "Generate bios & proposals",
+      "Summarize rituals & meetings",
+      "Suggest connections & opportunities",
+      "Diagnose territories",
+      "Align tasks with missions",
+      "Analyze collective signals"
+    ],
     "aiRoleGoal": "Augment human capacities, not replace them.",
     "governanceTitle": "Governance Architecture",
     "governanceItems": [
-      { "label": "Users are co-stewards" },
-      { "label": "XP grants progressive rights" },
-      { "label": "Shares give long-term engagement" },
-      { "label": "Transparent governance" },
-      { "label": "Guilds hold micro-governance" },
-      { "label": "Territories influence strategy" }
+      {
+        "label": "Users are co-stewards"
+      },
+      {
+        "label": "XP grants progressive rights"
+      },
+      {
+        "label": "Shares give long-term engagement"
+      },
+      {
+        "label": "Transparent governance"
+      },
+      {
+        "label": "Guilds hold micro-governance"
+      },
+      {
+        "label": "Territories influence strategy"
+      }
     ],
     "promiseTitle": "Our Promise",
     "promiseDesc": "To reinvent how humans collaborate to transform their ecosystems. A space where:",
-    "promiseItems": ["Talents find meaning", "Organizations find the right people", "Communities find structure", "Territories find clarity", "The commons find a home", "Transitions find momentum"]
+    "promiseItems": [
+      "Talents find meaning",
+      "Organizations find the right people",
+      "Communities find structure",
+      "Territories find clarity",
+      "The commons find a home",
+      "Transitions find momentum"
+    ]
   },
   "revenuePage": {
     "overview": "Overview",
@@ -1396,23 +1862,54 @@
     "ownershipDesc": "Governance rights through formal shareholding.",
     "xpLabel": "XP",
     "xpDesc": "Contribution-based reputation recognition.",
-    "xpLabel": "XP",
-    "xpDesc": "Contribution-based reputation recognition.",
     "shareholdingP": "Shareholding refers to legal participation in ownership or governance, governed by formal legal statutes. It may grant governance rights depending on the legal structure.",
-    "shareholdingItems": ["Is not automatically linked to XP, credits, or usage.", "Does not guarantee financial returns unless legally defined.", "Is separate from platform participation."],
+    "shareholdingItems": [
+      "Is not automatically linked to XP, credits, or usage.",
+      "Does not guarantee financial returns unless legally defined.",
+      "Is separate from platform participation."
+    ],
     "shareholdingCallout": "Shareholding ≠ XP\nShareholding ≠ Credits\nShareholding ≠ Guaranteed Income",
     "monetaryP": "Users may generate revenue through the platform via:",
-    "monetaryItems": ["Paid services", "Consulting engagements", "Courses", "Events", "Project-based contracts", "Funded quests"],
+    "monetaryItems": [
+      "Paid services",
+      "Consulting engagements",
+      "Courses",
+      "Events",
+      "Project-based contracts",
+      "Funded quests"
+    ],
     "monetaryPrinciples": "Principles",
-    "monetaryPrincipleItems": ["Direct payment between parties.", "Transparent transaction fee (if applicable).", "No hidden charges.", "No claim of ownership over user contracts.", "Compliance with financial and tax regulations."],
+    "monetaryPrincipleItems": [
+      "Direct payment between parties.",
+      "Transparent transaction fee (if applicable).",
+      "No hidden charges.",
+      "No claim of ownership over user contracts.",
+      "Compliance with financial and tax regulations."
+    ],
     "monetaryNote": "Money transactions are external currency flows and are independent from XP or Credits.",
     "creditsP": "Credits are internal, non-convertible coordination units that circulate within the ecosystem.",
     "creditsCoreProps": "Core Properties:",
-    "creditsCoreItems": ["Non-convertible to fiat currency", "Circulate within the platform only", "Subject to 1% monthly demurrage", "Cannot be withdrawn, traded, or exchanged externally", "Never used for quest compensation or funding", "Do not represent ownership or financial return"],
+    "creditsCoreItems": [
+      "Non-convertible to fiat currency",
+      "Circulate within the platform only",
+      "Subject to 1% monthly demurrage",
+      "Cannot be withdrawn, traded, or exchanged externally",
+      "Never used for quest compensation or funding",
+      "Do not represent ownership or financial return"
+    ],
     "creditsObtained": "Credits may be obtained via:",
-    "creditsObtainedItems": ["Subscription plans", "Optional top-up purchases", "Onboarding bonuses"],
+    "creditsObtainedItems": [
+      "Subscription plans",
+      "Optional top-up purchases",
+      "Onboarding bonuses"
+    ],
     "creditsUsedFor": "Credits may be used for:",
-    "creditsUsedItems": ["Boosting quest visibility", "Unlocking advanced features", "Quota expansions", "Gamification actions"],
+    "creditsUsedItems": [
+      "Boosting quest visibility",
+      "Unlocking advanced features",
+      "Quota expansions",
+      "Gamification actions"
+    ],
     "demurrageTitle": "Demurrage (Monthly Redistribution):",
     "demurrageP": "Credits are subject to a 1.5% monthly redistribution rate. Inactive balances gradually return to the Platform Treasury, which reinvests them into collective quests, territorial initiatives, and ecosystem-wide development. This mechanism encourages circulation and prevents concentration of coordination power.",
     "creditsCallout": "Credits ≠ Money · Credits ≠ Investment · Credits ≠ Equity",
@@ -1420,20 +1917,56 @@
     "learnMoreCredits": "Learn more about the Credit Economy →",
     "xpP": "XP represents contribution-based recognition.",
     "xpProps": "XP:",
-    "xpPropItems": ["Has no monetary value.", "Cannot be purchased.", "Cannot be converted into credits or money.", "Cannot be transferred.", "Does not grant ownership rights."],
+    "xpPropItems": [
+      "Has no monetary value.",
+      "Cannot be purchased.",
+      "Cannot be converted into credits or money.",
+      "Cannot be transferred.",
+      "Does not grant ownership rights."
+    ],
     "xpEarned": "XP is earned through:",
-    "xpEarnedItems": ["Completing quests", "Publishing resources", "Constructive participation", "Peer validation", "Collaboration"],
+    "xpEarnedItems": [
+      "Completing quests",
+      "Publishing resources",
+      "Constructive participation",
+      "Peer validation",
+      "Collaboration"
+    ],
     "xpPurpose": "Purpose:",
-    "xpPurposeItems": ["Build trust", "Reflect reliability", "Signal contribution history"],
+    "xpPurposeItems": [
+      "Build trust",
+      "Reflect reliability",
+      "Signal contribution history"
+    ],
     "xpCallout": "XP rewards contribution, not payment.",
     "sustainabilityP": "The platform operates on a hybrid sustainability model:",
-    "sustainabilityItems": ["Transaction fees — applied only when value is created.", "Optional professional plans.", "Institutional funding.", "Infrastructure services (where applicable)."],
+    "sustainabilityItems": [
+      "Transaction fees — applied only when value is created.",
+      "Optional professional plans.",
+      "Institutional funding.",
+      "Infrastructure services (where applicable)."
+    ],
     "sustainabilityNot": "The platform does not:",
-    "sustainabilityNotItems": ["Monetize user data.", "Sell personal information.", "Rely on attention-based advertising."],
-    "governanceP": "The four economic layers are kept deliberately separate. The following safeguards apply:",
-    "governanceItems": ["No monetization of attention.", "No data brokerage.", "Transparent updates to economic policy.", "Compliance with applicable regulations."],
+    "sustainabilityNotItems": [
+      "Monetize user data.",
+      "Sell personal information.",
+      "Rely on attention-based advertising."
+    ],
+    "governanceP": "The five economic layers are kept deliberately separate. The following safeguards apply:",
+    "governanceItems": [
+      "No monetization of attention.",
+      "No data brokerage.",
+      "Transparent updates to economic policy.",
+      "Compliance with applicable regulations."
+    ],
     "governancePrinciples": "Guiding Principles",
-    "governancePrincipleItems": ["Transparency", "Proportionality", "Mission alignment", "Non-extractive design", "Long-term resilience"]
+    "governancePrincipleItems": [
+      "Transparency",
+      "Proportionality",
+      "Mission alignment",
+      "Non-extractive design",
+      "Long-term resilience"
+    ]
   },
   "creditEconomyPage": {
     "title": "Hybrid Sovereign Economy",
@@ -1446,9 +1979,21 @@
     "creditsDeepDive": "Credits: Collaboration Fuel",
     "creditsIntro": "Credits reward contribution beyond financial exchange. They are a <strong>non-convertible internal coordination unit</strong> designed to facilitate participation and collaborative activation.",
     "creditsEarnedBy": "Credits are earned by:",
-    "creditsEarnedItems": ["Subscription plans", "Onboarding bonuses", "Optional top-up purchases", "Small universal monthly mint (all active users)"],
+    "creditsEarnedItems": [
+      "Subscription plans",
+      "Onboarding bonuses",
+      "Optional top-up purchases",
+      "Small universal monthly mint (all active users)"
+    ],
     "creditsSpentOn": "Credits are spent on:",
-    "creditsSpentItems": ["Boosting quest visibility", "Reduced commission token (single mission)", "Advanced AI territory insights", "Highlighting profile", "Submitting governance proposals", "Event discounts & territory premium tools"],
+    "creditsSpentItems": [
+      "Boosting quest visibility",
+      "Reduced commission token (single mission)",
+      "Advanced AI territory insights",
+      "Highlighting profile",
+      "Submitting governance proposals",
+      "Event discounts & territory premium tools"
+    ],
     "creditsMustFeel": "Credits must feel useful but not financial.",
     "fadeTitle": "Monthly Redistribution (Fade)",
     "fadeIntro": "To prevent hoarding and encourage active circulation, Credits gently fade by <strong>{{rate}}</strong> per month.",
@@ -1517,7 +2062,7 @@
     "s4Title": "4. Territory, Guild & Quest Data Isolation",
     "s4P": "Data within guilds, companies, and quests is isolated to authorized members. Public content is visible to all users; private content is restricted by role-based access.",
     "s5Title": "5. Cookies and Analytics",
-    "s5P": "We use essential, analytics, and preference cookies. See our <a>Cookie Policy</a> for details.",
+    "s5P": "We use essential, analytics, and preference cookies. See our <a href='/legal?tab=terms#cookies'>Cookie Policy</a> for details.",
     "s6Title": "6. Third-Party Services",
     "s6P": "We use service providers for payment processing, hosting, and analytics. All operate under strict data protection agreements.",
     "s7Title": "7. Data Retention",
@@ -1551,7 +2096,8 @@
     "s11Title": "11. Suspension & Termination",
     "s11P": "We reserve the right to suspend or terminate accounts that violate these terms. Users may delete their accounts at any time through settings.",
     "s12Title": "12. Dispute Resolution",
-    "s12P": "Disputes will be resolved through good-faith communication. For unresolved issues, contact us at <a>legal@changethegame.xyz</a>."
+    "s12P": "Disputes will be resolved through good-faith communication. For unresolved issues, contact us at <a>legal@changethegame.xyz</a>.",
+    "intro": "These terms are grounded in our <a href='/vision?tab=manifesto'>Manifesto</a> — the shared vision and values that unite the changethegame community. By joining, you adhere to this vision as much as to these rules."
   },
   "contactPage": {
     "reachOut": "Reach Out",
@@ -1570,7 +2116,14 @@
   },
   "territoryAgentsPage": {
     "whatAnalyze": "What Territory Agents Analyze",
-    "analyzeItems": ["Quests happening locally", "Guilds active in the region", "Services available", "People connected to the territory", "Opportunities for collaboration", "Suggestions for activation and community building"],
+    "analyzeItems": [
+      "Quests happening locally",
+      "Guilds active in the region",
+      "Services available",
+      "People connected to the territory",
+      "Opportunities for collaboration",
+      "Suggestions for activation and community building"
+    ],
     "purposeTitle": "Purpose",
     "purposeP": "They help territories regenerate intelligently and collaboratively."
   },
@@ -1614,5 +2167,97 @@
     "suggestSearchExistingPrompt": "Search my existing quests, guilds, and services for something similar",
     "suggestDifferent": "Try something different",
     "suggestDifferentPrompt": "Let me try a different approach"
+  },
+  "questFundingPage": {
+    "title": "Quest Funding & Distribution",
+    "subtitle": "How quest value pools work, from pre-funding to contributor payout.",
+    "dualCurrencyTitle": "Dual-Currency Quest Pools",
+    "dualCurrencyP": "Every Project or Ongoing Mission can hold:",
+    "dualCurrencyItems": [
+      "🟩 Coins — fiat-backed mission value. Pre-funded by the creator, raised via campaigns, or both.",
+      "🌱 $CTG — contribution token. Fundable into quest escrow as an additional incentive.",
+      "Both pools are independent and can coexist on the same quest."
+    ],
+    "creditsNote": "🔷 Platform Credits are never used for quest compensation in any form.",
+    "fundraisingTitle": "Fundraising Campaigns",
+    "fundraisingItems": [
+      "Quest admins can launch one or more campaigns per currency (Coins or $CTG).",
+      "Each campaign has a threshold amount — once reached, funds can be dispatched.",
+      "Dispatch modes: Manual (admin decides), Auto: OCU pie (proportional), Auto: Equal split.",
+      "Any logged-in user can contribute to an active campaign from their wallet balance.",
+      "Campaigns and direct top-ups can run in parallel."
+    ],
+    "ocuTitle": "OCU — Open Contributive Unit",
+    "ocuP": "When OCU is enabled on a quest, contributors log their work in half-days. Each half-day is weighted by a guild FMV rate (default €200/half-day) and a difficulty multiplier. This produces a live percentage share of the Coins pool for each contributor — the contribution pie.",
+    "ocuItems": [
+      "Half-days × FMV rate × difficulty = weighted value",
+      "Live pie updates as contributions are logged and peer-reviewed",
+      "Pie can be frozen for final distribution (immutable audit snapshot)",
+      "Distribution follows the frozen pie — proportional, transparent, auditable"
+    ],
+    "distributionTitle": "Distribution & Fairness",
+    "distributionItems": [
+      "Admins choose distribution mode: OCU pie %, equal split, or manual amounts",
+      "Preview table shows each contributor's allocation before confirmation",
+      "Coins are credited to contributor wallets (withdrawable to € via Stripe Connect)",
+      "$CTG is credited to contributor wallets (demurrage resumes)",
+      "Full audit trail: quest_distributions record with recipient snapshot"
+    ],
+    "distributionNote": "After any distribution, contributors can privately report a fairness concern to platform superadmins. Quest admins see only an anonymous flag — no details.",
+    "escrowTitle": "$CTG Escrow & Demurrage Freeze",
+    "escrowP1": "$CTG normally circulates with 1%/month demurrage. When $CTG is allocated to a quest escrow pool, demurrage is frozen — the tokens hold their value while the quest is active. Once distributed to contributor wallets, normal demurrage resumes.",
+    "escrowP2": "This makes $CTG quest pools a time-coherent incentive: contributors are not penalised for the duration of a slow-moving quest."
+  },
+  "ovnPage": {
+    "title": "Open Value System",
+    "subtitle": "A new way to recognise, reward, and coordinate meaningful work.",
+    "intro": "changethegame introduces an Open Value System: a transparent, ecosystem-wide mechanism that tracks contributions, distributes value fairly, and aligns talents, territories, guilds, and natural ecosystems around shared outcomes — not hierarchy.",
+    "introSub": "This page explains, in one view, how value circulates.",
+    "liveTitle": "Live Dashboard",
+    "liveLabel": "Real-time data",
+    "statCTG": "$CTG distributed",
+    "statQuests": "Value Pie Quests",
+    "statContributors": "Contributors this month",
+    "statGuilds": "Active guilds",
+    "s1Title": "Every Actor Becomes a Node of Value",
+    "s1P": "In changethegame, each participant is represented as a node:",
+    "s1Carries": "Each node carries:",
+    "s1Map": "This creates a living map of capacity, reliability, and impact.",
+    "s2Title": "Quests: the Core Unit of Work",
+    "s2P": "A Quest is a structured micro-contract used to describe a need, assign roles, fund the mission, track contributions, and measure outcomes.",
+    "s2Know": "Because quests are pre-funded and governed by safety rules, contributors always know:",
+    "s2Atomic": "Quests create the atomic flow of value inside the network.",
+    "s3Title": "Measuring Value Across 3 Dimensions",
+    "s3P": "changethegame captures value along a triple axis:",
+    "s3Profile": "Together, Reputation (XP) + Trust Index + Commons Output ($CTG) + Mission Value (Coins) form your Contributor Profile.",
+    "s4Title": "Value Layers: Coins, $CTG & Credits",
+    "s4Sep": "Three systems, fully separated. Coins ≠ $CTG ≠ Credits.",
+    "s4bTitle": "Open Contributive Units (OCU) — Fair Value Distribution",
+    "s4bP": "The OCU module is changethegame's implementation of a Slicing Pie-style contribution ledger. It tracks every contributor's work in half-days, normalised by a guild FMV rate and difficulty multiplier, and converts it into a percentage share of the quest's distributable Coins pool.",
+    "s4bOptIn": "OCU is opt-in per quest and available on Project and Ongoing Mission quest types.",
+    "s5Title": "Transparent Redistribution",
+    "s5P": "At the end of each quest, $CTG is automatically split into:",
+    "s5Fair": "No hidden fees. No negotiation. No power games. Value = shared, visible, and fair.",
+    "s6Title": "Governance Anchored in Community",
+    "s6P": "changethegame uses multi-layer governance to ensure fairness:",
+    "s6Prevents": "This prevents exploitation, ghosting, unclear decisions, and top-down capture. The network remains safe, transparent, and distributed.",
+    "s7Title": "Living Systems as First-Class Citizens",
+    "s7P": "Territories can connect real ecological indicators (sensors, monitoring data) to quests, dashboards, and governance decisions.",
+    "s7Alert": "If a forest dries, or a river's health declines → changethegame can automatically generate ecological quests and mobilise guilds.",
+    "s7Bio": "This creates true bioregional intelligence.",
+    "s8Title": "Why It Matters",
+    "s8Not": "It's not a marketplace. It's not a job board. It's a distributed infrastructure for collective intelligence and regenerative action.",
+    "promiseP1": "When value becomes visible, cooperation becomes natural.",
+    "promiseP2": "When value flows fairly, ecosystems regenerate.",
+    "promiseP3": "When ecosystems regenerate, communities thrive.",
+    "promiseSub": "This is what the Open Value System is built for.",
+    "recentTitle": "Recent Value Pie Quests",
+    "recentEmpty": "The first distributed quests will appear here.",
+    "flowContributors": "Contributors",
+    "flowGuild": "Guild",
+    "flowTerritory": "Territory",
+    "flowCTG": "CTG",
+    "flowLiving": "Living System",
+    "flowCenter": "Quest Budget"
   }
 }

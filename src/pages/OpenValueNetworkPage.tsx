@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import {
-  Users, Zap, Shield, Leaf, BarChart3, Heart,
+  Zap, Shield, Leaf, BarChart3, Heart,
   Network, Target, FileText, ArrowRight, Globe, Sparkles, Activity
 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
@@ -14,7 +15,6 @@ interface Props {
   embedded?: boolean;
 }
 
-// ── Live stats hook ─────────────────────────────────────────
 function useOVNStats() {
   return useQuery({
     queryKey: ["ovn-page-stats"],
@@ -40,7 +40,6 @@ function useOVNStats() {
   });
 }
 
-// ── Recent value-pie quests hook ────────────────────────────
 function useRecentValuePieQuests() {
   return useQuery({
     queryKey: ["ovn-recent-vp-quests"],
@@ -59,248 +58,173 @@ function useRecentValuePieQuests() {
 }
 
 export default function OpenValueNetworkPage({ embedded }: Props) {
+  const { t } = useTranslation();
   const { data: stats } = useOVNStats();
   const { data: recentQuests } = useRecentValuePieQuests();
 
+  const nodeTypes = [
+    { label: t("ovnPage.nodeIndividuals", { defaultValue: "Individuals" }), desc: t("ovnPage.nodeIndividualsDesc", { defaultValue: "talents, experts, citizens" }) },
+    { label: t("ovnPage.nodeGuilds", { defaultValue: "Guilds" }), desc: t("ovnPage.nodeGuildsDesc", { defaultValue: "communities of practice" }) },
+    { label: t("ovnPage.nodeEntities", { defaultValue: "Entities" }), desc: t("ovnPage.nodeEntitiesDesc", { defaultValue: "projects, associations, businesses" }) },
+    { label: t("ovnPage.nodeTerritories", { defaultValue: "Territories" }), desc: t("ovnPage.nodeTerritoriesDesc", { defaultValue: "municipalities, bioregions" }) },
+    { label: t("ovnPage.nodeLiving", { defaultValue: "Living Systems" }), desc: t("ovnPage.nodeLivingDesc", { defaultValue: "forests, rivers, soils" }) },
+  ];
+
+  const questExpectations = [
+    t("ovnPage.qExpect1", { defaultValue: "What is expected" }),
+    t("ovnPage.qExpect2", { defaultValue: "How much they'll earn" }),
+    t("ovnPage.qExpect3", { defaultValue: "How success is evaluated" }),
+    t("ovnPage.qExpect4", { defaultValue: "How disputes are resolved" }),
+    t("ovnPage.qExpect5", { defaultValue: "How impact is measured" }),
+  ];
+
+  const govSteps = [
+    { label: t("ovnPage.gov1", { defaultValue: "Peer Resolution" }), desc: t("ovnPage.gov1Desc", { defaultValue: "Fast, contextual" }) },
+    { label: t("ovnPage.gov2", { defaultValue: "Guild Arbitration" }), desc: t("ovnPage.gov2Desc", { defaultValue: "Skills-based" }) },
+    { label: t("ovnPage.gov3", { defaultValue: "Territorial Governance" }), desc: t("ovnPage.gov3Desc", { defaultValue: "Strategic" }) },
+    { label: t("ovnPage.gov4", { defaultValue: "Council" }), desc: t("ovnPage.gov4Desc", { defaultValue: "Final decision" }) },
+  ];
+
+  const whyMatters = [
+    t("ovnPage.why1", { defaultValue: "Reveal invisible work" }),
+    t("ovnPage.why2", { defaultValue: "Fund what truly matters" }),
+    t("ovnPage.why3", { defaultValue: "Create fair economies in communities" }),
+    t("ovnPage.why4", { defaultValue: "Support contributors with safety" }),
+    t("ovnPage.why5", { defaultValue: "Empower territories with new capacities" }),
+    t("ovnPage.why6", { defaultValue: "Connect human decisions with ecological signals" }),
+  ];
+
   return (
     <ContentPageShell
-      title="CTG Open Value System"
-      subtitle="A new way to recognise, reward, and coordinate meaningful work."
+      title={t("ovnPage.title")}
+      subtitle={t("ovnPage.subtitle")}
       backTo="/ecosystem"
-      backLabel="Ecosystem"
+      backLabel={t("ovnPage.backEcosystem", { defaultValue: "Ecosystem" })}
       embedded={embedded}
     >
       <div className="space-y-12 text-sm leading-relaxed">
 
         {/* Intro */}
         <section className="rounded-xl border border-border bg-card p-6">
-          <p className="text-base text-foreground">
-            ChangeTheGame introduces an <strong>Open Value System</strong>: a transparent, ecosystem-wide mechanism
-            that tracks contributions, distributes value fairly, and aligns talents, territories, guilds, and natural
-            ecosystems around shared outcomes — not hierarchy.
-          </p>
-          <p className="text-muted-foreground mt-3">This page explains, in one view, how value circulates.</p>
+          <p className="text-base text-foreground">{t("ovnPage.intro")}</p>
+          <p className="text-muted-foreground mt-3">{t("ovnPage.introSub")}</p>
         </section>
 
-        {/* ── PART A: Live Stats ── */}
+        {/* Live Stats */}
         <section className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              OVN en temps réel
+              {t("ovnPage.liveTitle")}
             </h2>
             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />
-               Real-time data
-             </Badge>
+              {t("ovnPage.liveLabel")}
+            </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🟩" />
-            <StatCard label="Value Pie Quests" value={stats?.questCount ?? 0} icon="🥧" />
-            <StatCard label="Contributors this month" value={stats?.distinctUsers ?? 0} icon="👥" />
-            <StatCard label="Active guilds" value={stats?.guildCount ?? 0} icon="⚔️" />
+            <StatCard label={t("ovnPage.statCTG")} value={stats?.totalTokens ?? 0} icon="🟩" />
+            <StatCard label={t("ovnPage.statQuests")} value={stats?.questCount ?? 0} icon="🥧" />
+            <StatCard label={t("ovnPage.statContributors")} value={stats?.distinctUsers ?? 0} icon="👥" />
+            <StatCard label={t("ovnPage.statGuilds")} value={stats?.guildCount ?? 0} icon="⚔️" />
           </div>
         </section>
 
         {/* 1. Nodes */}
-        <Section
-          number="1"
-          title="Every Actor Becomes a Node of Value"
-          icon={<Network className="h-5 w-5" />}
-        >
-          <p>In CTG, each participant is represented as a <strong>node</strong>:</p>
+        <Section number="1" title={t("ovnPage.s1Title")} icon={<Network className="h-5 w-5" />}>
+          <p>{t("ovnPage.s1P")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-            {[
-              { label: "Individuals", desc: "talents, experts, citizens" },
-              { label: "Guilds", desc: "communities of practice" },
-              { label: "Entities", desc: "projects, associations, businesses" },
-              { label: "Territories", desc: "municipalities, bioregions" },
-              { label: "Living Systems", desc: "forests, rivers, soils" },
-            ].map((n) => (
+            {nodeTypes.map((n) => (
               <div key={n.label} className="rounded-lg border border-border bg-muted/30 p-3">
                 <p className="font-medium text-foreground">{n.label}</p>
                 <p className="text-xs text-muted-foreground">{n.desc}</p>
               </div>
             ))}
           </div>
-          <p className="mt-4">Each node carries:</p>
+          <p className="mt-4">{t("ovnPage.s1Carries")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
             {[
-              { icon: <CurrencyIcon currency="xp" className="h-4 w-4" />, label: "⭐ XP", desc: "Reputation & trust level" },
-              { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
-              { icon: <CurrencyIcon currency="credits" className="h-4 w-4" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <CurrencyIcon currency="ctg" className="h-4 w-4" />, label: "🌱 $CTG", desc: "Contribution to commons" },
-              { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
+              { icon: <CurrencyIcon currency="xp" className="h-4 w-4" />, label: "⭐ XP" },
+              { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index" },
+              { icon: <CurrencyIcon currency="credits" className="h-4 w-4" />, label: "🔷 Credits" },
+              { icon: <CurrencyIcon currency="ctg" className="h-4 w-4" />, label: "🌱 $CTG" },
+              { icon: <FileText className="h-4 w-4 text-primary" />, label: "History" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
                 {v.icon}
-                <div>
-                  <p className="text-xs font-medium">{v.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{v.desc}</p>
-                </div>
+                <p className="text-xs font-medium">{v.label}</p>
               </div>
             ))}
           </div>
-          <p className="text-muted-foreground mt-3 text-xs italic">
-            This creates a living map of capacity, reliability, and impact.
-          </p>
+          <p className="text-muted-foreground mt-3 text-xs italic">{t("ovnPage.s1Map")}</p>
         </Section>
 
         {/* 2. Quests */}
-        <Section
-          number="2"
-          title="Quests: the Core Unit of Work"
-          icon={<Target className="h-5 w-5" />}
-        >
-          <p>A <strong>Quest</strong> is a structured micro-contract used to describe a need, assign roles, fund the mission, track contributions, and measure outcomes.</p>
-          <p className="mt-3">Because quests are pre-funded and governed by safety rules, contributors always know:</p>
+        <Section number="2" title={t("ovnPage.s2Title")} icon={<Target className="h-5 w-5" />}>
+          <p>{t("ovnPage.s2P")}</p>
+          <p className="mt-3">{t("ovnPage.s2Know")}</p>
           <ul className="mt-2 space-y-1 list-none">
-            {[
-              "What is expected",
-              "How much they'll earn",
-              "How success is evaluated",
-              "How disputes are resolved",
-              "How impact is measured",
-            ].map((item) => (
+            {questExpectations.map((item) => (
               <li key={item} className="flex items-center gap-2 text-muted-foreground">
                 <ArrowRight className="h-3 w-3 text-primary shrink-0" />
                 {item}
               </li>
             ))}
           </ul>
-          <p className="mt-3 font-medium text-foreground">Quests create the atomic flow of value inside the network.</p>
+          <p className="mt-3 font-medium text-foreground">{t("ovnPage.s2Atomic")}</p>
         </Section>
 
         {/* 3. Triple Value */}
-        <Section
-          number="3"
-          title="Measuring Value Across 3 Dimensions"
-          icon={<BarChart3 className="h-5 w-5" />}
-        >
-          <p>CTG captures value along a triple axis:</p>
+        <Section number="3" title={t("ovnPage.s3Title")} icon={<BarChart3 className="h-5 w-5" />}>
+          <p>{t("ovnPage.s3P")}</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <ValueCard
               title="A. Reputation (⭐ XP)"
               color="text-primary"
-              desc="Participation builds your trust and governance weight. Permanent, cumulative, individual."
+              desc=""
               icon={<Zap className="h-5 w-5" />}
             />
             <ValueCard
               title="B. Trust Index"
               color="text-primary"
-              desc="Interactions strengthen (or weaken) relational bonds between actors."
+              desc=""
               icon={<Shield className="h-5 w-5" />}
             />
             <ValueCard
               title="C. Commons Impact (🌱 $CTG)"
               color="text-primary"
-              desc="Verified contributions emit tokens that circulate in the ecosystem. Not fiat-backed."
+              desc=""
               icon={<Leaf className="h-5 w-5" />}
             />
           </div>
-          <p className="mt-3 text-muted-foreground">
-            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG) + 🟩 Mission Value (Coins)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
-          </p>
+          <p className="mt-3 text-muted-foreground">{t("ovnPage.s3Profile")}</p>
         </Section>
 
         {/* 4. Value Layers */}
-        <Section
-          number="4"
-          title="Value Layers: Coins, $CTG & Credits"
-          icon={<CurrencyIcon currency="coins" className="h-5 w-5" />}
-        >
-          <div className="grid sm:grid-cols-3 gap-4 mt-2">
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Mission Value</p>
-              <p className="text-xs text-muted-foreground mb-2">Fund quests and pay contributors. Pre-funded by creator or raised via campaigns. Distributed via OCU pie, equal split, or manually. Withdrawable to €.</p>
-              <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Quest creator pre-funds pool at creation", "Public fundraising campaigns (Coins or $CTG)", "OCU pie distribution — proportional to contribution", "Equal split or manual dispatch", "No demurrage — holds full value in escrow", "Withdrawable to real € via Stripe Connect"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🌱 $CTG — Contribution Token</p>
-              <p className="text-xs text-muted-foreground mb-2">Emitted when you contribute verified work. Also fundable into quest escrow as an additional incentive. Demurrage-frozen while in quest escrow.</p>
-              <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Quest and subtask completion", "Governance votes and rituals", "Mentorship and documentation", "P2P transfer to collaborators", "Demurrage frozen while in quest escrow ❄️", "Demurrage resumes (1%/month) on distribution"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <p className="font-medium text-foreground mb-2">🔷 Platform Credits (feature fuel only)</p>
-              <p className="text-xs text-muted-foreground mb-2">Non-monetary. Powers quotas, boosts, and gamification. Never used for quest compensation or contributor payouts.</p>
-              <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Monthly plan allocation", "Top-up purchases", "Creating quests beyond quota", "Boosting visibility", "⛔ Never used for quest payouts"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <p className="mt-3 font-medium text-foreground">Three systems, fully separated. Coins ≠ $CTG ≠ Credits.</p>
+        <Section number="4" title={t("ovnPage.s4Title")} icon={<CurrencyIcon currency="coins" className="h-5 w-5" />}>
+          <p className="mt-3 font-medium text-foreground">{t("ovnPage.s4Sep")}</p>
         </Section>
 
-        {/* OCU Section */}
-        <Section
-          number="4b"
-          title="Open Contributive Units (OCU) — Fair Value Distribution"
-          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
-        >
-          <p className="text-muted-foreground text-sm mb-3">
-            The OCU module is changethegame's implementation of a Slicing Pie-style
-            contribution ledger. It tracks every contributor's work in half-days,
-            normalised by a guild FMV rate and difficulty multiplier, and converts it
-            into a percentage share of the quest's distributable Coins pool.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-3 mt-3">
-            {[
-              { label: "Contribution logging", desc: "Half-days × FMV rate × difficulty multiplier = weighted value" },
-              { label: "Live pie", desc: "Real-time % share as contributions are logged and peer-reviewed" },
-              { label: "Fair distribution", desc: "Pie governs Coins dispatch — proportional, transparent, auditable" },
-              { label: "Exit protocol", desc: "Good/graceful/bad leaver rules protect contributors and the quest" },
-            ].map(({ label, desc }) => (
-              <div key={label} className="rounded-md border border-border bg-card p-3">
-                <p className="font-medium text-sm text-foreground">{label}</p>
-                <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-3 italic">
-            OCU is opt-in per quest and available on Project and Ongoing Mission quest types.
-          </p>
+        {/* OCU */}
+        <Section number="4b" title={t("ovnPage.s4bTitle")} icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}>
+          <p className="text-muted-foreground text-sm mb-3">{t("ovnPage.s4bP")}</p>
+          <p className="text-xs text-muted-foreground mt-3 italic">{t("ovnPage.s4bOptIn")}</p>
         </Section>
 
-        {/* ── PART B: Animated Token Flow Diagram ── */}
-        <Section
-          number="5"
-          title="Transparent Redistribution"
-          icon={<BarChart3 className="h-5 w-5" />}
-        >
-          <p>At the end of each quest, $CTG automatically split into:</p>
+        {/* 5. Redistribution */}
+        <Section number="5" title={t("ovnPage.s5Title")} icon={<BarChart3 className="h-5 w-5" />}>
+          <p>{t("ovnPage.s5P")}</p>
           <div className="mt-6">
-            <TokenFlowDiagram />
+            <TokenFlowDiagram t={t} />
           </div>
-          <p className="mt-4 text-muted-foreground italic">
-            No hidden fees. No negotiation. No power games.<br />
-            Value = shared, visible, and fair.
-          </p>
+          <p className="mt-4 text-muted-foreground italic">{t("ovnPage.s5Fair")}</p>
         </Section>
 
         {/* 6. Governance */}
-        <Section
-          number="6"
-          title="Governance Anchored in Community"
-          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
-        >
-          <p>CTG uses multi-layer governance to ensure fairness:</p>
+        <Section number="6" title={t("ovnPage.s6Title")} icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}>
+          <p>{t("ovnPage.s6P")}</p>
           <div className="flex flex-wrap gap-2 mt-3">
-            {[
-              { label: "Peer Resolution", desc: "Fast, contextual" },
-              { label: "Guild Arbitration", desc: "Skills-based" },
-              { label: "Territorial Governance", desc: "Strategic" },
-              { label: "CTG Council", desc: "Final decision" },
-            ].map((g, i) => (
+            {govSteps.map((g, i) => (
               <div key={g.label} className="flex items-center gap-2">
                 {i > 0 && <ArrowRight className="h-3 w-3 text-muted-foreground" />}
                 <Badge variant="outline" className="text-xs py-1 px-2">
@@ -310,72 +234,45 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               </div>
             ))}
           </div>
-          <p className="mt-4 text-muted-foreground">
-            This prevents exploitation, ghosting, unclear decisions, and top-down capture.
-            The network remains <strong className="text-foreground">safe, transparent, and distributed</strong>.
-          </p>
+          <p className="mt-4 text-muted-foreground">{t("ovnPage.s6Prevents")}</p>
         </Section>
 
         {/* 7. Living Systems */}
-        <Section
-          number="7"
-          title="Living Systems as First-Class Citizens"
-          icon={<Leaf className="h-5 w-5" />}
-        >
-          <p>
-            Territories can connect real ecological indicators (sensors, monitoring data) to quests, dashboards, and governance decisions.
-          </p>
-          <p className="mt-2 text-muted-foreground">
-            If a forest dries, or a river's health declines → CTG can automatically generate ecological quests and mobilise guilds.
-          </p>
-          <p className="mt-2 font-medium text-foreground">This creates true bioregional intelligence.</p>
+        <Section number="7" title={t("ovnPage.s7Title")} icon={<Leaf className="h-5 w-5" />}>
+          <p>{t("ovnPage.s7P")}</p>
+          <p className="mt-2 text-muted-foreground">{t("ovnPage.s7Alert")}</p>
+          <p className="mt-2 font-medium text-foreground">{t("ovnPage.s7Bio")}</p>
         </Section>
 
         {/* 8. Why It Matters */}
-        <Section
-          number="8"
-          title="Why It Matters"
-          icon={<Globe className="h-5 w-5" />}
-        >
+        <Section number="8" title={t("ovnPage.s8Title")} icon={<Globe className="h-5 w-5" />}>
           <div className="grid sm:grid-cols-2 gap-2 mt-2">
-            {[
-              "Reveal invisible work",
-              "Fund what truly matters",
-              "Create fair economies in communities",
-              "Support contributors with safety",
-              "Empower territories with new capacities",
-              "Connect human decisions with ecological signals",
-            ].map((p) => (
+            {whyMatters.map((p) => (
               <div key={p} className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2.5">
                 <Sparkles className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm">{p}</span>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-muted-foreground">
-            It's not a marketplace. It's not a job board.<br />
-            It's a <strong className="text-foreground">distributed infrastructure for collective intelligence and regenerative action</strong>.
-          </p>
+          <p className="mt-4 text-muted-foreground">{t("ovnPage.s8Not")}</p>
         </Section>
 
-        {/* 9. Promise */}
+        {/* Promise */}
         <section className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center space-y-3">
           <Heart className="h-8 w-8 text-primary mx-auto" />
           <div className="space-y-1 text-base font-display">
-            <p>When value becomes visible, <strong>collaboration becomes natural</strong>.</p>
-            <p>When value flows fairly, <strong>ecosystems regenerate</strong>.</p>
-            <p>When ecosystems regenerate, <strong>communities thrive</strong>.</p>
+            <p>{t("ovnPage.promiseP1")}</p>
+            <p>{t("ovnPage.promiseP2")}</p>
+            <p>{t("ovnPage.promiseP3")}</p>
           </div>
-          <p className="text-sm text-muted-foreground font-medium">
-            This is what the CTG Open Value System is built for.
-          </p>
+          <p className="text-sm text-muted-foreground font-medium">{t("ovnPage.promiseSub")}</p>
         </section>
 
-        {/* ── PART C: Recent Value Pie Quests ── */}
+        {/* Recent */}
         <section className="rounded-xl border border-border bg-card p-6 space-y-4">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            Quêtes récentes avec Value Pie
+            {t("ovnPage.recentTitle")}
           </h2>
           {recentQuests && recentQuests.length > 0 ? (
             <div className="grid sm:grid-cols-3 gap-3">
@@ -400,9 +297,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">
-              Les premières quêtes distribuées apparaîtront ici.
-            </p>
+            <p className="text-sm text-muted-foreground italic py-4 text-center">{t("ovnPage.recentEmpty")}</p>
           )}
         </section>
       </div>
@@ -410,7 +305,6 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
   );
 }
 
-// ── Stat card ───────────────────────────────────────────────
 function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
   return (
     <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
@@ -421,17 +315,15 @@ function StatCard({ label, value, icon }: { label: string; value: number; icon: 
   );
 }
 
-// ── Token Flow Diagram ──────────────────────────────────────
-const FLOW_NODES = [
-  { label: "Contributeurs", pct: 60, angle: -90, color: "hsl(var(--primary))" },
-  { label: "Guilde", pct: 15, angle: -30, color: "hsl(var(--primary))" },
-  { label: "Territoire", pct: 10, angle: 30, color: "hsl(var(--primary))" },
-  { label: "CTG", pct: 10, angle: 150, color: "hsl(var(--primary))" },
-  { label: "Système Vivant", pct: 5, angle: 210, color: "hsl(var(--primary))" },
-];
-
-function TokenFlowDiagram() {
+function TokenFlowDiagram({ t }: { t: (k: string) => string }) {
   const cx = 200, cy = 160, r = 120;
+  const FLOW_NODES = [
+    { label: t("ovnPage.flowContributors"), pct: 60, angle: -90 },
+    { label: t("ovnPage.flowGuild"), pct: 15, angle: -30 },
+    { label: t("ovnPage.flowTerritory"), pct: 10, angle: 30 },
+    { label: t("ovnPage.flowCTG"), pct: 10, angle: 150 },
+    { label: t("ovnPage.flowLiving"), pct: 5, angle: 210 },
+  ];
 
   return (
     <div className="flex justify-center">
@@ -449,19 +341,15 @@ function TokenFlowDiagram() {
             const rad = (node.angle * Math.PI) / 180;
             const tx = cx + r * Math.cos(rad);
             const ty = cy + r * Math.sin(rad);
-            const pathId = `flow-path-${i}`;
             return (
               <g key={node.label}>
-                {/* Line */}
                 <path
-                  id={pathId}
                   d={`M ${cx} ${cy} L ${tx} ${ty}`}
                   stroke="hsl(var(--border))"
                   strokeWidth="1.5"
                   fill="none"
                   strokeDasharray="4 3"
                 />
-                {/* Animated dot */}
                 <circle
                   r="3"
                   fill="hsl(var(--primary))"
@@ -470,7 +358,6 @@ function TokenFlowDiagram() {
                     animation: `travel 2.5s ease-in-out ${i * 0.4}s infinite`,
                   }}
                 />
-                {/* Destination node */}
                 <circle cx={tx} cy={ty} r="28" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1.5" />
                 <text x={tx} y={ty - 6} textAnchor="middle" className="text-[9px] fill-foreground font-medium">
                   {node.label}
@@ -481,21 +368,17 @@ function TokenFlowDiagram() {
               </g>
             );
           })}
-          {/* Center node */}
           <circle cx={cx} cy={cy} r="36" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="2" />
           <text x={cx} y={cy - 6} textAnchor="middle" className="text-[10px] fill-foreground font-semibold">
-            Quest Budget
+            {t("ovnPage.flowCenter")}
           </text>
-          <text x={cx} y={cy + 10} textAnchor="middle" className="text-[12px]">
-            🟩
-          </text>
+          <text x={cx} y={cy + 10} textAnchor="middle" className="text-[12px]">🟩</text>
         </svg>
       </div>
     </div>
   );
 }
 
-// ── Reusable section wrapper ────────────────────────────────
 function Section({ number, title, icon, children }: { number: string; title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
@@ -513,7 +396,6 @@ function Section({ number, title, icon, children }: { number: string; title: str
   );
 }
 
-// ── Value card ──────────────────────────────────────────────
 function ValueCard({ title, desc, icon, color }: { title: string; desc: string; icon: React.ReactNode; color: string }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-2">
@@ -521,7 +403,7 @@ function ValueCard({ title, desc, icon, color }: { title: string; desc: string; 
         {icon}
         <h3 className="font-medium">{title}</h3>
       </div>
-      <p className="text-xs text-muted-foreground">{desc}</p>
+      {desc && <p className="text-xs text-muted-foreground">{desc}</p>}
     </div>
   );
 }
