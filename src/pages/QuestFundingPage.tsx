@@ -1,74 +1,46 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
-import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 export default function QuestFundingPage({ embedded }: { embedded?: boolean }) {
+  const { t } = useTranslation();
+  const dualItems = t("questFundingPage.dualCurrencyItems", { returnObjects: true }) as string[];
+  const fundraisingItems = t("questFundingPage.fundraisingItems", { returnObjects: true }) as string[];
+  const ocuItems = t("questFundingPage.ocuItems", { returnObjects: true }) as string[];
+  const distItems = t("questFundingPage.distributionItems", { returnObjects: true }) as string[];
+
   return (
     <ContentPageShell
-      title="Quest Funding & Distribution"
-      subtitle="How quest value pools work, from pre-funding to contributor payout."
+      title={t("questFundingPage.title")}
+      subtitle={t("questFundingPage.subtitle")}
       embedded={embedded}
     >
-      <ContentSection title="Dual-Currency Quest Pools">
-        <p>Every Project or Ongoing Mission can hold:</p>
-        <ContentList items={[
-          "🟩 Coins — fiat-backed mission value. Pre-funded by the creator, raised via campaigns, or both.",
-          "🌱 $CTG — contribution token. Fundable into quest escrow as an additional incentive.",
-          "Both pools are independent and can coexist on the same quest.",
-        ]} />
+      <ContentSection title={t("questFundingPage.dualCurrencyTitle")}>
+        <p>{t("questFundingPage.dualCurrencyP")}</p>
+        <ContentList items={Array.isArray(dualItems) ? dualItems : []} />
         <p className="text-sm text-muted-foreground mt-3 font-medium">
-          🔷 Platform Credits are never used for quest compensation in any form.
+          {t("questFundingPage.creditsNote")}
         </p>
       </ContentSection>
 
-      <ContentSection title="Fundraising Campaigns">
-        <ContentList items={[
-          "Quest admins can launch one or more campaigns per currency (Coins or $CTG).",
-          "Each campaign has a threshold amount — once reached, funds can be dispatched.",
-          "Dispatch modes: Manual (admin decides), Auto: OCU pie (proportional), Auto: Equal split.",
-          "Any logged-in user can contribute to an active campaign from their wallet balance.",
-          "Campaigns and direct top-ups can run in parallel.",
-        ]} />
+      <ContentSection title={t("questFundingPage.fundraisingTitle")}>
+        <ContentList items={Array.isArray(fundraisingItems) ? fundraisingItems : []} />
       </ContentSection>
 
-      <ContentSection title="OCU — Open Contributive Unit">
-        <p>
-          When OCU is enabled on a quest, contributors log their work in half-days.
-          Each half-day is weighted by a guild FMV rate (default €200/half-day) and a
-          difficulty multiplier. This produces a live percentage share of the Coins pool
-          for each contributor — the contribution pie.
-        </p>
-        <ContentList items={[
-          "Half-days × FMV rate × difficulty = weighted value",
-          "Live pie updates as contributions are logged and peer-reviewed",
-          "Pie can be frozen for final distribution (immutable audit snapshot)",
-          "Distribution follows the frozen pie — proportional, transparent, auditable",
-        ]} />
+      <ContentSection title={t("questFundingPage.ocuTitle")}>
+        <p>{t("questFundingPage.ocuP")}</p>
+        <ContentList items={Array.isArray(ocuItems) ? ocuItems : []} />
       </ContentSection>
 
-      <ContentSection title="Distribution & Fairness">
-        <ContentList items={[
-          "Admins choose distribution mode: OCU pie %, equal split, or manual amounts",
-          "Preview table shows each contributor's allocation before confirmation",
-          "Coins are credited to contributor wallets (withdrawable to € via Stripe Connect)",
-          "$CTG is credited to contributor wallets (demurrage resumes)",
-          "Full audit trail: quest_distributions record with recipient snapshot",
-        ]} />
+      <ContentSection title={t("questFundingPage.distributionTitle")}>
+        <ContentList items={Array.isArray(distItems) ? distItems : []} />
         <p className="text-sm text-muted-foreground mt-3">
-          After any distribution, contributors can privately report a fairness concern to
-          platform superadmins. Quest admins see only an anonymous flag — no details.
+          {t("questFundingPage.distributionNote")}
         </p>
       </ContentSection>
 
-      <ContentSection title="$CTG Escrow & Demurrage Freeze">
-        <p>
-          $CTG normally circulates with 1%/month demurrage. When $CTG is allocated to a
-          quest escrow pool, demurrage is frozen — the tokens hold their value while the
-          quest is active. Once distributed to contributor wallets, normal demurrage resumes.
-        </p>
-        <p className="mt-2">
-          This makes $CTG quest pools a time-coherent incentive: contributors are not
-          penalised for the duration of a slow-moving quest.
-        </p>
+      <ContentSection title={t("questFundingPage.escrowTitle")}>
+        <p>{t("questFundingPage.escrowP1")}</p>
+        <p className="mt-2">{t("questFundingPage.escrowP2")}</p>
       </ContentSection>
     </ContentPageShell>
   );
