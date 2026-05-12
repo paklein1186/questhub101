@@ -537,5 +537,6 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
         </Link>
       </div>
     </div>
+    </FrenchTextOverlay>
   );
 }
