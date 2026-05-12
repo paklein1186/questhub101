@@ -28,6 +28,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications as useNotificationsHook, requestPushPermission as requestPushPermissionFn, getPushPermissionState } from "@/hooks/useNotifications";

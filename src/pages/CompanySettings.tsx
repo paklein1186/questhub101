@@ -22,6 +22,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
