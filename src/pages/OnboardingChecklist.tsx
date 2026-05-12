@@ -89,6 +89,7 @@ export default function OnboardingChecklist() {
           })}
         </div>
       </section>
+      </FrenchTextOverlay>
     </PageShell>
   );
 }
