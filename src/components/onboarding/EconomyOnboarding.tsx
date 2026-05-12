@@ -462,6 +462,7 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
   if (dismissed || allDone || pending.length === 0) return null;
 
   return (
+    <FrenchTextOverlay>
     <div className={cn("space-y-3", className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
