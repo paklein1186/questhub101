@@ -458,7 +458,6 @@ export const ONBOARDING_FR: Record<string, string> = {
   "Governance & Decisions": "Gouvernance & décisions",
   "Governance Model": "Modèle de gouvernance",
   "Governance model updated": "Modèle de gouvernance mis à jour",
-  "Guild": "Guilde",
   "Guild Documents": "Documents de la guilde",
   "Guild Identity": "Identité de la guilde",
   "Guild Settings": "Paramètres de la guilde",
