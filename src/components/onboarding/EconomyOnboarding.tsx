@@ -376,6 +376,7 @@ export function EconomyModal({ open, onClose, persona = "UNSET", mode = "full" }
                 </div>
               )}
             </div>
+            </FrenchTextOverlay>
           </motion.div>
         </>
       )}
