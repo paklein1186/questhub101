@@ -26,6 +26,7 @@ import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import { useSpokenLanguages, AVAILABLE_LANGUAGES } from "@/hooks/useSpokenLanguages";
 import { AffiliationsStep, type AffiliationLink, type ManualAffiliation } from "@/components/onboarding/AffiliationsStep";
 import { AffiliationsReviewStep, type SuggestedAffiliation, type SuggestedHouse, type SuggestedService } from "@/components/onboarding/AffiliationsReviewStep";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { useQuery } from "@tanstack/react-query";
 import {
   CREATIVE_INTENTION_OPTIONS,
