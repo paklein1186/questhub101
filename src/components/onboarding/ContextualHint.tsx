@@ -31,6 +31,7 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 // ── Storage helpers (Supabase-backed) ──────────────────────────
 
