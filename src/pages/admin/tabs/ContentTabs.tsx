@@ -452,6 +452,19 @@ export function HousesTerritoriesTab() {
 
   const topicSort = useTableSort(topics);
   const territorySort = useTableSort(territories);
+  const [editingTerritoryId, setEditingTerritoryId] = useState<string | null>(null);
+  const [editingTerritoryName, setEditingTerritoryName] = useState("");
+
+  const saveTerritoryName = async (id: string) => {
+    const trimmed = editingTerritoryName.trim();
+    if (!trimmed) return;
+    const { error } = await supabase.from("territories").update({ name: trimmed }).eq("id", id);
+    if (error) { toast({ title: "Failed to rename territory", variant: "destructive" }); return; }
+    setEditingTerritoryId(null);
+    setEditingTerritoryName("");
+    qc.invalidateQueries({ queryKey: ["admin-territories"] });
+    toast({ title: "Territory renamed" });
+  };
 
   const addTopic = async () => {
     if (!newTopicName.trim()) return;
