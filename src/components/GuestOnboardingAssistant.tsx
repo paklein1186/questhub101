@@ -459,6 +459,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden max-h-[85vh]">
+        <FrenchTextOverlay>
         {/* Header */}
         <div className="p-4 pb-3 border-b bg-gradient-to-r from-primary/5 to-accent/5">
           <div className="flex items-center justify-between mb-3">
