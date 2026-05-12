@@ -1660,6 +1660,7 @@ export default function Onboarding() {
   const isFinishStep = isCreativePath ? step === CREATIVE_SERVICE_STEP : step === IMPACT_SERVICE_STEP;
 
   return (
+    <FrenchTextOverlay>
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg">
         {/* Progress */}
@@ -1712,5 +1713,6 @@ export default function Onboarding() {
         </div>
       </div>
     </div>
+    </FrenchTextOverlay>
   );
 }
