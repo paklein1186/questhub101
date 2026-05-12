@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const ORG_TYPES = [
   { value: "public_sector", label: "Public Sector", icon: Landmark, desc: "Government, municipality, public institution" },
