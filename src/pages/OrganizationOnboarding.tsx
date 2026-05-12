@@ -201,6 +201,7 @@ export default function OrganizationOnboarding() {
 
   return (
     <PageShell>
+      <FrenchTextOverlay>
       <div className="max-w-2xl mx-auto">
         {/* Progress */}
         <div className="flex items-center gap-1 mb-8">
