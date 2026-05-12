@@ -462,6 +462,7 @@ export default function OrganizationOnboarding() {
           )}
         </AnimatePresence>
       </div>
+      </FrenchTextOverlay>
     </PageShell>
   );
 }
