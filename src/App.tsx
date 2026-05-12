@@ -18,6 +18,7 @@ import { PiFloatingButton } from "@/components/pi/PiFloatingButton";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
 import { HarvestWindowBanner } from "@/components/ctg/HarvestWindowBanner";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
