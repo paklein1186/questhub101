@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
