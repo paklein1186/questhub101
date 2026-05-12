@@ -96,15 +96,14 @@ export default function GuildSettings() {
     enabled: !!id,
   });
 
-  if (guildLoading) return <PageShell>
-<FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
-  if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
+  if (guildLoading) return <PageShell><FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></FrenchTextOverlay></PageShell>;
+  if (!guild) return <PageShell><FrenchTextOverlay><p>Guild not found.</p></FrenchTextOverlay></PageShell>;
 
   const currentMembership = guild.guild_members?.find(
     (gm: any) => gm.user_id === currentUser.id
   );
   if (currentMembership?.role !== "ADMIN") {
-    return <PageShell><p>You must be an admin of this guild to access settings.</p></PageShell>;
+    return <PageShell><FrenchTextOverlay><p>You must be an admin of this guild to access settings.</p></FrenchTextOverlay></PageShell>;
   }
 
   return <GuildSettingsInner guildId={guild.id} guild={guild} />;
@@ -367,7 +366,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   };
 
   return (
-    <PageShell>
+    <PageShell><FrenchTextOverlay>
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to={`/guilds/${guildId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to guild</Link>
       </Button>
@@ -1133,8 +1132,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
           </div>
         </div>
       </div>
-    </FrenchTextOverlay>
-</PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }
 

@@ -368,8 +368,7 @@ export default function SettingsPage() {
   // Billing handlers moved to WalletTab component
 
   return (
-    <PageShell>
-<FrenchTextOverlay>
+    <PageShell><FrenchTextOverlay>
       <div className="max-w-5xl mx-auto">
         <h1 className="font-display text-2xl font-bold mb-6">{t("settings.title")}</h1>
 
@@ -903,8 +902,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </FrenchTextOverlay>
-</PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }
 

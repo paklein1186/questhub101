@@ -66,16 +66,15 @@ export default function PodSettings() {
     enabled: !!id,
   });
 
-  if (isLoading) return <PageShell>
-<FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
-  if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
+  if (isLoading) return <PageShell><FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></FrenchTextOverlay></PageShell>;
+  if (!pod) return <PageShell><FrenchTextOverlay><p>Pod not found.</p></FrenchTextOverlay></PageShell>;
 
   const currentMembership = pod.pod_members?.find(
     (pm: any) => pm.user_id === currentUser.id
   );
   const isCreator = !!currentUser.id && pod.creator_id === currentUser.id;
   if (currentMembership?.role !== "HOST" && !isCreator) {
-    return <PageShell><p>You must be a host of this pod to access settings.</p></PageShell>;
+    return <PageShell><FrenchTextOverlay><p>You must be a host of this pod to access settings.</p></FrenchTextOverlay></PageShell>;
   }
 
   return <PodSettingsInner podId={pod.id} pod={pod} />;
@@ -202,7 +201,7 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
   };
 
   return (
-    <PageShell>
+    <PageShell><FrenchTextOverlay>
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to={`/pods/${podId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to pod</Link>
       </Button>
@@ -455,8 +454,7 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
           </div>
         </div>
       </div>
-    </FrenchTextOverlay>
-</PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }
 
