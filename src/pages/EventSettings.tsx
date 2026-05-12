@@ -54,7 +54,8 @@ export default function EventSettings() {
     }
   }, [event]);
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
+  if (isLoading) return <PageShell>
+<FrenchTextOverlay><p>Loading…</p></PageShell>;
   if (!event) return <PageShell><p>Event not found.</p></PageShell>;
   if (!canManage) {
     return (
@@ -302,6 +303,7 @@ export default function EventSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </PageShell>
+    </FrenchTextOverlay>
+</PageShell>
   );
 }

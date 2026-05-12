@@ -76,7 +76,8 @@ export default function CompanySettings() {
   const { data: membersData } = useCompanyMembersWithProfiles(id);
   const currentUser = useCurrentUser();
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
+  if (isLoading) return <PageShell>
+<FrenchTextOverlay><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
 
   // Check permission: must be admin member or global admin
@@ -593,7 +594,8 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
           </div>
         </div>
       </div>
-    </PageShell>
+    </FrenchTextOverlay>
+</PageShell>
   );
 }
 

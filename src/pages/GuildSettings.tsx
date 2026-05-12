@@ -96,7 +96,8 @@ export default function GuildSettings() {
     enabled: !!id,
   });
 
-  if (guildLoading) return <PageShell><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
+  if (guildLoading) return <PageShell>
+<FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const currentMembership = guild.guild_members?.find(
@@ -1132,7 +1133,8 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
           </div>
         </div>
       </div>
-    </PageShell>
+    </FrenchTextOverlay>
+</PageShell>
   );
 }
 

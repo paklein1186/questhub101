@@ -66,7 +66,8 @@ export default function PodSettings() {
     enabled: !!id,
   });
 
-  if (isLoading) return <PageShell><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
+  if (isLoading) return <PageShell>
+<FrenchTextOverlay><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
 
   const currentMembership = pod.pod_members?.find(
@@ -454,7 +455,8 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
           </div>
         </div>
       </div>
-    </PageShell>
+    </FrenchTextOverlay>
+</PageShell>
   );
 }
 
