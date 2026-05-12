@@ -160,6 +160,7 @@ export function SectionBanner({
   }[variant];
 
   return (
+    <FrenchTextOverlay>
     <div
       className={cn(
         "relative flex items-start gap-3 rounded-lg border p-4 my-4",
@@ -190,6 +191,7 @@ export function SectionBanner({
         <X className="h-4 w-4" />
       </button>
     </div>
+    </FrenchTextOverlay>
   );
 }
 
