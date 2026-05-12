@@ -518,16 +518,37 @@ export function HousesTerritoriesTab() {
               <TableRow>
                 <SortableTableHead sortKey="name" currentKey={territorySort.sort.key} direction={territorySort.sort.direction} onSort={territorySort.toggle}>Name</SortableTableHead>
                 <SortableTableHead sortKey="level" currentKey={territorySort.sort.key} direction={territorySort.sort.direction} onSort={territorySort.toggle}>Level</SortableTableHead>
+                <TableHead className="w-24 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {territorySort.sorted.map((t: any) => (
                 <TableRow key={t.id}>
-                  <TableCell className="font-medium">{t.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {editingTerritoryId === t.id ? (
+                      <Input
+                        autoFocus
+                        value={editingTerritoryName}
+                        onChange={(e) => setEditingTerritoryName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") saveTerritoryName(t.id); if (e.key === "Escape") setEditingTerritoryId(null); }}
+                        className="h-8 max-w-xs"
+                      />
+                    ) : t.name}
+                  </TableCell>
                   <TableCell><Badge variant="outline" className="capitalize text-xs">{t.level?.toLowerCase()}</Badge></TableCell>
+                  <TableCell className="text-right">
+                    {editingTerritoryId === t.id ? (
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveTerritoryName(t.id)}><Save className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingTerritoryId(null)}><X className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setEditingTerritoryId(t.id); setEditingTerritoryName(t.name); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
-              {territories.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-8">No territories yet.</TableCell></TableRow>}
+              {territories.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No territories yet.</TableCell></TableRow>}
             </TableBody>
           </Table>
         </div>
