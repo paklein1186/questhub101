@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEventAccess } from "@/pages/EventEdit";
 import { PageShell } from "@/components/PageShell";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,17 +54,17 @@ export default function EventSettings() {
     }
   }, [event]);
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!event) return <PageShell><p>Event not found.</p></PageShell>;
+  if (isLoading) return <PageShell><FrenchTextOverlay><p>Loading…</p></FrenchTextOverlay></PageShell>;
+  if (!event) return <PageShell><FrenchTextOverlay><p>Event not found.</p></FrenchTextOverlay></PageShell>;
   if (!canManage) {
     return (
-      <PageShell>
+      <PageShell><FrenchTextOverlay>
         <div className="text-center py-16">
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
           <p className="text-muted-foreground mb-4">You don't have permission to manage this event.</p>
           <Button asChild><Link to={`/events/${id}`}>Back to Event</Link></Button>
         </div>
-      </PageShell>
+      </FrenchTextOverlay></PageShell>
     );
   }
 
@@ -122,7 +123,7 @@ export default function EventSettings() {
   };
 
   return (
-    <PageShell>
+    <PageShell><FrenchTextOverlay>
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to={`/events/${id}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to Event</Link>
       </Button>
@@ -301,6 +302,6 @@ export default function EventSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }

@@ -28,6 +28,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications as useNotificationsHook, requestPushPermission as requestPushPermissionFn, getPushPermissionState } from "@/hooks/useNotifications";
@@ -367,7 +368,7 @@ export default function SettingsPage() {
   // Billing handlers moved to WalletTab component
 
   return (
-    <PageShell>
+    <PageShell><FrenchTextOverlay>
       <div className="max-w-5xl mx-auto">
         <h1 className="font-display text-2xl font-bold mb-6">{t("settings.title")}</h1>
 
@@ -901,7 +902,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }
 

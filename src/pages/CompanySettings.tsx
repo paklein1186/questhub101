@@ -22,6 +22,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -75,8 +76,8 @@ export default function CompanySettings() {
   const { data: membersData } = useCompanyMembersWithProfiles(id);
   const currentUser = useCurrentUser();
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
+  if (isLoading) return <PageShell><FrenchTextOverlay><p>Loading…</p></FrenchTextOverlay></PageShell>;
+  if (!company) return <PageShell><FrenchTextOverlay><p>Traditional Organization not found.</p></FrenchTextOverlay></PageShell>;
 
   // Check permission: must be admin member or global admin
   const members = membersData || [];
@@ -85,7 +86,7 @@ export default function CompanySettings() {
   const isAdmin = memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email);
 
   if (!isAdmin) {
-    return <PageShell><p>You must be an organization admin to access settings.</p></PageShell>;
+    return <PageShell><FrenchTextOverlay><p>You must be an organization admin to access settings.</p></FrenchTextOverlay></PageShell>;
   }
 
   return <CompanySettingsInner companyId={company.id} company={company} />;
@@ -253,7 +254,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   });
 
   return (
-    <PageShell>
+    <PageShell><FrenchTextOverlay>
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to={`/companies/${companyId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to organization</Link>
       </Button>
@@ -592,7 +593,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
           </div>
         </div>
       </div>
-    </PageShell>
+    </FrenchTextOverlay></PageShell>
   );
 }
 
