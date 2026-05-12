@@ -189,7 +189,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
             <ScrollToTop />
-            
+            <FrenchTextOverlay>
             <GuestBauhausShape />
             <ChatBubbleOverlay />
             <PiPanel />
