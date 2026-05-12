@@ -31,6 +31,7 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 // ── Storage helpers (Supabase-backed) ──────────────────────────
 
@@ -159,6 +160,7 @@ export function SectionBanner({
   }[variant];
 
   return (
+    <FrenchTextOverlay>
     <div
       className={cn(
         "relative flex items-start gap-3 rounded-lg border p-4 my-4",
@@ -189,6 +191,7 @@ export function SectionBanner({
         <X className="h-4 w-4" />
       </button>
     </div>
+    </FrenchTextOverlay>
   );
 }
 

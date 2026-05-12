@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -458,6 +459,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden max-h-[85vh]">
+        <FrenchTextOverlay>
         {/* Header */}
         <div className="p-4 pb-3 border-b bg-gradient-to-r from-primary/5 to-accent/5">
           <div className="flex items-center justify-between mb-3">
@@ -920,6 +922,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
             </Button>
           )}
         </div>
+        </FrenchTextOverlay>
       </DialogContent>
     </Dialog>
   );

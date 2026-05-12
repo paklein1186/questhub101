@@ -26,6 +26,7 @@ import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import { useSpokenLanguages, AVAILABLE_LANGUAGES } from "@/hooks/useSpokenLanguages";
 import { AffiliationsStep, type AffiliationLink, type ManualAffiliation } from "@/components/onboarding/AffiliationsStep";
 import { AffiliationsReviewStep, type SuggestedAffiliation, type SuggestedHouse, type SuggestedService } from "@/components/onboarding/AffiliationsReviewStep";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { useQuery } from "@tanstack/react-query";
 import {
   CREATIVE_INTENTION_OPTIONS,
@@ -1659,6 +1660,7 @@ export default function Onboarding() {
   const isFinishStep = isCreativePath ? step === CREATIVE_SERVICE_STEP : step === IMPACT_SERVICE_STEP;
 
   return (
+    <FrenchTextOverlay>
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg">
         {/* Progress */}
@@ -1711,5 +1713,6 @@ export default function Onboarding() {
         </div>
       </div>
     </div>
+    </FrenchTextOverlay>
   );
 }

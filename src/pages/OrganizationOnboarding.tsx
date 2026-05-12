@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const ORG_TYPES = [
   { value: "public_sector", label: "Public Sector", icon: Landmark, desc: "Government, municipality, public institution" },
@@ -200,6 +201,7 @@ export default function OrganizationOnboarding() {
 
   return (
     <PageShell>
+      <FrenchTextOverlay>
       <div className="max-w-2xl mx-auto">
         {/* Progress */}
         <div className="flex items-center gap-1 mb-8">
@@ -460,6 +462,7 @@ export default function OrganizationOnboarding() {
           )}
         </AnimatePresence>
       </div>
+      </FrenchTextOverlay>
     </PageShell>
   );
 }

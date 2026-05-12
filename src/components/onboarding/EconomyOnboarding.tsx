@@ -27,6 +27,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useIsDismissed } from "@/components/onboarding/ContextualHint";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -231,6 +232,7 @@ export function EconomyModal({ open, onClose, persona = "UNSET", mode = "full" }
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-[10%] bottom-auto z-50 mx-auto max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
           >
+            <FrenchTextOverlay>
             {/* Close */}
             <button
               onClick={onClose}
@@ -374,6 +376,7 @@ export function EconomyModal({ open, onClose, persona = "UNSET", mode = "full" }
                 </div>
               )}
             </div>
+            </FrenchTextOverlay>
           </motion.div>
         </>
       )}
@@ -459,6 +462,7 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
   if (dismissed || allDone || pending.length === 0) return null;
 
   return (
+    <FrenchTextOverlay>
     <div className={cn("space-y-3", className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -533,5 +537,6 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
         </Link>
       </div>
     </div>
+    </FrenchTextOverlay>
   );
 }

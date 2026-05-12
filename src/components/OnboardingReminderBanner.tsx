@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const DISMISS_KEY = "onboardingBannerDismissedUntil";
 // How long to hide the banner after a manual dismiss (ms)
@@ -46,6 +47,7 @@ export function OnboardingReminderBanner() {
   };
 
   return (
+    <FrenchTextOverlay>
     <div className="w-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-primary/20">
       <div className="container px-3 sm:px-4 py-2 flex items-center gap-3">
         <Sparkles className="h-4 w-4 text-primary shrink-0" />
@@ -67,5 +69,6 @@ export function OnboardingReminderBanner() {
         </button>
       </div>
     </div>
+    </FrenchTextOverlay>
   );
 }

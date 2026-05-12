@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -17,6 +18,7 @@ export default function OnboardingChecklist() {
 
   return (
     <PageShell>
+      <FrenchTextOverlay>
       <section className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -87,6 +89,7 @@ export default function OnboardingChecklist() {
           })}
         </div>
       </section>
+      </FrenchTextOverlay>
     </PageShell>
   );
 }
