@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { FrenchTextOverlay } from "@/components/onboarding/FrenchTextOverlay";
 
 const DISMISS_KEY = "onboardingBannerDismissedUntil";
 // How long to hide the banner after a manual dismiss (ms)
