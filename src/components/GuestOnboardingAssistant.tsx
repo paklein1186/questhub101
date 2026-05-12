@@ -922,6 +922,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
             </Button>
           )}
         </div>
+        </FrenchTextOverlay>
       </DialogContent>
     </Dialog>
   );
