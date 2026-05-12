@@ -232,6 +232,7 @@ export function EconomyModal({ open, onClose, persona = "UNSET", mode = "full" }
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-[10%] bottom-auto z-50 mx-auto max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
           >
+            <FrenchTextOverlay>
             {/* Close */}
             <button
               onClick={onClose}
