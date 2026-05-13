@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useNotifications } from "@/hooks/useNotifications";
 import {
   XP_REWARDS,
   XP_EVENT_TYPES,
@@ -35,7 +34,6 @@ interface CreditParams {
 export function useXpCredits() {
   const { toast } = useToast();
   const { session } = useAuth();
-  const { notifyXpGained } = useNotifications();
 
   // ── Grant XP (via secure RPC) ─────────────────────────────
   const grantXp = useCallback(
@@ -59,11 +57,10 @@ export function useXpCredits() {
       }
 
       if (!silent) {
-        notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
         toast({ title: `+${amount} XP`, description: formatXpType(params.type) });
       }
     },
-    [toast, notifyXpGained]
+    [toast]
   );
 
   // ── Grant Credits (via secure RPC) ────────────────────────
