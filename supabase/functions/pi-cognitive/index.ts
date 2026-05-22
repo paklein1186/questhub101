@@ -223,6 +223,61 @@ const TOOLS = [
       },
     },
   },
+  // ── Quest context tools (operate on the quest the user is viewing) ──
+  {
+    type: "function",
+    function: {
+      name: "list_quest_members",
+      description: "List participants and hosts of a quest with their roles and statuses.",
+      parameters: {
+        type: "object",
+        properties: { quest_id: { type: "string" } },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_quest_discussions",
+      description: "Return the most recent feed posts (discussions) attached to a quest.",
+      parameters: {
+        type: "object",
+        properties: {
+          quest_id: { type: "string" },
+          limit: { type: "number", description: "Max posts (default 10)" },
+        },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_quest_files",
+      description: "List files and links attached to recent posts of a quest.",
+      parameters: {
+        type: "object",
+        properties: {
+          quest_id: { type: "string" },
+          limit: { type: "number", description: "Max files (default 20)" },
+        },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "summarize_quest_progress",
+      description: "Return a structured snapshot of quest progress: subtasks, members, recent activity.",
+      parameters: {
+        type: "object",
+        properties: { quest_id: { type: "string" } },
+        required: ["quest_id"],
+      },
+    },
+  },
 ];
 
 // =====================================================================
