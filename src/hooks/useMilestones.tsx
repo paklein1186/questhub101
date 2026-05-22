@@ -81,7 +81,7 @@ export function useMilestones() {
         .from("user_milestones")
         .select("*")
         .eq("user_id", user!.id);
-      return (data ?? []) as UserMilestone[];
+      return (data ?? []) as unknown as UserMilestone[];
     },
     enabled: !!user?.id,
     staleTime: 30_000,
