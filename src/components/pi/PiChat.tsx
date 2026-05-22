@@ -229,6 +229,8 @@ export function PiChat({ className }: PiChatProps) {
         body: {
           message: text,
           conversationId,
+          contextType,
+          contextId,
         },
       });
 
