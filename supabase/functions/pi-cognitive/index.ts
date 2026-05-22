@@ -891,7 +891,8 @@ serve(async (req) => {
         const cfg = tableMap[ctxType];
         if (!cfg) return "";
         const cols = ["id", cfg.nameCol, cfg.descCol, cfg.authorCol].filter(Boolean).join(",");
-        const { data: row } = await sb.from(cfg.table).select(cols).eq("id", ctxId).maybeSingle();
+        const { data: row, error: rowErr } = await sb.from(cfg.table).select(cols).eq("id", ctxId).maybeSingle();
+        console.log("[buildPageContext] ctxType=", ctxType, "ctxId=", ctxId, "row?", !!row, "err=", rowErr?.message);
         if (!row) return "";
         let authorName = "";
         if (cfg.authorCol && (row as any)[cfg.authorCol]) {
