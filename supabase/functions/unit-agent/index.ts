@@ -277,7 +277,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { name: entityName, summary: contextSummary } = await gatherContext(supabase, entityType, entityId);
+    const { name: entityName, summary: contextSummary, attachments } = await gatherContext(supabase, entityType, entityId);
     const { threadId: existingThreadId, messages: dbHistory, starredSummary } = await getConversationFromDB(supabase, entityType, entityId);
 
     const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary);
@@ -286,7 +286,27 @@ serve(async (req) => {
     for (const msg of dbHistory) {
       aiMessages.push(msg);
     }
-    aiMessages.push({ role: "user", content: message });
+
+    // Build multimodal user message: text + inlined PDFs/images from discussion attachments
+    const userContent: any[] = [{ type: "text", text: message }];
+    const inlineable = attachments
+      .filter(a => /^(application\/pdf|image\/)/i.test(a.mime_type))
+      .slice(0, 5); // cap to avoid huge payloads
+    for (const att of inlineable) {
+      try {
+        const resp = await fetch(att.url);
+        if (!resp.ok) continue;
+        const buf = new Uint8Array(await resp.arrayBuffer());
+        if (buf.byteLength > 8 * 1024 * 1024) continue; // skip >8MB
+        let bin = "";
+        for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+        const b64 = btoa(bin);
+        userContent.push({ type: "image_url", image_url: { url: `data:${att.mime_type};base64,${b64}` } });
+      } catch (e) {
+        console.error("Attachment fetch failed", att.url, e);
+      }
+    }
+    aiMessages.push({ role: "user", content: userContent.length > 1 ? userContent : message });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -295,7 +315,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-pro",
         messages: aiMessages,
       }),
     });
