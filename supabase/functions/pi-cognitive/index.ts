@@ -245,23 +245,51 @@ async function executeToolCall(
     }
 
     case "search_quests": {
-      let query = sb
-        .from("quests")
-        .select("id, title, description, status, quest_nature, difficulty, xp_reward")
-        .eq("is_deleted", false)
-        .eq("is_draft", false)
-        .limit(params.limit || 5);
+      const limit = params.limit || 8;
+      const q = (params.query || "").trim();
+
+      // Build candidate id set from territory filter
+      let territoryIds: string[] | null = null;
       if (params.territory_id) {
         const { data: qtIds } = await sb
           .from("quest_territories")
           .select("quest_id")
           .eq("territory_id", params.territory_id);
-        if (qtIds?.length) {
-          query = query.in("id", qtIds.map((q: any) => q.quest_id));
+        territoryIds = (qtIds || []).map((x: any) => x.quest_id);
+        if (territoryIds.length === 0) return [];
+      }
+
+      // Build candidate id set from topic match (name or slug fuzzy match)
+      let topicQuestIds: string[] = [];
+      if (q) {
+        const { data: matchingTopics } = await sb
+          .from("topics")
+          .select("id")
+          .or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
+          .eq("is_deleted", false);
+        if (matchingTopics?.length) {
+          const { data: qt } = await sb
+            .from("quest_topics")
+            .select("quest_id")
+            .in("topic_id", matchingTopics.map((t: any) => t.id));
+          topicQuestIds = (qt || []).map((x: any) => x.quest_id);
         }
       }
+
+      let query = sb
+        .from("quests")
+        .select("id, title, description, status, quest_nature, difficulty, xp_reward")
+        .eq("is_deleted", false)
+        .eq("is_draft", false)
+        .limit(limit);
+      if (territoryIds) query = query.in("id", territoryIds);
       if (params.status) query = query.eq("status", params.status);
-      if (params.query) query = query.ilike("title", `%${params.query}%`);
+      if (q) {
+        // Match title OR description OR topic-based ids
+        const orClauses = [`title.ilike.%${q}%`, `description.ilike.%${q}%`];
+        if (topicQuestIds.length) orClauses.push(`id.in.(${topicQuestIds.join(",")})`);
+        query = query.or(orClauses.join(","));
+      }
       const { data } = await query;
       return data || [];
     }
