@@ -269,7 +269,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
         }
       }
 
-      const shouldAsk = msg.includes("@agent") || msg.includes("@Agent") || msg.endsWith("?") || /what (next|should|can)/i.test(msg) || /help|suggest|idea/i.test(msg);
+      const shouldAsk = true;
       if (shouldAsk) {
         setAiLoading(true);
         try {
