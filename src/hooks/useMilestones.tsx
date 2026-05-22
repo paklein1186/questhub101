@@ -23,6 +23,15 @@ export interface Milestone {
   phase: "discover" | "contribute" | "create" | "structure";
 }
 
+export interface MilestoneEvidence {
+  url: string;
+  path: string;
+  name: string;
+  type: string;
+  size: number;
+  uploaded_at: string;
+}
+
 export interface UserMilestone {
   id: string;
   user_id: string;
@@ -30,6 +39,7 @@ export interface UserMilestone {
   completed_at: string | null;
   acknowledged_at: string | null;
   reward_delivered: boolean;
+  evidence?: MilestoneEvidence[];
 }
 
 export interface MilestoneWithProgress extends Milestone {
