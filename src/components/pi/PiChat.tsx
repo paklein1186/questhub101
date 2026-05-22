@@ -309,6 +309,8 @@ export function PiChat({ className }: PiChatProps) {
         body: {
           message: `EXECUTE_ACTION: ${JSON.stringify({ tool: action.toolCall, params: action.toolParams })}`,
           conversationId,
+          contextType,
+          contextId,
         },
       });
 
