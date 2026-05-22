@@ -212,7 +212,7 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.id, p.name]));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
-        const author = p.profiles?.name || "Member";
+        const author = nameMap.get(p.author_user_id) || "Member";
         const snippet = (p.content || "").slice(0, 400);
         const atts = (p.post_attachments || []) as any[];
         const attDesc = atts.length
