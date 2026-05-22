@@ -23,6 +23,15 @@ export interface Milestone {
   phase: "discover" | "contribute" | "create" | "structure";
 }
 
+export interface MilestoneEvidence {
+  url: string;
+  path: string;
+  name: string;
+  type: string;
+  size: number;
+  uploaded_at: string;
+}
+
 export interface UserMilestone {
   id: string;
   user_id: string;
@@ -30,6 +39,7 @@ export interface UserMilestone {
   completed_at: string | null;
   acknowledged_at: string | null;
   reward_delivered: boolean;
+  evidence?: MilestoneEvidence[];
 }
 
 export interface MilestoneWithProgress extends Milestone {
@@ -71,7 +81,7 @@ export function useMilestones() {
         .from("user_milestones")
         .select("*")
         .eq("user_id", user!.id);
-      return (data ?? []) as UserMilestone[];
+      return (data ?? []) as unknown as UserMilestone[];
     },
     enabled: !!user?.id,
     staleTime: 30_000,

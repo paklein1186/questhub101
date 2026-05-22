@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { PageShell } from "@/components/PageShell";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
 import { MILESTONE_ROUTES, PHASE_META } from "@/lib/milestoneRoutes";
+import { MilestoneEvidenceUploader, type EvidenceFile } from "@/components/milestones/MilestoneEvidenceUploader";
 import { cn } from "@/lib/utils";
 
 function MilestoneCard({
@@ -102,6 +103,11 @@ function MilestoneCard({
               </Link>
             </Button>
           )}
+
+          <MilestoneEvidenceUploader
+            milestoneId={m.id}
+            evidence={(m.userMilestone?.evidence ?? []) as EvidenceFile[]}
+          />
         </div>
       </div>
     </motion.div>
