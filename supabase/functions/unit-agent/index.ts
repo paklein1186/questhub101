@@ -218,6 +218,15 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       }
       parts.push(`Recent discussion posts (${posts.length}):\n${postLines.join("\n")}`);
     }
+
+    // Extract text from PDF attachments so the agent can read their content
+    const pdfAtts = attachments.filter(a => /pdf/i.test(a.mime_type)).slice(0, 3);
+    for (const a of pdfAtts) {
+      const text = await extractPdfText(a.url);
+      if (text) {
+        parts.push(`\n--- Content of attached document "${a.file_name}" ---\n${text}\n--- End of document ---`);
+      }
+    }
   } catch (e) {
     console.error("Posts gathering error:", e);
   }
