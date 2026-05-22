@@ -197,7 +197,7 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       `${entityType}_DISCUSSION`,
       `${entityType}_EVENT`,
     ];
-    const { data: posts } = await supabase
+    const { data: posts, error: postsErr } = await supabase
       .from("feed_posts")
       .select("id, content, created_at, author_user_id, profiles:author_user_id(name), post_attachments(url, mime_type, file_name, type)")
       .in("context_type", contextTypes)
@@ -205,7 +205,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .limit(20);
+    console.log(`[unit-agent] posts query: count=${posts?.length || 0} err=${postsErr?.message || "none"}`);
     if (posts?.length) {
+      console.log(`[unit-agent] first post atts:`, JSON.stringify((posts[0] as any).post_attachments));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
         const author = p.profiles?.name || "Member";
