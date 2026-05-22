@@ -84,7 +84,7 @@ Only include these when genuinely useful. Most responses should be plain text.
 Always respond helpfully even if context is limited. Highlight when you're uncertain.`;
 }
 
-async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[] }> {
+async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[]; attachments: { url: string; mime_type: string; file_name: string }[] }> {
   let name = "Unknown";
   const parts: string[] = [];
 
