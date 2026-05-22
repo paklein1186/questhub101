@@ -584,6 +584,73 @@ async function executeToolCall(
       return { completed: true, xp_awarded: subtask.xp_reward, quest_complete: false };
     }
 
+    case "list_quest_members": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const [partsR, hostsR] = await Promise.all([
+        sb.from("quest_participants")
+          .select("user_id, role, status, profiles:user_id(name, avatar_url)")
+          .eq("quest_id", qid).limit(100),
+        sb.from("quest_hosts")
+          .select("entity_type, entity_id, role").eq("quest_id", qid),
+      ]);
+      return {
+        participants: (partsR.data || []).map((p: any) => ({
+          user_id: p.user_id, role: p.role, status: p.status, name: p.profiles?.name,
+        })),
+        hosts: hostsR.data || [],
+      };
+    }
+
+    case "list_quest_discussions": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const limit = Math.min(params.limit || 10, 30);
+      const { data } = await sb.from("feed_posts")
+        .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+        .eq("context_type", "QUEST").eq("context_id", qid)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false }).limit(limit);
+      return (data || []).map((p: any) => ({
+        id: p.id, author: p.profiles?.name, created_at: p.created_at,
+        upvotes: p.upvote_count, content: (p.content || "").slice(0, 600),
+      }));
+    }
+
+    case "list_quest_files": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const limit = Math.min(params.limit || 20, 50);
+      const { data: posts } = await sb.from("feed_posts")
+        .select("id").eq("context_type", "QUEST").eq("context_id", qid)
+        .eq("is_deleted", false).order("created_at", { ascending: false }).limit(50);
+      const ids = (posts || []).map((p: any) => p.id);
+      if (!ids.length) return [];
+      const { data } = await sb.from("post_attachments")
+        .select("post_id, type, url, file_name, mime_type, created_at")
+        .in("post_id", ids).limit(limit);
+      return data || [];
+    }
+
+    case "summarize_quest_progress": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const [questR, subsR, partsR, postsR] = await Promise.all([
+        sb.from("quests").select("id, title, status, deadline, description").eq("id", qid).maybeSingle(),
+        sb.from("quest_subtasks").select("id, title, status, assignee_user_id, due_date").eq("quest_id", qid).order("order_index"),
+        sb.from("quest_participants").select("user_id, status").eq("quest_id", qid),
+        sb.from("feed_posts").select("id, created_at").eq("context_type", "QUEST").eq("context_id", qid).eq("is_deleted", false).order("created_at", { ascending: false }).limit(1),
+      ]);
+      const subs = (subsR.data || []) as any[];
+      const parts = (partsR.data || []) as any[];
+      return {
+        quest: questR.data,
+        subtasks: { total: subs.length, done: subs.filter(s => (s.status || "").toUpperCase() === "DONE").length, items: subs },
+        members: { total: parts.length, active: parts.filter(p => (p.status || "").toLowerCase() === "active").length },
+        last_discussion_at: postsR.data?.[0]?.created_at || null,
+      };
+    }
+
     default:
       return { error: `Unknown tool: ${toolName}` };
   }
