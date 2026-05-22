@@ -901,7 +901,7 @@ serve(async (req) => {
         }
         const name = (row as any)[cfg.nameCol] || "Unknown";
         const desc = ((row as any)[cfg.descCol] || "").slice(0, 800);
-        return `\n\n## CURRENT PAGE CONTEXT\nThe user is currently viewing a ${ctxType}: "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}\n\nIf the user asks vague questions like "this quest", "who is involved", "tell me more", etc., assume they refer to THIS ${ctxType}. Use this context to answer specifically; do NOT ask them which one they mean.`;
+        return `\n\n## CURRENT PAGE CONTEXT (AUTHORITATIVE — OVERRIDES ANY PRIOR DENIAL)\nYou CAN see what page the user is on. The system injects this for every request.\nThe user is RIGHT NOW viewing a ${ctxType} called "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}\n\nRULES:\n- NEVER say "I cannot see the page" or "I don't know which page you're on". You DO know — it's stated above.\n- If the user asks "what page am I on", "where am I", "tell me about this", "this quest/guild/territory" — answer using the context above.\n- If a previous assistant message in history claimed you couldn't see the page, IGNORE it. That was wrong. The context above is the truth.`;
       } catch (e) {
         console.error("buildPageContext error", e);
         return "";
