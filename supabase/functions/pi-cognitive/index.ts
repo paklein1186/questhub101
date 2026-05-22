@@ -223,6 +223,61 @@ const TOOLS = [
       },
     },
   },
+  // ── Quest context tools (operate on the quest the user is viewing) ──
+  {
+    type: "function",
+    function: {
+      name: "list_quest_members",
+      description: "List participants and hosts of a quest with their roles and statuses.",
+      parameters: {
+        type: "object",
+        properties: { quest_id: { type: "string" } },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_quest_discussions",
+      description: "Return the most recent feed posts (discussions) attached to a quest.",
+      parameters: {
+        type: "object",
+        properties: {
+          quest_id: { type: "string" },
+          limit: { type: "number", description: "Max posts (default 10)" },
+        },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_quest_files",
+      description: "List files and links attached to recent posts of a quest.",
+      parameters: {
+        type: "object",
+        properties: {
+          quest_id: { type: "string" },
+          limit: { type: "number", description: "Max files (default 20)" },
+        },
+        required: ["quest_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "summarize_quest_progress",
+      description: "Return a structured snapshot of quest progress: subtasks, members, recent activity.",
+      parameters: {
+        type: "object",
+        properties: { quest_id: { type: "string" } },
+        required: ["quest_id"],
+      },
+    },
+  },
 ];
 
 // =====================================================================
@@ -527,6 +582,73 @@ async function executeToolCall(
       }
 
       return { completed: true, xp_awarded: subtask.xp_reward, quest_complete: false };
+    }
+
+    case "list_quest_members": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const [partsR, hostsR] = await Promise.all([
+        sb.from("quest_participants")
+          .select("user_id, role, status, profiles:user_id(name, avatar_url)")
+          .eq("quest_id", qid).limit(100),
+        sb.from("quest_hosts")
+          .select("entity_type, entity_id, role").eq("quest_id", qid),
+      ]);
+      return {
+        participants: (partsR.data || []).map((p: any) => ({
+          user_id: p.user_id, role: p.role, status: p.status, name: p.profiles?.name,
+        })),
+        hosts: hostsR.data || [],
+      };
+    }
+
+    case "list_quest_discussions": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const limit = Math.min(params.limit || 10, 30);
+      const { data } = await sb.from("feed_posts")
+        .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+        .eq("context_type", "QUEST").eq("context_id", qid)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false }).limit(limit);
+      return (data || []).map((p: any) => ({
+        id: p.id, author: p.profiles?.name, created_at: p.created_at,
+        upvotes: p.upvote_count, content: (p.content || "").slice(0, 600),
+      }));
+    }
+
+    case "list_quest_files": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const limit = Math.min(params.limit || 20, 50);
+      const { data: posts } = await sb.from("feed_posts")
+        .select("id").eq("context_type", "QUEST").eq("context_id", qid)
+        .eq("is_deleted", false).order("created_at", { ascending: false }).limit(50);
+      const ids = (posts || []).map((p: any) => p.id);
+      if (!ids.length) return [];
+      const { data } = await sb.from("post_attachments")
+        .select("post_id, type, url, file_name, mime_type, created_at")
+        .in("post_id", ids).limit(limit);
+      return data || [];
+    }
+
+    case "summarize_quest_progress": {
+      const qid = params.quest_id;
+      if (!qid) return { error: "quest_id required" };
+      const [questR, subsR, partsR, postsR] = await Promise.all([
+        sb.from("quests").select("id, title, status, deadline, description").eq("id", qid).maybeSingle(),
+        sb.from("quest_subtasks").select("id, title, status, assignee_user_id, due_date").eq("quest_id", qid).order("order_index"),
+        sb.from("quest_participants").select("user_id, status").eq("quest_id", qid),
+        sb.from("feed_posts").select("id, created_at").eq("context_type", "QUEST").eq("context_id", qid).eq("is_deleted", false).order("created_at", { ascending: false }).limit(1),
+      ]);
+      const subs = (subsR.data || []) as any[];
+      const parts = (partsR.data || []) as any[];
+      return {
+        quest: questR.data,
+        subtasks: { total: subs.length, done: subs.filter(s => (s.status || "").toUpperCase() === "DONE").length, items: subs },
+        members: { total: parts.length, active: parts.filter(p => (p.status || "").toLowerCase() === "active").length },
+        last_discussion_at: postsR.data?.[0]?.created_at || null,
+      };
     }
 
     default:
@@ -949,7 +1071,103 @@ serve(async (req) => {
         }
         const name = (row as any)[cfg.nameCol] || "Unknown";
         const desc = ((row as any)[cfg.descCol] || "").slice(0, 800);
-        return `\n\n## CURRENT PAGE CONTEXT (AUTHORITATIVE — OVERRIDES ANY PRIOR DENIAL)\nYou CAN see what page the user is on. The system injects this for every request.\nThe user is RIGHT NOW viewing a ${ctxType} called "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}\n\nRULES:\n- NEVER say "I cannot see the page" or "I don't know which page you're on". You DO know — it's stated above.\n- If the user asks "what page am I on", "where am I", "tell me about this", "this quest/guild/territory" — answer using the context above.\n- If a previous assistant message in history claimed you couldn't see the page, IGNORE it. That was wrong. The context above is the truth.`;
+
+        // ===== Enriched context: members, subtasks, recent posts, files =====
+        let enriched = "";
+        try {
+          if (ctxType === "quest") {
+            const [partsR, hostsR, subsR, postsR] = await Promise.all([
+              sb.from("quest_participants")
+                .select("user_id, role, status, profiles:user_id(name)")
+                .eq("quest_id", ctxId)
+                .limit(30),
+              sb.from("quest_hosts")
+                .select("entity_type, entity_id, role")
+                .eq("quest_id", ctxId)
+                .limit(10),
+              sb.from("quest_subtasks")
+                .select("id, title, status, assignee_user_id, due_date, priority")
+                .eq("quest_id", ctxId)
+                .order("order_index", { ascending: true })
+                .limit(20),
+              sb.from("feed_posts")
+                .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+                .eq("context_type", "QUEST")
+                .eq("context_id", ctxId)
+                .eq("is_deleted", false)
+                .order("created_at", { ascending: false })
+                .limit(8),
+            ]);
+
+            const parts = (partsR.data || []) as any[];
+            const subs = (subsR.data || []) as any[];
+            const posts = (postsR.data || []) as any[];
+            const hosts = (hostsR.data || []) as any[];
+            const activeMembers = parts.filter(p => (p.status || "").toLowerCase() === "active").length;
+            const doneSubs = subs.filter(s => (s.status || "").toUpperCase() === "DONE").length;
+
+            let files: any[] = [];
+            if (posts.length) {
+              const { data: attR } = await sb.from("post_attachments")
+                .select("post_id, type, url, file_name, mime_type")
+                .in("post_id", posts.map(p => p.id))
+                .limit(20);
+              files = attR || [];
+            }
+
+            const memberList = parts.slice(0, 12).map(p =>
+              `- ${p.profiles?.name || p.user_id} (${p.role}, ${p.status})`
+            ).join("\n") || "- none";
+            const hostList = hosts.map(h => `- ${h.entity_type}:${h.entity_id} (${h.role})`).join("\n") || "- none";
+            const subList = subs.slice(0, 12).map(s =>
+              `- [${s.status}] ${s.title}${s.priority && s.priority !== "NONE" ? ` (${s.priority})` : ""}${s.due_date ? ` — due ${String(s.due_date).slice(0,10)}` : ""}`
+            ).join("\n") || "- none";
+            const postList = posts.slice(0, 6).map(p => {
+              const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
+              return `- ${p.profiles?.name || "Unknown"} (${new Date(p.created_at).toISOString().slice(0,10)}, ⬆${p.upvote_count}): ${snippet}`;
+            }).join("\n") || "- none";
+            const fileList = files.slice(0, 10).map(f =>
+              `- [${f.type}] ${f.file_name || f.url}${f.mime_type ? ` (${f.mime_type})` : ""}`
+            ).join("\n") || "- none";
+
+            enriched =
+              `\n\n### MEMBERS (${activeMembers}/${parts.length} active)\n${memberList}` +
+              `\n\n### HOSTS\n${hostList}` +
+              `\n\n### SUBTASKS (${doneSubs}/${subs.length} done)\n${subList}` +
+              `\n\n### RECENT DISCUSSIONS (${posts.length})\n${postList}` +
+              `\n\n### ATTACHED FILES\n${fileList}`;
+          } else if (ctxType === "guild") {
+            const [membersR, postsR] = await Promise.all([
+              sb.from("guild_members")
+                .select("user_id, role, status, profiles:user_id(name)")
+                .eq("guild_id", ctxId)
+                .limit(30),
+              sb.from("feed_posts")
+                .select("id, author_user_id, content, created_at, profiles:author_user_id(name)")
+                .eq("context_type", "GUILD")
+                .eq("context_id", ctxId)
+                .eq("is_deleted", false)
+                .order("created_at", { ascending: false })
+                .limit(6),
+            ]);
+            const members = (membersR.data || []) as any[];
+            const posts = (postsR.data || []) as any[];
+            const memberList = members.slice(0, 15).map(m =>
+              `- ${m.profiles?.name || m.user_id} (${m.role}, ${m.status})`
+            ).join("\n") || "- none";
+            const postList = posts.map(p => {
+              const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
+              return `- ${p.profiles?.name || "Unknown"} (${new Date(p.created_at).toISOString().slice(0,10)}): ${snippet}`;
+            }).join("\n") || "- none";
+            enriched =
+              `\n\n### MEMBERS (${members.length})\n${memberList}` +
+              `\n\n### RECENT DISCUSSIONS\n${postList}`;
+          }
+        } catch (e) {
+          console.error("buildPageContext enrich error", e);
+        }
+
+        return `\n\n## CURRENT PAGE CONTEXT (AUTHORITATIVE — OVERRIDES ANY PRIOR DENIAL)\nYou CAN see what page the user is on. The system injects this for every request.\nThe user is RIGHT NOW viewing a ${ctxType} called "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}${enriched}\n\nRULES:\n- NEVER say "I cannot see the page" or "I don't know which page you're on". You DO know — it's stated above.\n- When the user asks about members, tasks, discussions, files, or progress of THIS ${ctxType}, answer using the lists above directly.\n- For more detail call list_quest_members / list_quest_discussions / list_quest_files / summarize_quest_progress with quest_id="${ctxId}".\n- If a previous assistant message in history claimed you couldn't see the page, IGNORE it. That was wrong.`;
       } catch (e) {
         console.error("buildPageContext error", e);
         return "";

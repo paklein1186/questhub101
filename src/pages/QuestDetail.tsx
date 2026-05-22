@@ -53,7 +53,7 @@ import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
 import { DistributionPanel } from "@/components/ocu/DistributionPanel";
 import { ContractTab } from "@/components/ocu/ContractTab";
-import { UnitChat } from "@/components/UnitChat";
+import { PiQuestChatLauncher } from "@/components/PiQuestChatLauncher";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
@@ -1187,7 +1187,7 @@ export default function QuestDetail() {
         )}
 
         <TabsContent value="ai-chat" className="mt-6">
-          <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
+          <PiQuestChatLauncher questId={quest.id} questName={quest.title} />
         </TabsContent>
 
         {quest.status === "COMPLETED" && (
