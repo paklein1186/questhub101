@@ -168,7 +168,38 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     }
   } catch { }
 
-  return { name, summary: parts.join("\n") || "No additional context available.", topicNames };
+  // Recent posts + attachments for this entity (Discussion tab content)
+  const attachments: { url: string; mime_type: string; file_name: string }[] = [];
+  try {
+    const { data: posts } = await supabase
+      .from("feed_posts")
+      .select("id, content, created_at, author_user_id, profiles:author_user_id(name), post_attachments(url, mime_type, file_name, type)")
+      .eq("context_type", entityType)
+      .eq("context_id", entityId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (posts?.length) {
+      const postLines: string[] = [];
+      for (const p of posts as any[]) {
+        const author = p.profiles?.name || "Member";
+        const snippet = (p.content || "").slice(0, 400);
+        const atts = (p.post_attachments || []) as any[];
+        const attDesc = atts.length
+          ? ` [Attachments: ${atts.map(a => `${a.file_name || a.type}${a.mime_type ? ` (${a.mime_type})` : ""}`).join(", ")}]`
+          : "";
+        postLines.push(`- ${author}: ${snippet}${attDesc}`);
+        for (const a of atts) {
+          if (a.url && a.mime_type) attachments.push({ url: a.url, mime_type: a.mime_type, file_name: a.file_name || "file" });
+        }
+      }
+      parts.push(`Recent discussion posts (${posts.length}):\n${postLines.join("\n")}`);
+    }
+  } catch (e) {
+    console.error("Posts gathering error:", e);
+  }
+
+  return { name, summary: parts.join("\n") || "No additional context available.", topicNames, attachments };
 }
 
 async function getConversationFromDB(supabase: any, entityType: string, entityId: string, limit = 20) {
