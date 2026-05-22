@@ -319,17 +319,17 @@ serve(async (req) => {
       aiMessages.push(msg);
     }
 
-    // Build multimodal user message: text + inlined PDFs/images from discussion attachments
+    // Inline only images (PDFs are already extracted as text in contextSummary)
     const userContent: any[] = [{ type: "text", text: message }];
     const inlineable = attachments
-      .filter(a => /^(application\/pdf|image\/)/i.test(a.mime_type))
-      .slice(0, 5); // cap to avoid huge payloads
+      .filter(a => /^image\//i.test(a.mime_type))
+      .slice(0, 5);
     for (const att of inlineable) {
       try {
         const resp = await fetch(att.url);
         if (!resp.ok) continue;
         const buf = new Uint8Array(await resp.arrayBuffer());
-        if (buf.byteLength > 8 * 1024 * 1024) continue; // skip >8MB
+        if (buf.byteLength > 8 * 1024 * 1024) continue;
         let bin = "";
         for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
         const b64 = btoa(bin);
