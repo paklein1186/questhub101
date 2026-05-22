@@ -224,8 +224,11 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
 
     // Extract text from PDF attachments so the agent can read their content
     const pdfAtts = attachments.filter(a => /pdf/i.test(a.mime_type)).slice(0, 3);
+    console.log(`[unit-agent] Found ${pdfAtts.length} PDF attachments to extract`);
     for (const a of pdfAtts) {
+      console.log(`[unit-agent] Extracting PDF: ${a.file_name} from ${a.url}`);
       const text = await extractPdfText(a.url);
+      console.log(`[unit-agent] Extracted ${text.length} chars from ${a.file_name}`);
       if (text) {
         parts.push(`\n--- Content of attached document "${a.file_name}" ---\n${text}\n--- End of document ---`);
       }
