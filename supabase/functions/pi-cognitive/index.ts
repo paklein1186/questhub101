@@ -876,6 +876,7 @@ serve(async (req) => {
 
   try {
     const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest, contextType, contextId } = await req.json();
+    console.log("[pi-cognitive] req contextType=", contextType, "contextId=", contextId, "greeting=", isGreetingRequest);
     if (!message && !isGreetingRequest) return jsonRes({ error: "message is required" }, 400);
 
     // Fetch current-page context (the entity the user is looking at)
