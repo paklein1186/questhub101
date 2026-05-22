@@ -884,8 +884,8 @@ serve(async (req) => {
       if (!ctxType || !ctxId || ctxType === "global" || ctxType === "onboarding") return "";
       try {
         const tableMap: Record<string, { table: string; nameCol: string; descCol?: string; authorCol?: string }> = {
-          quest: { table: "quests", nameCol: "title", descCol: "description", authorCol: "creator_id" },
-          guild: { table: "guilds", nameCol: "name", descCol: "description", authorCol: "creator_id" },
+          quest: { table: "quests", nameCol: "title", descCol: "description", authorCol: "created_by_user_id" },
+          guild: { table: "guilds", nameCol: "name", descCol: "description", authorCol: "created_by_user_id" },
           territory: { table: "territories", nameCol: "name", descCol: "description" },
         };
         const cfg = tableMap[ctxType];
