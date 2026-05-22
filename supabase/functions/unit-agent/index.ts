@@ -199,7 +199,7 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     ];
     const { data: posts, error: postsErr } = await supabase
       .from("feed_posts")
-      .select("id, content, created_at, author_user_id, profiles:author_user_id(name), post_attachments(url, mime_type, file_name, type)")
+      .select("id, content, created_at, author_user_id, post_attachments(url, mime_type, file_name, type)")
       .in("context_type", contextTypes)
       .eq("context_id", entityId)
       .eq("is_deleted", false)
@@ -207,7 +207,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       .limit(20);
     console.log(`[unit-agent] posts query: count=${posts?.length || 0} err=${postsErr?.message || "none"}`);
     if (posts?.length) {
-      console.log(`[unit-agent] first post atts:`, JSON.stringify((posts[0] as any).post_attachments));
+      const authorIds = Array.from(new Set((posts as any[]).map(p => p.author_user_id).filter(Boolean)));
+      const { data: profs } = await supabase.from("profiles").select("id,name").in("id", authorIds);
+      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.id, p.name]));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
         const author = p.profiles?.name || "Member";
