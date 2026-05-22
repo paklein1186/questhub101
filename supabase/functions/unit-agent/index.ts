@@ -89,6 +89,9 @@ Your role:
 - Present ideas as suggestions or reflections, not commands.
 - Be warm, concise, and action-oriented. Use emojis sparingly.
 
+IMPORTANT — Document access:
+The "Unit context" section below may include the extracted text of documents (PDFs) uploaded by members to the Discussion tab, wrapped in "--- Content of attached document ... ---" markers. When members ask about an uploaded document, READ that content and answer directly with specifics, quotes, and references. NEVER say you can't access uploaded documents if their content appears below — it does.
+
 Unit context:
 ${contextSummary}${starredSection}${museSection}
 
@@ -194,18 +197,22 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       `${entityType}_DISCUSSION`,
       `${entityType}_EVENT`,
     ];
-    const { data: posts } = await supabase
+    const { data: posts, error: postsErr } = await supabase
       .from("feed_posts")
-      .select("id, content, created_at, author_user_id, profiles:author_user_id(name), post_attachments(url, mime_type, file_name, type)")
+      .select("id, content, created_at, author_user_id, post_attachments(url, mime_type, file_name, type)")
       .in("context_type", contextTypes)
       .eq("context_id", entityId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .limit(20);
+    console.log(`[unit-agent] posts query: count=${posts?.length || 0} err=${postsErr?.message || "none"}`);
     if (posts?.length) {
+      const authorIds = Array.from(new Set((posts as any[]).map(p => p.author_user_id).filter(Boolean)));
+      const { data: profs } = await supabase.from("profiles").select("id,name").in("id", authorIds);
+      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.id, p.name]));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
-        const author = p.profiles?.name || "Member";
+        const author = nameMap.get(p.author_user_id) || "Member";
         const snippet = (p.content || "").slice(0, 400);
         const atts = (p.post_attachments || []) as any[];
         const attDesc = atts.length
@@ -221,8 +228,11 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
 
     // Extract text from PDF attachments so the agent can read their content
     const pdfAtts = attachments.filter(a => /pdf/i.test(a.mime_type)).slice(0, 3);
+    console.log(`[unit-agent] Found ${pdfAtts.length} PDF attachments to extract`);
     for (const a of pdfAtts) {
+      console.log(`[unit-agent] Extracting PDF: ${a.file_name} from ${a.url}`);
       const text = await extractPdfText(a.url);
+      console.log(`[unit-agent] Extracted ${text.length} chars from ${a.file_name}`);
       if (text) {
         parts.push(`\n--- Content of attached document "${a.file_name}" ---\n${text}\n--- End of document ---`);
       }
@@ -319,17 +329,17 @@ serve(async (req) => {
       aiMessages.push(msg);
     }
 
-    // Build multimodal user message: text + inlined PDFs/images from discussion attachments
+    // Inline only images (PDFs are already extracted as text in contextSummary)
     const userContent: any[] = [{ type: "text", text: message }];
     const inlineable = attachments
-      .filter(a => /^(application\/pdf|image\/)/i.test(a.mime_type))
-      .slice(0, 5); // cap to avoid huge payloads
+      .filter(a => /^image\//i.test(a.mime_type))
+      .slice(0, 5);
     for (const att of inlineable) {
       try {
         const resp = await fetch(att.url);
         if (!resp.ok) continue;
         const buf = new Uint8Array(await resp.arrayBuffer());
-        if (buf.byteLength > 8 * 1024 * 1024) continue; // skip >8MB
+        if (buf.byteLength > 8 * 1024 * 1024) continue;
         let bin = "";
         for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
         const b64 = btoa(bin);
