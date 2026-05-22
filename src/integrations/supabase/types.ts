@@ -9531,6 +9531,7 @@ export type Database = {
           acknowledged_at: string | null
           completed_at: string | null
           created_at: string
+          evidence: Json
           id: string
           milestone_id: string
           reward_delivered: boolean
@@ -9540,6 +9541,7 @@ export type Database = {
           acknowledged_at?: string | null
           completed_at?: string | null
           created_at?: string
+          evidence?: Json
           id?: string
           milestone_id: string
           reward_delivered?: boolean
@@ -9549,6 +9551,7 @@ export type Database = {
           acknowledged_at?: string | null
           completed_at?: string | null
           created_at?: string
+          evidence?: Json
           id?: string
           milestone_id?: string
           reward_delivered?: boolean
