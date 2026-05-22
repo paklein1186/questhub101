@@ -1132,6 +1132,9 @@ serve(async (req) => {
       systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
     }
 
+    const pageContext2 = await buildPageContext(sb, contextType, contextId);
+    systemPrompt += pageContext2;
+
     // Build messages for AI
     const aiMessages = [
       { role: "system", content: systemPrompt + `\n\n[USER CONTEXT]\n${contextBlock}` },
