@@ -964,6 +964,9 @@ serve(async (req) => {
 
       systemPrompt += `\n\n## SESSION GREETING CONTEXT\n${greeting.greetingContext}${triggerContext}\n\nGenerate a warm, proactive opening message. Do NOT wait for the user to speak first. Greet them and suggest what to do next based on the context above.`;
 
+      const pageContext = await buildPageContext(sb, contextType, contextId);
+      systemPrompt += pageContext;
+
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
