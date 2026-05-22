@@ -143,7 +143,7 @@ export function PiChat({ className }: PiChatProps) {
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("pi-cognitive", {
-          body: { greeting: true },
+          body: { greeting: true, contextType, contextId },
         });
         if (error) throw error;
 
