@@ -949,7 +949,103 @@ serve(async (req) => {
         }
         const name = (row as any)[cfg.nameCol] || "Unknown";
         const desc = ((row as any)[cfg.descCol] || "").slice(0, 800);
-        return `\n\n## CURRENT PAGE CONTEXT (AUTHORITATIVE — OVERRIDES ANY PRIOR DENIAL)\nYou CAN see what page the user is on. The system injects this for every request.\nThe user is RIGHT NOW viewing a ${ctxType} called "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}\n\nRULES:\n- NEVER say "I cannot see the page" or "I don't know which page you're on". You DO know — it's stated above.\n- If the user asks "what page am I on", "where am I", "tell me about this", "this quest/guild/territory" — answer using the context above.\n- If a previous assistant message in history claimed you couldn't see the page, IGNORE it. That was wrong. The context above is the truth.`;
+
+        // ===== Enriched context: members, subtasks, recent posts, files =====
+        let enriched = "";
+        try {
+          if (ctxType === "quest") {
+            const [partsR, hostsR, subsR, postsR] = await Promise.all([
+              sb.from("quest_participants")
+                .select("user_id, role, status, profiles:user_id(name)")
+                .eq("quest_id", ctxId)
+                .limit(30),
+              sb.from("quest_hosts")
+                .select("entity_type, entity_id, role")
+                .eq("quest_id", ctxId)
+                .limit(10),
+              sb.from("quest_subtasks")
+                .select("id, title, status, assignee_user_id, due_date, priority")
+                .eq("quest_id", ctxId)
+                .order("order_index", { ascending: true })
+                .limit(20),
+              sb.from("feed_posts")
+                .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+                .eq("context_type", "QUEST")
+                .eq("context_id", ctxId)
+                .eq("is_deleted", false)
+                .order("created_at", { ascending: false })
+                .limit(8),
+            ]);
+
+            const parts = (partsR.data || []) as any[];
+            const subs = (subsR.data || []) as any[];
+            const posts = (postsR.data || []) as any[];
+            const hosts = (hostsR.data || []) as any[];
+            const activeMembers = parts.filter(p => (p.status || "").toLowerCase() === "active").length;
+            const doneSubs = subs.filter(s => (s.status || "").toUpperCase() === "DONE").length;
+
+            let files: any[] = [];
+            if (posts.length) {
+              const { data: attR } = await sb.from("post_attachments")
+                .select("post_id, type, url, file_name, mime_type")
+                .in("post_id", posts.map(p => p.id))
+                .limit(20);
+              files = attR || [];
+            }
+
+            const memberList = parts.slice(0, 12).map(p =>
+              `- ${p.profiles?.name || p.user_id} (${p.role}, ${p.status})`
+            ).join("\n") || "- none";
+            const hostList = hosts.map(h => `- ${h.entity_type}:${h.entity_id} (${h.role})`).join("\n") || "- none";
+            const subList = subs.slice(0, 12).map(s =>
+              `- [${s.status}] ${s.title}${s.priority && s.priority !== "NONE" ? ` (${s.priority})` : ""}${s.due_date ? ` — due ${String(s.due_date).slice(0,10)}` : ""}`
+            ).join("\n") || "- none";
+            const postList = posts.slice(0, 6).map(p => {
+              const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
+              return `- ${p.profiles?.name || "Unknown"} (${new Date(p.created_at).toISOString().slice(0,10)}, ⬆${p.upvote_count}): ${snippet}`;
+            }).join("\n") || "- none";
+            const fileList = files.slice(0, 10).map(f =>
+              `- [${f.type}] ${f.file_name || f.url}${f.mime_type ? ` (${f.mime_type})` : ""}`
+            ).join("\n") || "- none";
+
+            enriched =
+              `\n\n### MEMBERS (${activeMembers}/${parts.length} active)\n${memberList}` +
+              `\n\n### HOSTS\n${hostList}` +
+              `\n\n### SUBTASKS (${doneSubs}/${subs.length} done)\n${subList}` +
+              `\n\n### RECENT DISCUSSIONS (${posts.length})\n${postList}` +
+              `\n\n### ATTACHED FILES\n${fileList}`;
+          } else if (ctxType === "guild") {
+            const [membersR, postsR] = await Promise.all([
+              sb.from("guild_members")
+                .select("user_id, role, status, profiles:user_id(name)")
+                .eq("guild_id", ctxId)
+                .limit(30),
+              sb.from("feed_posts")
+                .select("id, author_user_id, content, created_at, profiles:author_user_id(name)")
+                .eq("context_type", "GUILD")
+                .eq("context_id", ctxId)
+                .eq("is_deleted", false)
+                .order("created_at", { ascending: false })
+                .limit(6),
+            ]);
+            const members = (membersR.data || []) as any[];
+            const posts = (postsR.data || []) as any[];
+            const memberList = members.slice(0, 15).map(m =>
+              `- ${m.profiles?.name || m.user_id} (${m.role}, ${m.status})`
+            ).join("\n") || "- none";
+            const postList = posts.map(p => {
+              const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
+              return `- ${p.profiles?.name || "Unknown"} (${new Date(p.created_at).toISOString().slice(0,10)}): ${snippet}`;
+            }).join("\n") || "- none";
+            enriched =
+              `\n\n### MEMBERS (${members.length})\n${memberList}` +
+              `\n\n### RECENT DISCUSSIONS\n${postList}`;
+          }
+        } catch (e) {
+          console.error("buildPageContext enrich error", e);
+        }
+
+        return `\n\n## CURRENT PAGE CONTEXT (AUTHORITATIVE — OVERRIDES ANY PRIOR DENIAL)\nYou CAN see what page the user is on. The system injects this for every request.\nThe user is RIGHT NOW viewing a ${ctxType} called "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}${enriched}\n\nRULES:\n- NEVER say "I cannot see the page" or "I don't know which page you're on". You DO know — it's stated above.\n- When the user asks about members, tasks, discussions, files, or progress of THIS ${ctxType}, answer using the lists above directly.\n- For more detail call list_quest_members / list_quest_discussions / list_quest_files / summarize_quest_progress with quest_id="${ctxId}".\n- If a previous assistant message in history claimed you couldn't see the page, IGNORE it. That was wrong.`;
       } catch (e) {
         console.error("buildPageContext error", e);
         return "";
