@@ -1036,11 +1036,26 @@ serve(async (req) => {
       let nextPrompt: string | null = null;
 
       try {
-        const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        const parsed = JSON.parse(cleaned);
-        responseText = parsed.message || responseText;
-        actionCards = parsed.action_cards || parsed.suggestedActions || [];
-        nextPrompt = parsed.nextPrompt || null;
+        const cleaned = responseText.replace(/```json\n?/gi, "").replace(/```\n?/g, "").trim();
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch {
+          const firstBrace = cleaned.indexOf("{");
+          const lastBrace = cleaned.lastIndexOf("}");
+          if (firstBrace !== -1 && lastBrace > firstBrace) {
+            try {
+              parsed = JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
+              const prose = cleaned.slice(0, firstBrace).trim();
+              if (prose && !parsed.message) parsed.message = prose;
+            } catch { /* ignore */ }
+          }
+        }
+        if (parsed) {
+          responseText = parsed.message || responseText;
+          actionCards = parsed.action_cards || parsed.suggestedActions || [];
+          nextPrompt = parsed.nextPrompt || null;
+        }
       } catch {}
 
       // Save greeting as Pi message
