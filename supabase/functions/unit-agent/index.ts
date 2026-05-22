@@ -1,5 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
+
+async function extractPdfText(url: string): Promise<string> {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return "";
+    const buf = new Uint8Array(await resp.arrayBuffer());
+    if (buf.byteLength > 20 * 1024 * 1024) return "";
+    const pdf = await getDocumentProxy(buf);
+    const { text } = await extractText(pdf, { mergePages: true });
+    return (text || "").slice(0, 30000);
+  } catch (e) {
+    console.error("PDF extract failed", url, e);
+    return "";
+  }
+}
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -200,6 +217,15 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         }
       }
       parts.push(`Recent discussion posts (${posts.length}):\n${postLines.join("\n")}`);
+    }
+
+    // Extract text from PDF attachments so the agent can read their content
+    const pdfAtts = attachments.filter(a => /pdf/i.test(a.mime_type)).slice(0, 3);
+    for (const a of pdfAtts) {
+      const text = await extractPdfText(a.url);
+      if (text) {
+        parts.push(`\n--- Content of attached document "${a.file_name}" ---\n${text}\n--- End of document ---`);
+      }
     }
   } catch (e) {
     console.error("Posts gathering error:", e);
