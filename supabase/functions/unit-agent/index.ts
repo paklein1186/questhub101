@@ -171,10 +171,16 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
   // Recent posts + attachments for this entity (Discussion tab content)
   const attachments: { url: string; mime_type: string; file_name: string }[] = [];
   try {
+    // Posts can live under the entity itself OR a discussion/event sub-context
+    const contextTypes = [
+      entityType,
+      `${entityType}_DISCUSSION`,
+      `${entityType}_EVENT`,
+    ];
     const { data: posts } = await supabase
       .from("feed_posts")
       .select("id, content, created_at, author_user_id, profiles:author_user_id(name), post_attachments(url, mime_type, file_name, type)")
-      .eq("context_type", entityType)
+      .in("context_type", contextTypes)
       .eq("context_id", entityId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
