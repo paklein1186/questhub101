@@ -1036,11 +1036,26 @@ serve(async (req) => {
       let nextPrompt: string | null = null;
 
       try {
-        const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        const parsed = JSON.parse(cleaned);
-        responseText = parsed.message || responseText;
-        actionCards = parsed.action_cards || parsed.suggestedActions || [];
-        nextPrompt = parsed.nextPrompt || null;
+        const cleaned = responseText.replace(/```json\n?/gi, "").replace(/```\n?/g, "").trim();
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch {
+          const firstBrace = cleaned.indexOf("{");
+          const lastBrace = cleaned.lastIndexOf("}");
+          if (firstBrace !== -1 && lastBrace > firstBrace) {
+            try {
+              parsed = JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
+              const prose = cleaned.slice(0, firstBrace).trim();
+              if (prose && !parsed.message) parsed.message = prose;
+            } catch { /* ignore */ }
+          }
+        }
+        if (parsed) {
+          responseText = parsed.message || responseText;
+          actionCards = parsed.action_cards || parsed.suggestedActions || [];
+          nextPrompt = parsed.nextPrompt || null;
+        }
       } catch {}
 
       // Save greeting as Pi message
@@ -1236,15 +1251,31 @@ serve(async (req) => {
     let emotion: string | null = null;
 
     try {
-      const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const parsed = JSON.parse(cleaned);
-      responseText = parsed.message || responseText;
-      // Support both old "suggestedActions" and new "action_cards" keys
-      actionCards = parsed.action_cards || parsed.suggestedActions || [];
-      scene = parsed.scene || null;
-      memoryOps = parsed.memory?.store || [];
-      nextPrompt = parsed.nextPrompt || null;
-      emotion = parsed.emotion || null;
+      const cleaned = responseText.replace(/```json\n?/gi, "").replace(/```\n?/g, "").trim();
+      let parsed: any = null;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        // Try to extract an embedded JSON object (model returned prose + JSON)
+        const firstBrace = cleaned.indexOf("{");
+        const lastBrace = cleaned.lastIndexOf("}");
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+          try {
+            parsed = JSON.parse(candidate);
+            const prose = cleaned.slice(0, firstBrace).trim();
+            if (prose && !parsed.message) parsed.message = prose;
+          } catch { /* leave as plain text */ }
+        }
+      }
+      if (parsed) {
+        responseText = parsed.message || responseText;
+        actionCards = parsed.action_cards || parsed.suggestedActions || [];
+        scene = parsed.scene || null;
+        memoryOps = parsed.memory?.store || [];
+        nextPrompt = parsed.nextPrompt || null;
+        emotion = parsed.emotion || null;
+      }
     } catch {
       // Plain text response — that's fine
     }
