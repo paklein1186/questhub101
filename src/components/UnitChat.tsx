@@ -384,7 +384,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
   });
 
   return (
-    <div className="flex flex-col h-[540px] rounded-xl border border-border bg-card overflow-hidden">
+    <div className="flex flex-col h-[80vh] min-h-[600px] max-h-[900px] rounded-xl border border-border bg-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
         <Bot className="h-4 w-4 text-primary" />
         <span className="text-sm font-medium">{agentLabel}</span>
