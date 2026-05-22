@@ -143,7 +143,7 @@ export function PiChat({ className }: PiChatProps) {
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("pi-cognitive", {
-          body: { greeting: true },
+          body: { greeting: true, contextType, contextId },
         });
         if (error) throw error;
 
@@ -229,6 +229,8 @@ export function PiChat({ className }: PiChatProps) {
         body: {
           message: text,
           conversationId,
+          contextType,
+          contextId,
         },
       });
 
@@ -307,6 +309,8 @@ export function PiChat({ className }: PiChatProps) {
         body: {
           message: `EXECUTE_ACTION: ${JSON.stringify({ tool: action.toolCall, params: action.toolParams })}`,
           conversationId,
+          contextType,
+          contextId,
         },
       });
 

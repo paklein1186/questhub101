@@ -875,8 +875,36 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest } = await req.json();
+    const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest, contextType, contextId } = await req.json();
     if (!message && !isGreetingRequest) return jsonRes({ error: "message is required" }, 400);
+
+    // Fetch current-page context (the entity the user is looking at)
+    async function buildPageContext(sb: any, ctxType: string | undefined, ctxId: string | undefined): Promise<string> {
+      if (!ctxType || !ctxId || ctxType === "global" || ctxType === "onboarding") return "";
+      try {
+        const tableMap: Record<string, { table: string; nameCol: string; descCol?: string; authorCol?: string }> = {
+          quest: { table: "quests", nameCol: "title", descCol: "description", authorCol: "creator_id" },
+          guild: { table: "guilds", nameCol: "name", descCol: "description", authorCol: "creator_id" },
+          territory: { table: "territories", nameCol: "name", descCol: "description" },
+        };
+        const cfg = tableMap[ctxType];
+        if (!cfg) return "";
+        const cols = ["id", cfg.nameCol, cfg.descCol, cfg.authorCol].filter(Boolean).join(",");
+        const { data: row } = await sb.from(cfg.table).select(cols).eq("id", ctxId).maybeSingle();
+        if (!row) return "";
+        let authorName = "";
+        if (cfg.authorCol && (row as any)[cfg.authorCol]) {
+          const { data: prof } = await sb.from("profiles").select("name").eq("id", (row as any)[cfg.authorCol]).maybeSingle();
+          authorName = prof?.name || "";
+        }
+        const name = (row as any)[cfg.nameCol] || "Unknown";
+        const desc = ((row as any)[cfg.descCol] || "").slice(0, 800);
+        return `\n\n## CURRENT PAGE CONTEXT\nThe user is currently viewing a ${ctxType}: "${name}" (id: ${ctxId})${authorName ? `\nCreated by: ${authorName}` : ""}${desc ? `\nDescription: ${desc}` : ""}\n\nIf the user asks vague questions like "this quest", "who is involved", "tell me more", etc., assume they refer to THIS ${ctxType}. Use this context to answer specifically; do NOT ask them which one they mean.`;
+      } catch (e) {
+        console.error("buildPageContext error", e);
+        return "";
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return jsonRes({ error: "AI gateway not configured" }, 500);
@@ -935,6 +963,9 @@ serve(async (req) => {
       }
 
       systemPrompt += `\n\n## SESSION GREETING CONTEXT\n${greeting.greetingContext}${triggerContext}\n\nGenerate a warm, proactive opening message. Do NOT wait for the user to speak first. Greet them and suggest what to do next based on the context above.`;
+
+      const pageContext = await buildPageContext(sb, contextType, contextId);
+      systemPrompt += pageContext;
 
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -1100,6 +1131,9 @@ serve(async (req) => {
     if (profile?.current_path && PATH_PROMPTS[profile.current_path]) {
       systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
     }
+
+    const pageContext2 = await buildPageContext(sb, contextType, contextId);
+    systemPrompt += pageContext2;
 
     // Build messages for AI
     const aiMessages = [
