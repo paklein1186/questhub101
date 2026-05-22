@@ -306,12 +306,32 @@ async function executeToolCall(
     }
 
     case "search_guilds": {
+      const q = (params.query || "").trim();
+      let topicGuildIds: string[] = [];
+      if (q) {
+        const { data: matchingTopics } = await sb
+          .from("topics")
+          .select("id")
+          .or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
+          .eq("is_deleted", false);
+        if (matchingTopics?.length) {
+          const { data: gt } = await sb
+            .from("guild_topics")
+            .select("guild_id")
+            .in("topic_id", matchingTopics.map((t: any) => t.id));
+          topicGuildIds = (gt || []).map((x: any) => x.guild_id);
+        }
+      }
       let query = sb
         .from("guilds")
         .select("id, name, description, member_count, guild_type")
         .eq("is_deleted", false)
-        .limit(params.limit || 5);
-      if (params.query) query = query.ilike("name", `%${params.query}%`);
+        .limit(params.limit || 8);
+      if (q) {
+        const orClauses = [`name.ilike.%${q}%`, `description.ilike.%${q}%`];
+        if (topicGuildIds.length) orClauses.push(`id.in.(${topicGuildIds.join(",")})`);
+        query = query.or(orClauses.join(","));
+      }
       const { data } = await query;
       return data || [];
     }
