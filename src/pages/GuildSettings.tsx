@@ -1129,6 +1129,13 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 </div>
               )}
 
+              {/* ── MCP Agents ── */}
+              {activeTab === "mcp" && (
+                <GuildMcpTokensPanel guildId={guildId} guildName={guild.name} />
+              )}
+
+
+
 
             </motion.div>
           </div>
