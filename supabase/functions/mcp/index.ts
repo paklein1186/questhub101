@@ -676,6 +676,416 @@ function buildServer(ctx: TokenCtx) {
     },
   });
 
+  // ---------- Admin-only / governance tools ----------
+
+  async function assertGuildAdmin() {
+    const { data, error } = await admin
+      .from("guild_members")
+      .select("role")
+      .eq("guild_id", ctx.guildId)
+      .eq("user_id", ctx.createdBy)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const role = (data?.role ?? "").toString().toLowerCase();
+    if (!["admin", "source", "owner"].includes(role)) {
+      throw new Error("Token owner is not a guild admin/source.");
+    }
+  }
+
+  server.tool({
+    name: "vote_on_decision",
+    description:
+      "Cast a vote on a guild decision/poll. `value` may be an option label, an option index (as string), or a consent value ('agree','reserves','objection'). Requires 'write' scope. Voter is the token owner.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        poll_id: { type: "string" },
+        value: { type: "string" },
+        option_index: { type: "number" },
+        objection_reason: { type: "string" },
+      },
+      required: ["poll_id"],
+    },
+    handler: async ({
+      poll_id,
+      value,
+      option_index,
+      objection_reason,
+    }: {
+      poll_id: string;
+      value?: string;
+      option_index?: number;
+      objection_reason?: string;
+    }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      const { data: poll, error: pErr } = await admin
+        .from("decision_polls")
+        .select("id, entity_type, entity_id, status")
+        .eq("id", poll_id)
+        .maybeSingle();
+      if (pErr) throw new Error(pErr.message);
+      if (!poll) throw new Error("Poll not found.");
+      if (poll.entity_type !== "guild" || poll.entity_id !== ctx.guildId) {
+        throw new Error("Poll does not belong to this guild.");
+      }
+      if (poll.status && poll.status !== "OPEN" && poll.status !== "open") {
+        throw new Error(`Poll is ${poll.status}, cannot vote.`);
+      }
+      const { data, error } = await admin
+        .from("decision_poll_votes")
+        .upsert(
+          {
+            poll_id,
+            user_id: ctx.createdBy,
+            option_index: option_index ?? 0,
+            value: value ?? null,
+            objection_reason: objection_reason ?? null,
+          },
+          { onConflict: "poll_id,user_id" },
+        )
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      return { content: [{ type: "text", text: `Vote recorded (id ${data.id}).` }] };
+    },
+  });
+
+  server.tool({
+    name: "create_quest",
+    description:
+      "Create a new quest (mission) owned by this guild. Returns the created quest id and URL slug. Requires 'write' scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        description: { type: "string" },
+        is_draft: { type: "boolean", default: true },
+        reward_xp: { type: "number", default: 0 },
+        cover_image_url: { type: "string" },
+      },
+      required: ["title"],
+    },
+    handler: async ({
+      title,
+      description,
+      is_draft = true,
+      reward_xp = 0,
+      cover_image_url,
+    }: {
+      title: string;
+      description?: string;
+      is_draft?: boolean;
+      reward_xp?: number;
+      cover_image_url?: string;
+    }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      const { data, error } = await admin
+        .from("quests")
+        .insert({
+          title,
+          description: description ?? null,
+          cover_image_url: cover_image_url ?? null,
+          status: "OPEN",
+          reward_xp,
+          is_draft,
+          guild_id: ctx.guildId,
+          owner_type: "guild",
+          owner_id: ctx.guildId,
+          created_by_user_id: ctx.createdBy,
+        })
+        .select("id, title, status, is_draft")
+        .single();
+      if (error) throw new Error(error.message);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Quest created.\n${JSON.stringify(data, null, 2)}\nURL: /quest/${data.id}`,
+          },
+        ],
+      };
+    },
+  });
+
+  server.tool({
+    name: "attach_link",
+    description:
+      "Attach a remote file/link (already-hosted URL) to a quest, guild or post in this guild. Does not upload — references the URL. Requires 'write' scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        target_type: { type: "string", enum: ["quest", "guild", "post"] },
+        target_id: { type: "string" },
+        file_url: { type: "string" },
+        title: { type: "string" },
+        file_name: { type: "string" },
+        mime_type: { type: "string" },
+      },
+      required: ["target_type", "target_id", "file_url"],
+    },
+    handler: async ({
+      target_type,
+      target_id,
+      file_url,
+      title,
+      file_name,
+      mime_type,
+    }: {
+      target_type: string;
+      target_id: string;
+      file_url: string;
+      title?: string;
+      file_name?: string;
+      mime_type?: string;
+    }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      // Guild-scope guard
+      if (target_type === "quest") {
+        const { data } = await admin
+          .from("quests")
+          .select("guild_id")
+          .eq("id", target_id)
+          .maybeSingle();
+        if (!data || data.guild_id !== ctx.guildId) throw new Error("Quest not in this guild.");
+      } else if (target_type === "guild") {
+        if (target_id !== ctx.guildId) throw new Error("Guild id mismatch.");
+      } else if (target_type === "post") {
+        const { data } = await admin
+          .from("feed_posts")
+          .select("guild_id")
+          .eq("id", target_id)
+          .maybeSingle();
+        if (!data || data.guild_id !== ctx.guildId) throw new Error("Post not in this guild.");
+      }
+      const { data, error } = await admin
+        .from("attachments")
+        .insert({
+          target_type,
+          target_id,
+          file_url,
+          title: title ?? null,
+          file_name: file_name ?? null,
+          mime_type: mime_type ?? null,
+          uploaded_by_user_id: ctx.createdBy,
+        })
+        .select("id, file_url")
+        .single();
+      if (error) throw new Error(error.message);
+      return { content: [{ type: "text", text: `Attachment created (id ${data.id}).` }] };
+    },
+  });
+
+  server.tool({
+    name: "award_xp",
+    description:
+      "Award XP to a guild member. Admin-only (token owner must be guild admin/source). Requires 'write' scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        user_id: { type: "string" },
+        amount: { type: "number" },
+        reason: { type: "string" },
+      },
+      required: ["user_id", "amount"],
+    },
+    handler: async ({
+      user_id,
+      amount,
+      reason,
+    }: { user_id: string; amount: number; reason?: string }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      await assertGuildAdmin();
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 500) {
+        throw new Error("amount must be 1..500.");
+      }
+      // Recipient must be guild member
+      const { data: mem } = await admin
+        .from("guild_members")
+        .select("user_id")
+        .eq("guild_id", ctx.guildId)
+        .eq("user_id", user_id)
+        .maybeSingle();
+      if (!mem) throw new Error("Recipient is not a member of this guild.");
+      const { data, error } = await admin
+        .from("xp_events")
+        .insert({
+          user_id,
+          type: "GUILD_AWARD",
+          amount: Math.floor(amount),
+          related_entity_type: "guild",
+          related_entity_id: ctx.guildId,
+        })
+        .select("id, amount")
+        .single();
+      if (error) throw new Error(error.message);
+      if (reason) {
+        await admin.from("notifications").insert({
+          user_id,
+          type: "xp_awarded",
+          title: `+${data.amount} XP from your guild`,
+          body: reason,
+          related_entity_type: "guild",
+          related_entity_id: ctx.guildId,
+        });
+      }
+      return { content: [{ type: "text", text: `Awarded ${data.amount} XP (event ${data.id}).` }] };
+    },
+  });
+
+  server.tool({
+    name: "transfer_ctg",
+    description:
+      "Transfer $CTG from the token owner's wallet to a guild member. Admin-only. Requires 'write' scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        to_user_id: { type: "string" },
+        amount: { type: "number" },
+        note: { type: "string" },
+      },
+      required: ["to_user_id", "amount"],
+    },
+    handler: async ({
+      to_user_id,
+      amount,
+      note,
+    }: { to_user_id: string; amount: number; note?: string }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      await assertGuildAdmin();
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 10000) {
+        throw new Error("amount must be 1..10000.");
+      }
+      if (to_user_id === ctx.createdBy) throw new Error("Cannot transfer to self.");
+      const { data, error } = await admin.rpc("transfer_ctg", {
+        p_from_user_id: ctx.createdBy,
+        p_to_user_id: to_user_id,
+        p_amount: amount,
+        p_note: note ?? `MCP transfer from guild ${ctx.guildId}`,
+      });
+      if (error) throw new Error(error.message);
+      return {
+        content: [
+          { type: "text", text: `Transferred ${amount} $CTG. ${JSON.stringify(data ?? {})}` },
+        ],
+      };
+    },
+  });
+
+  server.tool({
+    name: "invite_member",
+    description:
+      "Invite a user to join this guild. Creates a pending guild application and notifies them. Requires 'write' scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        user_id: { type: "string" },
+        message: { type: "string" },
+      },
+      required: ["user_id"],
+    },
+    handler: async ({ user_id, message }: { user_id: string; message?: string }) => {
+      if (!ctx.scopes.includes("write")) throw new Error("Token lacks 'write' scope.");
+      await assertGuildAdmin();
+      const { data: existing } = await admin
+        .from("guild_members")
+        .select("user_id")
+        .eq("guild_id", ctx.guildId)
+        .eq("user_id", user_id)
+        .maybeSingle();
+      if (existing) throw new Error("User is already a member.");
+      const { data, error } = await admin
+        .from("guild_applications")
+        .upsert(
+          {
+            guild_id: ctx.guildId,
+            applicant_user_id: user_id,
+            status: "invited",
+            admin_note: message ?? null,
+          },
+          { onConflict: "guild_id,applicant_user_id" },
+        )
+        .select("id, status")
+        .single();
+      if (error) throw new Error(error.message);
+      await admin.from("notifications").insert({
+        user_id,
+        type: "guild_invite",
+        title: "You've been invited to a guild",
+        body: message ?? "Open changethegame to accept the invitation.",
+        related_entity_type: "guild",
+        related_entity_id: ctx.guildId,
+      });
+      return { content: [{ type: "text", text: `Invite sent (application ${data.id}).` }] };
+    },
+  });
+
+  server.tool({
+    name: "get_member_profile",
+    description:
+      "Fetch the public profile of a guild member (full name, username, bio, XP, role in this guild).",
+    inputSchema: {
+      type: "object",
+      properties: { user_id: { type: "string" } },
+      required: ["user_id"],
+    },
+    handler: async ({ user_id }: { user_id: string }) => {
+      const { data: mem } = await admin
+        .from("guild_members")
+        .select("role, joined_at")
+        .eq("guild_id", ctx.guildId)
+        .eq("user_id", user_id)
+        .maybeSingle();
+      if (!mem) throw new Error("User is not a member of this guild.");
+      const { data: profile, error } = await admin
+        .from("profiles")
+        .select("id, full_name, username, bio, xp_level, avatar_url")
+        .eq("id", user_id)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return {
+        content: [
+          { type: "text", text: JSON.stringify({ ...profile, guild_role: mem.role, joined_at: mem.joined_at }, null, 2) },
+        ],
+      };
+    },
+  });
+
+  server.tool({
+    name: "list_contributions",
+    description:
+      "List recent contribution logs (OCU registry) for this guild — who contributed what, with FMV, hours, status.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        quest_id: { type: "string", description: "Optional quest filter." },
+        user_id: { type: "string", description: "Optional contributor filter." },
+        status: { type: "string", description: "Optional status filter (PENDING, VERIFIED, ...)." },
+        limit: { type: "number", default: 30, maximum: 200 },
+      },
+    },
+    handler: async ({
+      quest_id,
+      user_id,
+      status,
+      limit = 30,
+    }: { quest_id?: string; user_id?: string; status?: string; limit?: number }) => {
+      let q = admin
+        .from("contribution_logs")
+        .select(
+          "id, user_id, quest_id, contribution_type, title, hours_logged, fmv_value, xp_earned, credits_earned, ctg_emitted, status, created_at",
+        )
+        .eq("guild_id", ctx.guildId)
+        .order("created_at", { ascending: false })
+        .limit(Math.min(limit, 200));
+      if (quest_id) q = q.eq("quest_id", quest_id);
+      if (user_id) q = q.eq("user_id", user_id);
+      if (status) q = q.eq("status", status);
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      return { content: [{ type: "text", text: JSON.stringify(data ?? [], null, 2) }] };
+    },
+  });
+
   return server;
 }
 
