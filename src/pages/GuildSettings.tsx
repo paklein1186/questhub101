@@ -7,7 +7,7 @@ import {
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin, Tag,
   AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
-  ChevronUp, ChevronDown, Globe, Eye, EyeOff, ShoppingBag, Search,
+  ChevronUp, ChevronDown, Globe, Eye, EyeOff, ShoppingBag, Search, Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,7 @@ import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { GuildMembershipSettingsPanel } from "@/components/guild/GuildMembershipSettingsPanel";
+import { GuildMcpTokensPanel } from "@/components/guild/GuildMcpTokensPanel";
 import { ExitProtocolSettings } from "@/components/ocu/ExitProtocolSettings";
 
 const TABS = [
