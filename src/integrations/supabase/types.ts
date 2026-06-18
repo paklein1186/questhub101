@@ -4308,6 +4308,53 @@ export type Database = {
           },
         ]
       }
+      guild_mcp_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          guild_id: string
+          id: string
+          last_used_at: string | null
+          name: string
+          revoked_at: string | null
+          scopes: string[]
+          token_hash: string
+          token_prefix: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          guild_id: string
+          id?: string
+          last_used_at?: string | null
+          name: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash: string
+          token_prefix: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          guild_id?: string
+          id?: string
+          last_used_at?: string | null
+          name?: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash?: string
+          token_prefix?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_mcp_tokens_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_members: {
         Row: {
           guild_id: string
@@ -10657,6 +10704,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_guild_admin: {
+        Args: { _guild_id: string; _user_id: string }
         Returns: boolean
       }
       link_natural_system: {

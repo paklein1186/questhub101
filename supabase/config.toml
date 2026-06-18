@@ -122,3 +122,6 @@ verify_jwt = false
 
 [functions.retroactive-ctg]
 verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false
