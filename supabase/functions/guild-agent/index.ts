@@ -207,6 +207,62 @@ async function ingestSource(sourceId: string) {
   }
 }
 
+// ---------- Guild live context ----------
+async function loadGuildContext(guildId: string): Promise<string> {
+  const [{ data: guild }, { count: memberCount }, { data: recentMembers }, { data: quests }, { data: posts }] = await Promise.all([
+    admin.from("guilds").select("name, description, type, website_url, created_at").eq("id", guildId).maybeSingle(),
+    admin.from("guild_members").select("user_id", { count: "exact", head: true }).eq("guild_id", guildId),
+    admin.from("guild_members")
+      .select("role, joined_at, profiles:user_id(name, headline)")
+      .eq("guild_id", guildId)
+      .order("joined_at", { ascending: false })
+      .limit(15),
+    admin.from("quests")
+      .select("title, description, status, created_at")
+      .eq("guild_id", guildId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    admin.from("feed_posts")
+      .select("content, created_at, author_user_id, profiles:author_user_id(name)")
+      .eq("context_type", "guild")
+      .eq("context_id", guildId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  if (!guild) return "";
+
+  const fmtMembers = (recentMembers ?? [])
+    .map((m: any) => `- ${m.profiles?.name ?? "?"}${m.profiles?.headline ? ` — ${m.profiles.headline}` : ""} (${m.role})`)
+    .join("\n") || "(no members listed)";
+
+  const fmtQuests = (quests ?? [])
+    .map((q: any) => `- [${q.status}] ${q.title}${q.description ? `: ${String(q.description).slice(0, 200)}` : ""}`)
+    .join("\n") || "(no quests)";
+
+  const fmtPosts = (posts ?? [])
+    .map((p: any) => `- ${p.profiles?.name ?? "member"} (${new Date(p.created_at).toISOString().slice(0,10)}): ${String(p.content ?? "").slice(0, 300)}`)
+    .join("\n") || "(no posts yet)";
+
+  return `GUILD PROFILE
+Name: ${guild.name}
+Type: ${guild.type ?? "—"}
+Description: ${guild.description ?? "—"}
+Website: ${guild.website_url ?? "—"}
+Members: ${memberCount ?? 0}
+
+RECENT MEMBERS:
+${fmtMembers}
+
+QUESTS (${(quests ?? []).length}):
+${fmtQuests}
+
+RECENT POSTS / MESSAGES (${(posts ?? []).length}):
+${fmtPosts}`;
+}
+
 // ---------- Chat / RAG ----------
 async function answerWithRag(params: {
   agentId: string;
@@ -225,21 +281,24 @@ async function answerWithRag(params: {
   // 1. Embed the question
   const [queryEmbedding] = await embedTexts([params.userMessage]);
 
-  // 2. Retrieve
+  // 2. Retrieve from knowledge base
   const { data: matches } = await admin.rpc("match_guild_agent_documents", {
     p_agent_id: params.agentId,
     p_query_embedding: `[${queryEmbedding.join(",")}]` as unknown as string,
     p_match_count: 5,
   });
 
-  const context = (matches ?? [])
+  const knowledge = (matches ?? [])
     .map(
       (m: any, i: number) =>
-        `[${i + 1}] ${m.title ? m.title + " — " : ""}${m.content}`,
+        `[K${i + 1}] ${m.title ? m.title + " — " : ""}${m.content}`,
     )
     .join("\n\n");
 
-  // 3. Load short history (last 10 messages)
+  // 3. Load live guild context
+  const guildContext = await loadGuildContext(agent.guild_id);
+
+  // 4. Load short history
   const { data: history } = await admin
     .from("guild_agent_messages")
     .select("role, content")
@@ -249,11 +308,20 @@ async function answerWithRag(params: {
 
   const systemPrompt = `${agent.persona_prompt}
 
-You are the AI agent of the guild "${(agent as any).guilds?.name ?? ""}".
-When the user asks a question, use the CONTEXT below if relevant. If the context is empty or unrelated, answer from your own general knowledge and tell the user the answer is not based on the guild's documents. Cite snippets as [1], [2]…
+You are the AI agent of the guild "${(agent as any).guilds?.name ?? ""}" on the changethegame platform.
 
-CONTEXT:
-${context || "(no internal documents matched)"}`;
+STRICT GROUNDING RULES:
+1. Answer ONLY from the GUILD DATA and KNOWLEDGE BASE sections below — they are your single source of truth.
+2. Never invent facts about the guild, its members, quests, partners, location or trademarks. If a fact is not in the sections below, say "I don't have that information in the guild's data yet."
+3. Do NOT use external/general knowledge to describe the guild itself (e.g. don't confuse it with similarly-named brands found on the public web).
+4. You may use general knowledge ONLY for neutral background help (definitions, how-to tips) and must flag it as "(general knowledge, not from this guild)".
+5. Prefer concrete references: cite knowledge snippets as [K1], [K2]…
+
+=== GUILD DATA (live from the platform) ===
+${guildContext || "(no guild data available)"}
+
+=== KNOWLEDGE BASE (curated documents & connected sources) ===
+${knowledge || "(no documents matched this query)"}`;
 
   const messages = [
     { role: "system", content: systemPrompt },
