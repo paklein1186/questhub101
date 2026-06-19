@@ -178,7 +178,7 @@ async function ingestSource(sourceId: string) {
         title,
         chunk_index: i + idx,
         content,
-        embedding: embeddings[idx] as unknown as string,
+        embedding: `[${embeddings[idx].join(",")}]`,
         metadata: { source_type: source.type },
       }));
       const { error } = await admin.from("guild_agent_documents").insert(rows);
