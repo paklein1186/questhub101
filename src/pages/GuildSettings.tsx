@@ -79,6 +79,7 @@ const TABS = [
   { key: "billing", label: "Unit Wallet", icon: CreditCard },
   { key: "website", label: "Website", icon: Globe },
   { key: "mcp", label: "MCP Agents", icon: Plug },
+  { key: "agent", label: "AI Agent", icon: Plug },
 ];
 
 export default function GuildSettings() {
