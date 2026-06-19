@@ -4010,6 +4010,290 @@ export type Database = {
           },
         ]
       }
+      guild_agent_channels: {
+        Row: {
+          agent_id: string
+          config: Json
+          created_at: string
+          created_by: string
+          id: string
+          label: string | null
+          last_error: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          agent_id: string
+          config?: Json
+          created_at?: string
+          created_by: string
+          id?: string
+          label?: string | null
+          last_error?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          agent_id?: string
+          config?: Json
+          created_at?: string
+          created_by?: string
+          id?: string
+          label?: string | null
+          last_error?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agent_channels_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_agent_conversations: {
+        Row: {
+          agent_id: string
+          channel_id: string | null
+          created_at: string
+          external_chat_id: string | null
+          id: string
+          last_message_at: string
+          member_user_id: string | null
+          title: string | null
+        }
+        Insert: {
+          agent_id: string
+          channel_id?: string | null
+          created_at?: string
+          external_chat_id?: string | null
+          id?: string
+          last_message_at?: string
+          member_user_id?: string | null
+          title?: string | null
+        }
+        Update: {
+          agent_id?: string
+          channel_id?: string | null
+          created_at?: string
+          external_chat_id?: string | null
+          id?: string
+          last_message_at?: string
+          member_user_id?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agent_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_agent_conversations_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agent_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_agent_documents: {
+        Row: {
+          agent_id: string
+          chunk_index: number
+          content: string
+          created_at: string
+          embedding: string | null
+          external_id: string | null
+          id: string
+          metadata: Json
+          source_id: string | null
+          title: string | null
+        }
+        Insert: {
+          agent_id: string
+          chunk_index?: number
+          content: string
+          created_at?: string
+          embedding?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          source_id?: string | null
+          title?: string | null
+        }
+        Update: {
+          agent_id?: string
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          source_id?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agent_documents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_agent_documents_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agent_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_agent_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          role: string
+          tool_calls: Json | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          role: string
+          tool_calls?: Json | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          role?: string
+          tool_calls?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_agent_sources: {
+        Row: {
+          agent_id: string
+          config: Json
+          created_at: string
+          created_by: string
+          document_count: number
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          status: string
+          title: string | null
+          type: string
+        }
+        Insert: {
+          agent_id: string
+          config?: Json
+          created_at?: string
+          created_by: string
+          document_count?: number
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          status?: string
+          title?: string | null
+          type: string
+        }
+        Update: {
+          agent_id?: string
+          config?: Json
+          created_at?: string
+          created_by?: string
+          document_count?: number
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          status?: string
+          title?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agent_sources_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "guild_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_agents: {
+        Row: {
+          allow_mcp_write: boolean
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          guild_id: string
+          id: string
+          model: string
+          name: string
+          persona_prompt: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          allow_mcp_write?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          created_by: string
+          guild_id: string
+          id?: string
+          model?: string
+          name?: string
+          persona_prompt?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          allow_mcp_write?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string
+          guild_id?: string
+          id?: string
+          model?: string
+          name?: string
+          persona_prompt?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_agents_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: true
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_applications: {
         Row: {
           admin_note: string | null
@@ -10724,6 +11008,21 @@ export type Database = {
           eco_region_code: string
           eco_region_name: string
           eco_region_scheme: string
+        }[]
+      }
+      match_guild_agent_documents: {
+        Args: {
+          p_agent_id: string
+          p_match_count?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: string
+          metadata: Json
+          similarity: number
+          source_id: string
+          title: string
         }[]
       }
       match_territory_with_datasets: {
