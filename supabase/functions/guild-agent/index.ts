@@ -228,7 +228,7 @@ async function answerWithRag(params: {
   // 2. Retrieve
   const { data: matches } = await admin.rpc("match_guild_agent_documents", {
     p_agent_id: params.agentId,
-    p_query_embedding: queryEmbedding as unknown as string,
+    p_query_embedding: `[${queryEmbedding.join(",")}]` as unknown as string,
     p_match_count: 5,
   });
 
