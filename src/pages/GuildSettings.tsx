@@ -58,6 +58,7 @@ import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { GuildMembershipSettingsPanel } from "@/components/guild/GuildMembershipSettingsPanel";
 import { GuildMcpTokensPanel } from "@/components/guild/GuildMcpTokensPanel";
+import { GuildAgentSettingsPanel } from "@/components/guild/GuildAgentSettingsPanel";
 import { ExitProtocolSettings } from "@/components/ocu/ExitProtocolSettings";
 
 const TABS = [
