@@ -125,3 +125,6 @@ verify_jwt = false
 
 [functions.mcp]
 verify_jwt = false
+
+[functions.guild-agent]
+verify_jwt = false
