@@ -1136,6 +1136,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 <GuildMcpTokensPanel guildId={guildId} guildName={guild.name} />
               )}
 
+              {/* ── AI Agent (RAG + channels) ── */}
+              {activeTab === "agent" && (
+                <GuildAgentSettingsPanel guildId={guildId} guildName={guild.name} />
+              )}
+
 
 
 
