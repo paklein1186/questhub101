@@ -58,6 +58,7 @@ import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { GuildMembershipSettingsPanel } from "@/components/guild/GuildMembershipSettingsPanel";
 import { GuildMcpTokensPanel } from "@/components/guild/GuildMcpTokensPanel";
+import { GuildAgentSettingsPanel } from "@/components/guild/GuildAgentSettingsPanel";
 import { ExitProtocolSettings } from "@/components/ocu/ExitProtocolSettings";
 
 const TABS = [
@@ -78,6 +79,7 @@ const TABS = [
   { key: "billing", label: "Unit Wallet", icon: CreditCard },
   { key: "website", label: "Website", icon: Globe },
   { key: "mcp", label: "MCP Agents", icon: Plug },
+  { key: "agent", label: "AI Agent", icon: Plug },
 ];
 
 export default function GuildSettings() {
@@ -1132,6 +1134,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
               {/* ── MCP Agents ── */}
               {activeTab === "mcp" && (
                 <GuildMcpTokensPanel guildId={guildId} guildName={guild.name} />
+              )}
+
+              {/* ── AI Agent (RAG + channels) ── */}
+              {activeTab === "agent" && (
+                <GuildAgentSettingsPanel guildId={guildId} guildName={guild.name} />
               )}
 
 
