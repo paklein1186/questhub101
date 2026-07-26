@@ -142,8 +142,6 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     return true;
   }), filters.sortBy);
 
-  // In public mode, show only aggregated stats instead of full quest cards
-  const publicQuestCount = filtered.length;
 
   return (
     <PageShell bare={bare}>
