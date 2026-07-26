@@ -25,4 +25,10 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },
+  {
+    files: ["*.config.{ts,js}", "tailwind.config.ts", "vite.config.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 );
