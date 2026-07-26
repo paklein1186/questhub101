@@ -660,7 +660,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-sm">Create Contract</DialogTitle>
+              <DialogTitle className="text-sm">{isEditing ? "Edit Contract" : "Create Contract"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
