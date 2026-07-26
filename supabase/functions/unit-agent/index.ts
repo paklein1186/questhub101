@@ -200,8 +200,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         parts.push(`Guild: ${guild.name} (${guild.type}, ${guild.join_policy})`);
         if (guild.description) parts.push(`Description: ${guild.description.slice(0, 300)}`);
       }
-      const { data: members } = await supabase.from("guild_members").select("role, profiles(name)").eq("guild_id", entityId).limit(20);
-      if (members?.length) parts.push(`Members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "?"} (${m.role})`).join(", ")}`);
+      const { data: rawMembers } = await supabase.from("guild_members").select("role, user_id").eq("guild_id", entityId).limit(20);
+      const members = await hydrateProfiles(supabase, rawMembers, "user_id");
+      if (members?.length) parts.push(`Members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role})`).join(", ")}`);
       const { data: quests } = await supabase.from("quests").select("title, status").eq("guild_id", entityId).eq("is_deleted", false).limit(10);
       if (quests?.length) parts.push(`Quests: ${quests.map((q: any) => `${q.title} [${q.status}]`).join(", ")}`);
       const { data: topics } = await supabase.from("guild_topics").select("topics(name)").eq("guild_id", entityId);
