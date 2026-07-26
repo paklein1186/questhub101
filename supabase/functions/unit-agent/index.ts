@@ -173,6 +173,20 @@ Only include these when genuinely useful. Most responses should be plain text.
 Always respond helpfully even if context is limited. Highlight when you're uncertain.${languageDirective(language)}`;
 }
 
+// profiles has NO foreign key to other tables, so PostgREST embeds like
+// `profiles:user_id(name)` silently return null. Always hydrate manually
+// through profiles.user_id (NOT profiles.id, which is a distinct column).
+async function hydrateProfiles(sb: any, rows: any[] | null, key: string): Promise<any[]> {
+  const list = rows || [];
+  const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
+  if (!ids.length) return list;
+  const { data } = await sb.from("profiles").select("user_id,name,headline").in("user_id", ids);
+  const map = new Map<string, any>((data || []).map((p: any) => [p.user_id, p]));
+  for (const r of list) r.profiles = map.get(r?.[key]) || null;
+  return list;
+}
+
+
 async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[]; attachments: { url: string; mime_type: string; file_name: string }[] }> {
   let name = "Unknown";
   const parts: string[] = [];
