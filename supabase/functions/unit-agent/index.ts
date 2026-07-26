@@ -173,6 +173,20 @@ Only include these when genuinely useful. Most responses should be plain text.
 Always respond helpfully even if context is limited. Highlight when you're uncertain.${languageDirective(language)}`;
 }
 
+// profiles has NO foreign key to other tables, so PostgREST embeds like
+// `profiles:user_id(name)` silently return null. Always hydrate manually
+// through profiles.user_id (NOT profiles.id, which is a distinct column).
+async function hydrateProfiles(sb: any, rows: any[] | null, key: string): Promise<any[]> {
+  const list = rows || [];
+  const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
+  if (!ids.length) return list;
+  const { data } = await sb.from("profiles").select("user_id,name,headline").in("user_id", ids);
+  const map = new Map<string, any>((data || []).map((p: any) => [p.user_id, p]));
+  for (const r of list) r.profiles = map.get(r?.[key]) || null;
+  return list;
+}
+
+
 async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[]; attachments: { url: string; mime_type: string; file_name: string }[] }> {
   let name = "Unknown";
   const parts: string[] = [];
@@ -186,8 +200,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         parts.push(`Guild: ${guild.name} (${guild.type}, ${guild.join_policy})`);
         if (guild.description) parts.push(`Description: ${guild.description.slice(0, 300)}`);
       }
-      const { data: members } = await supabase.from("guild_members").select("role, profiles(name)").eq("guild_id", entityId).limit(20);
-      if (members?.length) parts.push(`Members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "?"} (${m.role})`).join(", ")}`);
+      const { data: rawMembers } = await supabase.from("guild_members").select("role, user_id").eq("guild_id", entityId).limit(20);
+      const members = await hydrateProfiles(supabase, rawMembers, "user_id");
+      if (members?.length) parts.push(`Members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role})`).join(", ")}`);
       const { data: quests } = await supabase.from("quests").select("title, status").eq("guild_id", entityId).eq("is_deleted", false).limit(10);
       if (quests?.length) parts.push(`Quests: ${quests.map((q: any) => `${q.title} [${q.status}]`).join(", ")}`);
       const { data: topics } = await supabase.from("guild_topics").select("topics(name)").eq("guild_id", entityId);
@@ -201,8 +216,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         if (quest.description) parts.push(`Description: ${quest.description.slice(0, 300)}`);
         parts.push(`Rewards: ${quest.reward_xp} XP, Budget: ${quest.credit_budget} credits, Escrow: ${quest.escrow_credits}`);
       }
-      const { data: participants } = await supabase.from("quest_participants").select("role, status, profiles(name)").eq("quest_id", entityId).limit(20);
-      if (participants?.length) parts.push(`Participants: ${participants.map((p: any) => `${p.profiles?.name || "?"} (${p.role})`).join(", ")}`);
+      const { data: rawParticipants } = await supabase.from("quest_participants").select("role, status, user_id").eq("quest_id", entityId).limit(20);
+      const participants = await hydrateProfiles(supabase, rawParticipants, "user_id");
+      if (participants?.length) parts.push(`Participants: ${participants.map((p: any) => `${p.profiles?.name || "Unnamed member"} (${p.role})`).join(", ")}`);
       const { data: subtasks } = await supabase.from("quest_subtasks").select("title, status").eq("quest_id", entityId).order("order_index").limit(20);
       if (subtasks?.length) parts.push(`Subtasks: ${subtasks.map((s: any) => `${s.title} [${s.status}]`).join(", ")}`);
       const { data: proposals } = await supabase.from("quest_proposals").select("title, status, requested_credits, upvotes_count").eq("quest_id", entityId).limit(10);
@@ -214,8 +230,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         parts.push(`Pod: ${pod.name} (${pod.type})`);
         if (pod.description) parts.push(`Description: ${pod.description.slice(0, 300)}`);
       }
-      const { data: members } = await supabase.from("pod_members").select("role, profiles(name)").eq("pod_id", entityId).limit(20);
-      if (members?.length) parts.push(`Members: ${members.map((m: any) => `${m.profiles?.name || "?"} (${m.role})`).join(", ")}`);
+      const { data: rawPodMembers } = await supabase.from("pod_members").select("role, user_id").eq("pod_id", entityId).limit(20);
+      const members = await hydrateProfiles(supabase, rawPodMembers, "user_id");
+      if (members?.length) parts.push(`Members: ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role})`).join(", ")}`);
     } else if (entityType === "COMPANY") {
       const { data: company } = await supabase.from("companies").select("name, description, sector, size").eq("id", entityId).single();
       if (company) {
@@ -224,14 +241,10 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         if (company.description) parts.push(`Description: ${company.description.slice(0, 300)}`);
       }
 
-      const { data: members } = await supabase.from("company_members").select("role, user_id").eq("company_id", entityId).limit(30);
+      const { data: rawCompanyMembers } = await supabase.from("company_members").select("role, user_id").eq("company_id", entityId).limit(30);
+      const members = await hydrateProfiles(supabase, rawCompanyMembers, "user_id");
       if (members?.length) {
-        const userIds = members.map((m: any) => m.user_id).filter(Boolean);
-        const { data: profiles } = userIds.length
-          ? await supabase.from("profiles").select("id,name").in("id", userIds)
-          : { data: [] };
-        const profileMap = new Map<string, string>((profiles || []).map((p: any) => [p.id, p.name]));
-        parts.push(`Company members (${members.length}): ${members.map((m: any) => `${profileMap.get(m.user_id) || "Member"} (${m.role || "member"})`).join(", ")}`);
+        parts.push(`Company members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role || "member"})`).join(", ")}`);
       }
 
       const questMap = new Map<string, any>();
@@ -363,8 +376,8 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     console.log(`[unit-agent] posts query: direct=${directPosts?.length || 0} relatedQuests=${relatedQuestIdList.length} acting=${actingPosts?.length || 0} total=${posts.length} err=${directPostsErr?.message || actingPostsErr?.message || "none"}`);
     if (posts.length) {
       const authorIds = Array.from(new Set((posts as any[]).map(p => p.author_user_id).filter(Boolean)));
-      const { data: profs } = await supabase.from("profiles").select("id,name").in("id", authorIds);
-      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.id, p.name]));
+      const { data: profs } = await supabase.from("profiles").select("user_id,name").in("user_id", authorIds);
+      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.user_id, p.name]));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
         const author = nameMap.get(p.author_user_id) || "Member";
@@ -429,11 +442,12 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
 
   const { data: msgs } = await supabase
     .from("unit_chat_messages")
-    .select("sender_type, sender_user_id, message_text, profiles:sender_user_id(name)")
+    .select("sender_type, sender_user_id, message_text")
     .eq("thread_id", thread.id)
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  await hydrateProfiles(supabase, msgs || [], "sender_user_id");
   const recentMsgs = (msgs || []).reverse().map((m: any) => ({
     role: m.sender_type === "AGENT" ? "assistant" as const : "user" as const,
     content: m.sender_type === "USER"
@@ -557,24 +571,51 @@ serve(async (req) => {
     const data = await response.json();
     const replyText = data.choices?.[0]?.message?.content ?? "I'm not sure how to help with that right now.";
 
+    // Markers contain JSON with nested brackets/braces, so a lazy regex would cut
+    // them off mid-object and leave stray characters like "}]" in the reply.
+    // Extract each block by scanning for the balanced closing bracket instead.
     const suggestions: any[] = [];
-    const pollMatch = replyText.match(/\[POLL:(.*?)\]/s);
-    if (pollMatch) {
-      try { suggestions.push({ type: "DECISION_POLL", ...JSON.parse(pollMatch[1]) }); } catch { }
-    }
-    const stepsMatch = replyText.match(/\[STEPS:(.*?)\]/s);
-    if (stepsMatch) {
-      try { suggestions.push({ type: "NEXT_STEPS", ...JSON.parse(stepsMatch[1]) }); } catch { }
-    }
-    const skillsMatch = replyText.match(/\[SKILLS:(.*?)\]/s);
-    if (skillsMatch) {
-      try { suggestions.push({ type: "MISSING_SKILLS", ...JSON.parse(skillsMatch[1]) }); } catch { }
-    }
+    let cleanText: string = replyText;
 
-    const cleanText = replyText
-      .replace(/\[POLL:.*?\]/s, "")
-      .replace(/\[STEPS:.*?\]/s, "")
-      .replace(/\[SKILLS:.*?\]/s, "")
+    const extractMarker = (marker: string, type: string) => {
+      const token = `[${marker}:`;
+      let index = cleanText.indexOf(token);
+      while (index !== -1) {
+        let depth = 1;
+        let end = -1;
+        let inString = false;
+        let escaped = false;
+        for (let i = index + token.length; i < cleanText.length; i++) {
+          const ch = cleanText[i];
+          if (escaped) { escaped = false; continue; }
+          if (ch === "\\") { escaped = true; continue; }
+          if (ch === '"') { inString = !inString; continue; }
+          if (inString) continue;
+          if (ch === "[" || ch === "{") depth++;
+          else if (ch === "}") depth--;
+          else if (ch === "]") { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end === -1) break;
+        const payload = cleanText.slice(index + token.length, end).trim();
+        try {
+          suggestions.push({ type, ...JSON.parse(payload) });
+        } catch {
+          console.warn(`[unit-agent] failed to parse ${marker} payload`);
+        }
+        cleanText = (cleanText.slice(0, index) + cleanText.slice(end + 1));
+        index = cleanText.indexOf(token);
+      }
+    };
+
+    extractMarker("POLL", "DECISION_POLL");
+    extractMarker("STEPS", "NEXT_STEPS");
+    extractMarker("SKILLS", "MISSING_SKILLS");
+
+    // Safety net: remove any orphan marker fragments the model may have emitted.
+    cleanText = cleanText
+      .replace(/\[(POLL|STEPS|SKILLS):/g, "")
+      .replace(/^\s*[}\]]+\s*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
 
     let threadId = existingThreadId;

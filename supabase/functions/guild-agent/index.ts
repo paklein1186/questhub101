@@ -207,13 +207,25 @@ async function ingestSource(sourceId: string) {
   }
 }
 
+// profiles has NO foreign key, so PostgREST embeds return null. Hydrate manually
+// via profiles.user_id (profiles.id is a distinct column and never matches).
+async function hydrateProfiles(rows: any[] | null, key: string): Promise<any[]> {
+  const list = rows || [];
+  const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
+  if (!ids.length) return list;
+  const { data } = await admin.from("profiles").select("user_id,name,headline").in("user_id", ids);
+  const map = new Map<string, any>((data || []).map((p: any) => [p.user_id, p]));
+  for (const r of list) r.profiles = map.get(r?.[key]) || null;
+  return list;
+}
+
 // ---------- Guild live context ----------
 async function loadGuildContext(guildId: string): Promise<string> {
   const [{ data: guild }, { count: memberCount }, { data: recentMembers }, { data: quests }, { data: posts }] = await Promise.all([
     admin.from("guilds").select("name, description, type, website_url, created_at").eq("id", guildId).maybeSingle(),
     admin.from("guild_members").select("user_id", { count: "exact", head: true }).eq("guild_id", guildId),
     admin.from("guild_members")
-      .select("role, joined_at, profiles:user_id(name, headline)")
+      .select("role, joined_at, user_id")
       .eq("guild_id", guildId)
       .order("joined_at", { ascending: false })
       .limit(15),
@@ -224,7 +236,7 @@ async function loadGuildContext(guildId: string): Promise<string> {
       .order("created_at", { ascending: false })
       .limit(15),
     admin.from("feed_posts")
-      .select("content, created_at, author_user_id, profiles:author_user_id(name)")
+      .select("content, created_at, author_user_id")
       .eq("context_type", "guild")
       .eq("context_id", guildId)
       .eq("is_deleted", false)
@@ -234,8 +246,11 @@ async function loadGuildContext(guildId: string): Promise<string> {
 
   if (!guild) return "";
 
+  await hydrateProfiles(recentMembers as any[], "user_id");
+  await hydrateProfiles(posts as any[], "author_user_id");
+
   const fmtMembers = (recentMembers ?? [])
-    .map((m: any) => `- ${m.profiles?.name ?? "?"}${m.profiles?.headline ? ` — ${m.profiles.headline}` : ""} (${m.role})`)
+    .map((m: any) => `- ${m.profiles?.name ?? "Unnamed member"}${m.profiles?.headline ? ` — ${m.profiles.headline}` : ""} (${m.role})`)
     .join("\n") || "(no members listed)";
 
   const fmtQuests = (quests ?? [])

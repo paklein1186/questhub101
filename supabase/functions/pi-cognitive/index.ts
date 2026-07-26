@@ -589,11 +589,12 @@ async function executeToolCall(
       if (!qid) return { error: "quest_id required" };
       const [partsR, hostsR] = await Promise.all([
         sb.from("quest_participants")
-          .select("user_id, role, status, profiles:user_id(name, avatar_url)")
+          .select("user_id, role, status")
           .eq("quest_id", qid).limit(100),
         sb.from("quest_hosts")
           .select("entity_type, entity_id, role").eq("quest_id", qid),
       ]);
+      await hydrateProfiles(sb, partsR.data as any[], "user_id");
       return {
         participants: (partsR.data || []).map((p: any) => ({
           user_id: p.user_id, role: p.role, status: p.status, name: p.profiles?.name,
@@ -607,10 +608,11 @@ async function executeToolCall(
       if (!qid) return { error: "quest_id required" };
       const limit = Math.min(params.limit || 10, 30);
       const { data } = await sb.from("feed_posts")
-        .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+        .select("id, author_user_id, content, created_at, upvote_count")
         .eq("context_type", "QUEST").eq("context_id", qid)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false }).limit(limit);
+      await hydrateProfiles(sb, data as any[], "author_user_id");
       return (data || []).map((p: any) => ({
         id: p.id, author: p.profiles?.name, created_at: p.created_at,
         upvotes: p.upvote_count, content: (p.content || "").slice(0, 600),
@@ -733,6 +735,29 @@ Model the leadership you're teaching.`,
 // =====================================================================
 // System prompt
 // =====================================================================
+// profiles has NO foreign key to other tables, so PostgREST embeds like
+// `profiles:user_id(name)` always return null. Hydrate manually via profiles.user_id.
+// Removes leftover JSON fragments (stray "}]", "```json" fences, dangling braces)
+// that leak into the visible reply when the model mixes prose and JSON.
+function sanitizeAiText(text: string): string {
+  return (text || "")
+    .replace(/```(?:json)?/gi, "")
+    .replace(/^\s*[}\])]+[,;]?\s*$/gm, "")
+    .replace(/^\s*"?(action_cards|suggestedActions|nextPrompt|memory|scene|emotion)"?\s*:\s*.*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function hydrateProfiles(sb: any, rows: any[] | null, key: string): Promise<any[]> {
+  const list = rows || [];
+  const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
+  if (!ids.length) return list;
+  const { data } = await sb.from("profiles").select("user_id,name,avatar_url").in("user_id", ids);
+  const map = new Map<string, any>((data || []).map((p: any) => [p.user_id, p]));
+  for (const r of list) r.profiles = map.get(r?.[key]) || null;
+  return list;
+}
+
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
   pt: "Portuguese", nl: "Dutch", pl: "Polish", ro: "Romanian", ar: "Arabic",
@@ -1113,7 +1138,7 @@ serve(async (req) => {
         if (!row) return "";
         let authorName = "";
         if (cfg.authorCol && (row as any)[cfg.authorCol]) {
-          const { data: prof } = await sb.from("profiles").select("name").eq("id", (row as any)[cfg.authorCol]).maybeSingle();
+          const { data: prof } = await sb.from("profiles").select("name").eq("user_id", (row as any)[cfg.authorCol]).maybeSingle();
           authorName = prof?.name || "";
         }
         const name = (row as any)[cfg.nameCol] || "Unknown";
@@ -1125,7 +1150,7 @@ serve(async (req) => {
           if (ctxType === "quest") {
             const [partsR, hostsR, subsR, postsR] = await Promise.all([
               sb.from("quest_participants")
-                .select("user_id, role, status, profiles:user_id(name)")
+                .select("user_id, role, status")
                 .eq("quest_id", ctxId)
                 .limit(30),
               sb.from("quest_hosts")
@@ -1138,7 +1163,7 @@ serve(async (req) => {
                 .order("order_index", { ascending: true })
                 .limit(20),
               sb.from("feed_posts")
-                .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+                .select("id, author_user_id, content, created_at, upvote_count")
                 .eq("context_type", "QUEST")
                 .eq("context_id", ctxId)
                 .eq("is_deleted", false)
@@ -1146,9 +1171,9 @@ serve(async (req) => {
                 .limit(8),
             ]);
 
-            const parts = (partsR.data || []) as any[];
+            const parts = await hydrateProfiles(sb, partsR.data as any[], "user_id");
             const subs = (subsR.data || []) as any[];
-            const posts = (postsR.data || []) as any[];
+            const posts = await hydrateProfiles(sb, postsR.data as any[], "author_user_id");
             const hosts = (hostsR.data || []) as any[];
             const activeMembers = parts.filter(p => (p.status || "").toLowerCase() === "active").length;
             const doneSubs = subs.filter(s => (s.status || "").toUpperCase() === "DONE").length;
@@ -1171,7 +1196,7 @@ serve(async (req) => {
             }
 
             const memberList = parts.slice(0, 12).map(p =>
-              `- ${p.profiles?.name || p.user_id} (${p.role}, ${p.status})`
+              `- ${p.profiles?.name || "Unnamed member"} (${p.role}, ${p.status})`
             ).join("\n") || "- none";
             const hostList = hosts.map(h => `- ${h.entity_type}:${h.entity_id} (${h.role})`).join("\n") || "- none";
             const subList = subs.slice(0, 12).map(s =>
@@ -1194,21 +1219,21 @@ serve(async (req) => {
           } else if (ctxType === "guild") {
             const [membersR, postsR] = await Promise.all([
               sb.from("guild_members")
-                .select("user_id, role, status, profiles:user_id(name)")
+                .select("user_id, role, status")
                 .eq("guild_id", ctxId)
                 .limit(30),
               sb.from("feed_posts")
-                .select("id, author_user_id, content, created_at, profiles:author_user_id(name)")
+                .select("id, author_user_id, content, created_at")
                 .eq("context_type", "GUILD")
                 .eq("context_id", ctxId)
                 .eq("is_deleted", false)
                 .order("created_at", { ascending: false })
                 .limit(6),
             ]);
-            const members = (membersR.data || []) as any[];
-            const posts = (postsR.data || []) as any[];
+            const members = await hydrateProfiles(sb, membersR.data as any[], "user_id");
+            const posts = await hydrateProfiles(sb, postsR.data as any[], "author_user_id");
             const memberList = members.slice(0, 15).map(m =>
-              `- ${m.profiles?.name || m.user_id} (${m.role}, ${m.status})`
+              `- ${m.profiles?.name || "Unnamed member"} (${m.role}, ${m.status})`
             ).join("\n") || "- none";
             const postList = posts.map(p => {
               const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
@@ -1378,6 +1403,7 @@ serve(async (req) => {
           nextPrompt = parsed.nextPrompt || null;
         }
       } catch {}
+      responseText = sanitizeAiText(responseText);
 
       // Save greeting as Pi message
       const normalizedCards = actionCards.map((c: any) => ({
@@ -1600,6 +1626,7 @@ serve(async (req) => {
     } catch {
       // Plain text response — that's fine
     }
+    responseText = sanitizeAiText(responseText);
 
     // Process memory operations
     for (const mem of memoryOps) {
