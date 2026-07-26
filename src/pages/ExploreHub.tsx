@@ -34,8 +34,8 @@ import OpportunitiesExplore from "./OpportunitiesExplore";
 
 const VALID_TABS_AUTH = ["entities", "quests", "jobs", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_GUEST = ["entities", "houses", "courses", "agents", "jobs", "territories"];
-const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "territories"];
+const VALID_TABS_GUEST = ["entities", "quests", "houses", "courses", "agents", "jobs", "territories"];
+const VALID_TABS_GUEST_CREATIVE = ["entities", "quests", "houses", "courses", "agents", "territories"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
@@ -167,11 +167,14 @@ export default function ExploreHub() {
         </TabsContent>
 
         <TabsContent value="quests">
-          <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
-          </div>
+          {!isGuest && (
+            <div className="flex justify-end mb-4">
+              <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
+            </div>
+          )}
           <QuestsSubTabs />
         </TabsContent>
+
 
 
         <TabsContent value="services">
@@ -232,7 +235,7 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
   const { t } = useTranslation();
   const exploreTabs: TabDefinition[] = useMemo(() => [
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")} <HintTooltip {...HINTS.tooltips.exploreEntities} /></> },
-    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></>, visible: !isGuest },
+    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></> },
     { value: "jobs", label: <><HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities</>, visible: !isCreative },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
     { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")} <HintTooltip {...HINTS.tooltips.exploreAgents} /></> },

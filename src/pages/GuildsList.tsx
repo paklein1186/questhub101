@@ -167,7 +167,7 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
           const memberCount = guild.guild_members?.length ?? 0;
           return (
             <motion.div key={guild.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={isLoggedIn ? `/guilds/${guild.id}` : "/login"} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
+              <Link to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
                 <UnitCoverImage type="GUILD" imageUrl={guild.banner_url} logoUrl={guild.logo_url} name={guild.name} height="h-32" />
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">

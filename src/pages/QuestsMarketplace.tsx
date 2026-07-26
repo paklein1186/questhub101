@@ -13,6 +13,7 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
 import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
@@ -141,8 +142,6 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     return true;
   }), filters.sortBy);
 
-  // In public mode, show only aggregated stats instead of full quest cards
-  const publicQuestCount = filtered.length;
 
   return (
     <PageShell bare={bare}>
@@ -189,18 +188,8 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
 
-      {/* Public mode: show aggregated count instead of individual quest cards */}
-      {!isLoggedIn && !isLoading && (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
-          <Compass className="h-10 w-10 text-primary mx-auto mb-3 opacity-60" />
-          <p className="text-2xl font-bold text-primary mb-1">{publicQuestCount}</p>
-          <p className="text-sm text-muted-foreground">quests currently active in the ecosystem</p>
-          <p className="text-xs text-muted-foreground mt-2">Log in to browse individual quests, see details, and participate.</p>
-        </div>
-      )}
-
-      {/* Logged-in mode: full quest cards */}
-      {isLoggedIn && (
+      {/* Quest cards — visible to guests too (details are gated on the quest page) */}
+      {!isLoading && (
         <div className={gridClassName}>
           {filtered.map((quest, i) => (
             <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
@@ -219,7 +208,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       return null;
                     })()}
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
+                  <GuestContentGate blur><p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p></GuestContentGate>
                   {(() => {
                     const terrs = (quest.quest_territories || []).map((qt: any) => qt.territories).filter(Boolean);
                     return terrs.length > 0 ? (
