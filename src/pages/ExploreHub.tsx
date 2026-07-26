@@ -167,11 +167,14 @@ export default function ExploreHub() {
         </TabsContent>
 
         <TabsContent value="quests">
-          <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
-          </div>
+          {!isGuest && (
+            <div className="flex justify-end mb-4">
+              <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
+            </div>
+          )}
           <QuestsSubTabs />
         </TabsContent>
+
 
 
         <TabsContent value="services">
