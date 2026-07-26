@@ -571,24 +571,51 @@ serve(async (req) => {
     const data = await response.json();
     const replyText = data.choices?.[0]?.message?.content ?? "I'm not sure how to help with that right now.";
 
+    // Markers contain JSON with nested brackets/braces, so a lazy regex would cut
+    // them off mid-object and leave stray characters like "}]" in the reply.
+    // Extract each block by scanning for the balanced closing bracket instead.
     const suggestions: any[] = [];
-    const pollMatch = replyText.match(/\[POLL:(.*?)\]/s);
-    if (pollMatch) {
-      try { suggestions.push({ type: "DECISION_POLL", ...JSON.parse(pollMatch[1]) }); } catch { }
-    }
-    const stepsMatch = replyText.match(/\[STEPS:(.*?)\]/s);
-    if (stepsMatch) {
-      try { suggestions.push({ type: "NEXT_STEPS", ...JSON.parse(stepsMatch[1]) }); } catch { }
-    }
-    const skillsMatch = replyText.match(/\[SKILLS:(.*?)\]/s);
-    if (skillsMatch) {
-      try { suggestions.push({ type: "MISSING_SKILLS", ...JSON.parse(skillsMatch[1]) }); } catch { }
-    }
+    let cleanText: string = replyText;
 
-    const cleanText = replyText
-      .replace(/\[POLL:.*?\]/s, "")
-      .replace(/\[STEPS:.*?\]/s, "")
-      .replace(/\[SKILLS:.*?\]/s, "")
+    const extractMarker = (marker: string, type: string) => {
+      const token = `[${marker}:`;
+      let index = cleanText.indexOf(token);
+      while (index !== -1) {
+        let depth = 1;
+        let end = -1;
+        let inString = false;
+        let escaped = false;
+        for (let i = index + token.length; i < cleanText.length; i++) {
+          const ch = cleanText[i];
+          if (escaped) { escaped = false; continue; }
+          if (ch === "\\") { escaped = true; continue; }
+          if (ch === '"') { inString = !inString; continue; }
+          if (inString) continue;
+          if (ch === "[" || ch === "{") depth++;
+          else if (ch === "}") depth--;
+          else if (ch === "]") { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end === -1) break;
+        const payload = cleanText.slice(index + token.length, end).trim();
+        try {
+          suggestions.push({ type, ...JSON.parse(payload) });
+        } catch {
+          console.warn(`[unit-agent] failed to parse ${marker} payload`);
+        }
+        cleanText = (cleanText.slice(0, index) + cleanText.slice(end + 1));
+        index = cleanText.indexOf(token);
+      }
+    };
+
+    extractMarker("POLL", "DECISION_POLL");
+    extractMarker("STEPS", "NEXT_STEPS");
+    extractMarker("SKILLS", "MISSING_SKILLS");
+
+    // Safety net: remove any orphan marker fragments the model may have emitted.
+    cleanText = cleanText
+      .replace(/\[(POLL|STEPS|SKILLS):/g, "")
+      .replace(/^\s*[}\]]+\s*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
 
     let threadId = existingThreadId;
