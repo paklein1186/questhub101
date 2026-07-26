@@ -489,7 +489,12 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   const mySig = signatories.find((s) => s.user_id === currentUser?.id);
   const canSign = mySig && !mySig.signed_at && !mySig.rejected_at;
+  const isQuestMember = questMembers.some((m: any) => m.user_id === currentUser?.id);
+  // Late joiners: quest members who are not yet signatories can opt into the contract.
+  const canJoinAsSignatory = !!contract && !mySig && (isQuestMember || isAdmin) && contract.status !== "draft";
+  const canEditContract = !!contract && contract.created_by === currentUser?.id && (contract.status === "draft" || contract.status === "pending_signatures");
   const contractStatus = STATUS_STYLES[contract?.status ?? "draft"] ?? STATUS_STYLES.draft;
+
 
   return (
     <OCUFeatureGate quest={quest} isAdmin={isAdmin} onEnable={onEnableOCU}>
