@@ -55,6 +55,22 @@ function getDefaultTemplate(questName: string, guildName: string, fmvRate: numbe
 <p>[Define conditions under which a contributor may exit and what happens to their share.]</p>`;
 }
 
+/** Contract bodies are stored either as { html } or as a raw HTML/text string. */
+function getContractHtml(content: any): string {
+  if (!content) return "";
+  if (typeof content === "string") {
+    const trimmed = content.trim();
+    if (!trimmed) return "";
+    return /<[a-z][\s\S]*>/i.test(trimmed)
+      ? trimmed
+      : trimmed.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
+  }
+  if (typeof content.html === "string") return content.html;
+  if (typeof content.text === "string") return getContractHtml(content.text);
+  return "";
+}
+
+
 // ── Main Component ────────────────────────────────────────────
 export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   const currentUser = useCurrentUser();
