@@ -582,7 +582,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
 
               {/* Sign / Decline buttons */}
-              {canSign && contract.status === "pending_signatures" && (
+              {canSign && (
                 <div className="flex gap-2 pt-2">
                   <Button size="sm" className="h-8 text-xs gap-1" onClick={handleSign} disabled={saving}>
                     <Check className="h-3 w-3" /> Sign Contract
@@ -592,6 +592,19 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                   </Button>
                 </div>
               )}
+
+              {/* Late joiners can add themselves as signatory */}
+              {canJoinAsSignatory && (
+                <div className="pt-2">
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={handleJoinAsSignatory} disabled={saving}>
+                    <Plus className="h-3 w-3" /> Join this contract as signatory
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Joining later? Add yourself, then sign — you'll also be able to propose and vote on amendments.
+                  </p>
+                </div>
+              )}
+
             </div>
 
             {/* ── Amendments ── */}
