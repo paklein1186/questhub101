@@ -676,13 +676,29 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium">Contract Body (HTML)</label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-medium">Contract Body (HTML)</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setAiOpen(true)}
+                  >
+                    <Sparkles className="h-3 w-3" /> Ask AI to complete
+                  </Button>
+                </div>
                 <Textarea
                   value={contractBody}
                   onChange={(e) => setContractBody(e.target.value)}
                   className="text-xs mt-1 font-mono min-h-[300px]"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  The assistant asks targeted questions (objectives, roles, financials, deadlines, deliverables,
+                  termination, legal obligations) and rewrites the draft from your answers.
+                </p>
               </div>
+
 
               {/* Signatory selection */}
               {!isEditing && (
