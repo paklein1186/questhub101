@@ -274,6 +274,10 @@ export default function HomeLanding() {
           </div>
         </section>
 
+        {/* ─── Living map + galleries ─── */}
+        <LandingLivingMapSection />
+
+
         {/* ─── Story ─── */}
         <section className="border-b border-border">
           <div className="container py-20 px-4">
