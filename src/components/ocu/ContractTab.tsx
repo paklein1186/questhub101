@@ -681,6 +681,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
 
               {/* Signatory selection */}
+              {!isEditing && (
               <div>
                 <label className="text-xs font-medium">Signatories</label>
                 <p className="text-[10px] text-muted-foreground mb-2">Select quest members who must sign this contract.</p>
@@ -707,13 +708,15 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                   )}
                 </div>
               </div>
+              )}
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setEditorOpen(false)}>Cancel</Button>
                 <Button size="sm" onClick={handleSaveContract} disabled={saving}>
-                  {saving ? "Saving…" : selectedSignatories.length > 0 ? "Save & Send for Signatures" : "Save as Draft"}
+                  {saving ? "Saving…" : isEditing ? "Save changes" : selectedSignatories.length > 0 ? "Save & Send for Signatures" : "Save as Draft"}
                 </Button>
               </div>
+
             </div>
           </DialogContent>
         </Dialog>
