@@ -78,6 +78,8 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   const { toast } = useToast();
 
   const [editorOpen, setEditorOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const [contractTitle, setContractTitle] = useState("Quest Contract");
   const [contractBody, setContractBody] = useState("");
   const [selectedSignatories, setSelectedSignatories] = useState<string[]>([]);
