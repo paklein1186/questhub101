@@ -12,6 +12,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { LandingLanguageSwitcher } from "@/components/LandingLanguageSwitcher";
 import { LandingStatBar } from "@/components/landing/LandingStatBar";
+import { LandingLivingMapSection } from "@/components/landing/LandingLivingMapSection";
+
 import { useTranslation } from "react-i18next";
 
 const fadeUp = {
