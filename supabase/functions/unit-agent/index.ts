@@ -376,8 +376,8 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     console.log(`[unit-agent] posts query: direct=${directPosts?.length || 0} relatedQuests=${relatedQuestIdList.length} acting=${actingPosts?.length || 0} total=${posts.length} err=${directPostsErr?.message || actingPostsErr?.message || "none"}`);
     if (posts.length) {
       const authorIds = Array.from(new Set((posts as any[]).map(p => p.author_user_id).filter(Boolean)));
-      const { data: profs } = await supabase.from("profiles").select("id,name").in("id", authorIds);
-      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.id, p.name]));
+      const { data: profs } = await supabase.from("profiles").select("user_id,name").in("user_id", authorIds);
+      const nameMap = new Map<string, string>((profs || []).map((p: any) => [p.user_id, p.name]));
       const postLines: string[] = [];
       for (const p of posts as any[]) {
         const author = nameMap.get(p.author_user_id) || "Member";
@@ -442,11 +442,12 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
 
   const { data: msgs } = await supabase
     .from("unit_chat_messages")
-    .select("sender_type, sender_user_id, message_text, profiles:sender_user_id(name)")
+    .select("sender_type, sender_user_id, message_text")
     .eq("thread_id", thread.id)
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  await hydrateProfiles(supabase, msgs || [], "sender_user_id");
   const recentMsgs = (msgs || []).reverse().map((m: any) => ({
     role: m.sender_type === "AGENT" ? "assistant" as const : "user" as const,
     content: m.sender_type === "USER"
