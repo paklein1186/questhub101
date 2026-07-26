@@ -14,7 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { OCUFeatureGate } from "./OCUFeatureGate";
-import { FileText, Check, X, Clock, ChevronDown, Plus, AlertTriangle, Pencil, Info } from "lucide-react";
+import { ContractAiAssistant } from "./ContractAiAssistant";
+import { FileText, Check, X, Clock, ChevronDown, Plus, AlertTriangle, Pencil, Info, Sparkles } from "lucide-react";
+
 import { computeVoteWeights, GOVERNANCE_MODELS, type GovernanceModel } from "@/lib/governanceWeights";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -79,6 +81,8 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+
 
   const [contractTitle, setContractTitle] = useState("Quest Contract");
   const [contractBody, setContractBody] = useState("");
@@ -672,13 +676,29 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium">Contract Body (HTML)</label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-medium">Contract Body (HTML)</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setAiOpen(true)}
+                  >
+                    <Sparkles className="h-3 w-3" /> Ask AI to complete
+                  </Button>
+                </div>
                 <Textarea
                   value={contractBody}
                   onChange={(e) => setContractBody(e.target.value)}
                   className="text-xs mt-1 font-mono min-h-[300px]"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  The assistant asks targeted questions (objectives, roles, financials, deadlines, deliverables,
+                  termination, legal obligations) and rewrites the draft from your answers.
+                </p>
               </div>
+
 
               {/* Signatory selection */}
               {!isEditing && (
@@ -720,6 +740,28 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* ── AI interview assistant ── */}
+        <ContractAiAssistant
+          open={aiOpen}
+          onOpenChange={setAiOpen}
+          mode={isEditing ? "edit" : "create"}
+          draftHtml={contractBody}
+          context={{
+            questTitle: quest.title,
+            questDescription: quest.description,
+            hostName: (guild as any)?.name ?? "",
+            members: questMembers.map((m: any) => m.name).filter(Boolean).join(", "),
+            fmvRate,
+            budget: quest.credit_budget ?? undefined,
+            governance: (guild as any)?.governance_model ?? undefined,
+          }}
+          onApply={({ title, html }) => {
+            if (html) setContractBody(html);
+            if (title && !isEditing) setContractTitle(title);
+          }}
+        />
+
 
         {/* ── Decline Dialog ── */}
         <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
