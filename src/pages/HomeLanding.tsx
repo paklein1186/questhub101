@@ -43,10 +43,10 @@ export default function HomeLanding() {
   ];
 
   const pillars = [
-    { icon: Eye, n: "01", t: k("pillars.p1t"), s: k("pillars.p1s"), d: k("pillars.p1d"), to: "/systems-graph" },
-    { icon: Rocket, n: "02", t: k("pillars.p2t"), s: k("pillars.p2s"), d: k("pillars.p2d"), to: "/quests" },
-    { icon: HandHeart, n: "03", t: k("pillars.p3t"), s: k("pillars.p3s"), d: k("pillars.p3d"), to: "/trust" },
-    { icon: Users, n: "04", t: k("pillars.p4t"), s: k("pillars.p4s"), d: k("pillars.p4d"), to: "/guilds" },
+    { icon: Eye, n: "01", t: k("pillars.p1t"), s: k("pillars.p1s"), d: k("pillars.p1d"), to: "/explore" },
+    { icon: Rocket, n: "02", t: k("pillars.p2t"), s: k("pillars.p2s"), d: k("pillars.p2d"), to: "/explore/quests-info" },
+    { icon: HandHeart, n: "03", t: k("pillars.p3t"), s: k("pillars.p3s"), d: k("pillars.p3d"), to: "/explore/people-info" },
+    { icon: Users, n: "04", t: k("pillars.p4t"), s: k("pillars.p4s"), d: k("pillars.p4d"), to: "/explore/guilds-info" },
     { icon: Bot, n: "05", t: k("pillars.p5t"), s: k("pillars.p5s"), d: k("pillars.p5d"), to: "/agents" },
     { icon: Radio, n: "06", t: k("pillars.p6t"), s: k("pillars.p6s"), d: k("pillars.p6d"), to: "/territories" },
     { icon: Repeat, n: "07", t: k("pillars.p7t"), s: k("pillars.p7s"), d: k("pillars.p7d"), to: "/opportunities" },
