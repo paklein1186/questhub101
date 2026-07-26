@@ -216,8 +216,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         if (quest.description) parts.push(`Description: ${quest.description.slice(0, 300)}`);
         parts.push(`Rewards: ${quest.reward_xp} XP, Budget: ${quest.credit_budget} credits, Escrow: ${quest.escrow_credits}`);
       }
-      const { data: participants } = await supabase.from("quest_participants").select("role, status, profiles(name)").eq("quest_id", entityId).limit(20);
-      if (participants?.length) parts.push(`Participants: ${participants.map((p: any) => `${p.profiles?.name || "?"} (${p.role})`).join(", ")}`);
+      const { data: rawParticipants } = await supabase.from("quest_participants").select("role, status, user_id").eq("quest_id", entityId).limit(20);
+      const participants = await hydrateProfiles(supabase, rawParticipants, "user_id");
+      if (participants?.length) parts.push(`Participants: ${participants.map((p: any) => `${p.profiles?.name || "Unnamed member"} (${p.role})`).join(", ")}`);
       const { data: subtasks } = await supabase.from("quest_subtasks").select("title, status").eq("quest_id", entityId).order("order_index").limit(20);
       if (subtasks?.length) parts.push(`Subtasks: ${subtasks.map((s: any) => `${s.title} [${s.status}]`).join(", ")}`);
       const { data: proposals } = await supabase.from("quest_proposals").select("title, status, requested_credits, upvotes_count").eq("quest_id", entityId).limit(10);
