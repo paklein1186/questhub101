@@ -27,7 +27,7 @@ export function GuildMcpTokensPanel({ guildId, guildName }: Props) {
   const [name, setName] = useState("");
   const [revealed, setRevealed] = useState<{ name: string; token: string } | null>(null);
 
-  const mcpUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`;
+  const mcpUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guild-mcp`;
 
   const load = async () => {
     setLoading(true);
