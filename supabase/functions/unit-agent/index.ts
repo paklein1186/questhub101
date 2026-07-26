@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 async function extractPdfText(url: string): Promise<string> {
   try {
@@ -15,6 +16,58 @@ async function extractPdfText(url: string): Promise<string> {
     console.error("PDF extract failed", url, e);
     return "";
   }
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+async function extractDocxText(url: string): Promise<string> {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return "";
+    const buf = await resp.arrayBuffer();
+    if (buf.byteLength > 20 * 1024 * 1024) return "";
+    const zip = await JSZip.loadAsync(buf);
+    const xmlParts = [
+      "word/document.xml",
+      "word/footnotes.xml",
+      "word/endnotes.xml",
+    ];
+    const chunks: string[] = [];
+    for (const part of xmlParts) {
+      const file = zip.file(part);
+      if (!file) continue;
+      const xml = await file.async("text");
+      const text = decodeXmlEntities(xml)
+        .replace(/<w:tab\/?\s*>/g, "\t")
+        .replace(/<w:br\/?\s*>/g, "\n")
+        .replace(/<\/w:p>/g, "\n")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n\s+/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+      if (text) chunks.push(text);
+    }
+    return chunks.join("\n\n").slice(0, 30000);
+  } catch (e) {
+    console.error("DOCX extract failed", url, e);
+    return "";
+  }
+}
+
+async function extractAttachmentText(att: { url: string; mime_type: string; file_name: string }): Promise<string> {
+  const fileName = att.file_name || "document";
+  const mime = att.mime_type || "";
+  if (/pdf/i.test(mime) || /\.pdf$/i.test(fileName)) return await extractPdfText(att.url);
+  if (/wordprocessingml\.document/i.test(mime) || /\.docx$/i.test(fileName)) return await extractDocxText(att.url);
+  return "";
 }
 
 
@@ -329,12 +382,30 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
       parts.push(`Recent discussion posts (${posts.length}):\n${postLines.join("\n")}`);
     }
 
-    // Extract text from PDF attachments so the agent can read their content
-    const pdfAtts = attachments.filter(a => /pdf/i.test(a.mime_type)).slice(0, 3);
-    console.log(`[unit-agent] Found ${pdfAtts.length} PDF attachments to extract`);
-    for (const a of pdfAtts) {
-      console.log(`[unit-agent] Extracting PDF: ${a.file_name} from ${a.url}`);
-      const text = await extractPdfText(a.url);
+    const attachmentTargetIds = Array.from(new Set([entityId, ...relatedQuestIdList]));
+    const { data: unitAttachments, error: unitAttachmentsErr } = await supabase
+      .from("attachments")
+      .select("id, title, file_name, file_url, mime_type, target_type, target_id, created_at")
+      .in("target_id", attachmentTargetIds)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (unitAttachmentsErr) console.error("Unit attachments gathering error:", unitAttachmentsErr.message);
+    if (unitAttachments?.length) {
+      const fileLines = unitAttachments.map((a: any) => `- ${a.title || a.file_name || "file"}${a.mime_type ? ` (${a.mime_type})` : ""} on ${a.target_type || "unit"}`);
+      parts.push(`Uploaded files/resources (${unitAttachments.length}):\n${fileLines.join("\n")}`);
+      for (const a of unitAttachments as any[]) {
+        if (a.file_url && a.mime_type) attachments.push({ url: a.file_url, mime_type: a.mime_type, file_name: a.file_name || a.title || "file" });
+      }
+    }
+
+    // Extract text from readable document attachments so the agent can answer about file contents
+    const readableAtts = attachments
+      .filter(a => /pdf/i.test(a.mime_type) || /wordprocessingml\.document/i.test(a.mime_type) || /\.(pdf|docx)$/i.test(a.file_name))
+      .slice(0, 6);
+    console.log(`[unit-agent] Found ${readableAtts.length} readable attachments to extract`);
+    for (const a of readableAtts) {
+      console.log(`[unit-agent] Extracting document: ${a.file_name} from ${a.url}`);
+      const text = await extractAttachmentText(a);
       console.log(`[unit-agent] Extracted ${text.length} chars from ${a.file_name}`);
       if (text) {
         parts.push(`\n--- Content of attached document "${a.file_name}" ---\n${text}\n--- End of document ---`);
