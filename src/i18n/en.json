@@ -895,6 +895,18 @@
         "body": "We are looking for structural actors — organisations whose mission is precisely to weave cooperation, spot key actors and animate ecosystems.",
         "cta1": "Join the commons",
         "cta2": "Get in touch"
+      },
+      "livingMap": {
+        "label": "Living map",
+        "title": "See the living fabric of territories",
+        "sub": "Territories, entities and quests that are moving right now.",
+        "mapCta": "Explore all territories",
+        "entitiesTitle": "Most active entities",
+        "entitiesSub": "Guilds and organizations driving cooperation.",
+        "questsTitle": "Highlighted quests",
+        "questsSub": "The quests with the most momentum.",
+        "seeAll": "See all",
+        "empty": "Nothing to show yet."
       }
     }
   },
