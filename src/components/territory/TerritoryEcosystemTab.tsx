@@ -75,13 +75,18 @@ const CHILD_LEVEL: Record<string, string[]> = {
 function useDescendantIds(territoryId: string, includeNested: boolean) {
   return useQuery({
     queryKey: ["territory-descendants", territoryId, includeNested],
+    enabled: !!territoryId,
     queryFn: async () => {
       if (!includeNested) return [territoryId];
-      const { data } = await supabase
-        .from("territory_closure")
-        .select("descendant_id")
-        .eq("ancestor_id", territoryId);
-      return (data ?? []).map((d: any) => d.descendant_id) as string[];
+      const [closureRes, childrenRes] = await Promise.all([
+        supabase.from("territory_closure").select("descendant_id").eq("ancestor_id", territoryId),
+        supabase.from("territories").select("id").eq("parent_id", territoryId),
+      ]);
+      // Always include the territory itself — the closure table may not carry a self row.
+      const ids = new Set<string>([territoryId]);
+      for (const d of (closureRes.data ?? [])) ids.add((d as any).descendant_id);
+      for (const c of (childrenRes.data ?? [])) ids.add((c as any).id);
+      return [...ids] as string[];
     },
   });
 }
