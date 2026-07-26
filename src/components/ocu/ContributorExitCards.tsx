@@ -74,11 +74,11 @@ export function ContributorExitCards() {
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div>
                   <span className="text-muted-foreground">FMV earned</span>
-                  <p className="font-medium text-primary">🟡 {Number(exit.fmv_at_exit).toFixed(0)}</p>
+                  <p className="font-medium text-primary">🟩 {Number(exit.fmv_at_exit).toFixed(0)}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Settlement</span>
-                  <p className="font-medium">🟡 {Number(exit.settlement_amount).toFixed(0)} ({exit.settlement_pct}%)</p>
+                  <p className="font-medium">🟩 {Number(exit.settlement_amount).toFixed(0)} ({exit.settlement_pct}%)</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Status</span>

@@ -159,7 +159,7 @@ export function InitiateExitDialog({
         title: `Exit from quest: ${quest.title}`,
         body: needsVote
           ? "An exit process has been initiated. A governance vote will determine the settlement."
-          : `Your exit has been processed. Settlement: 🟡 ${settlementAmount} (${settlementPct}% of FMV).`,
+          : `Your exit has been processed. Settlement: 🟩 ${settlementAmount} (${settlementPct}% of FMV).`,
         action_url: `/quests/${quest.id}`,
         entity_type: "quest",
         entity_id: quest.id,
@@ -303,7 +303,7 @@ export function InitiateExitDialog({
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-muted-foreground">FMV at exit:</span>
-                  <p className="font-medium text-primary">🟡 {contributor.fmv}</p>
+                  <p className="font-medium text-primary">🟩 {contributor.fmv}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Current pie %:</span>
@@ -319,7 +319,7 @@ export function InitiateExitDialog({
               ) : (
                 <div className="rounded bg-muted p-2">
                   <p className="text-xs text-muted-foreground">Settlement</p>
-                  <p className="font-bold text-sm">{settlementPct}% = 🟡 {settlementAmount}</p>
+                  <p className="font-bold text-sm">{settlementPct}% = 🟩 {settlementAmount}</p>
                 </div>
               )}
 

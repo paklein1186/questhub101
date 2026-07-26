@@ -304,9 +304,9 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     if (quest.guild_name) lines.push(`Guild: ${quest.guild_name}`);
     lines.push(`Frozen: ${new Date(snap.frozen_at).toLocaleDateString()} by ${snap.frozen_by?.name || "Admin"}`);
     lines.push("");
-    lines.push(`Total FMV:           🟡 ${snap.total_fmv}`);
+    lines.push(`Total FMV:           🟩 ${snap.total_fmv}`);
     lines.push(`External Spending:   -${snap.external_spending}`);
-    lines.push(`Distributable:       🟡 ${snap.distributable_fmv}`);
+    lines.push(`Distributable:       🟩 ${snap.distributable_fmv}`);
     lines.push("");
     lines.push("───────────────────────────────────────────────");
     lines.push("  Contributor             FMV     % Share  Status");
@@ -364,7 +364,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
             <div className="flex items-center gap-4 text-sm flex-wrap">
               <div>
                 <span className="text-muted-foreground">Total Envelope:</span>{" "}
-                <span className="font-medium">🟡 {envelopeTotal}</span>
+                <span className="font-medium">🟩 {envelopeTotal}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">External:</span>{" "}
@@ -372,7 +372,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
               <div>
                 <span className="text-muted-foreground">Distributable:</span>{" "}
-                <span className="font-bold text-primary">🟡 {distributable}</span>
+                <span className="font-bold text-primary">🟩 {distributable}</span>
                 <span className="text-xs text-muted-foreground ml-1">(= 100% of pie)</span>
               </div>
             </div>
@@ -416,7 +416,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`🟡 ${value}`, "FMV"]}
+                    formatter={(value: number) => [`🟩 ${value}`, "FMV"]}
                     contentStyle={{ fontSize: "12px", borderRadius: "8px" }}
                   />
                 </PieChart>
@@ -440,7 +440,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">#</th>
                     <th className="text-left px-3 py-2 font-medium">Contributor</th>
-                    <th className="text-right px-3 py-2 font-medium">FMV 🟡</th>
+                    <th className="text-right px-3 py-2 font-medium">FMV 🟩</th>
                     <th className="text-right px-3 py-2 font-medium">% Share</th>
                     <th className="text-right px-3 py-2 font-medium">Status</th>
                     {isAdmin && !isFrozen && <th className="w-8" />}
@@ -580,7 +580,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Amount (🟡 Coins)</label>
+                <label className="text-sm font-medium mb-1 block">Amount (🟩 Coins)</label>
                 <Input
                   type="number"
                   value={spendAmount}
