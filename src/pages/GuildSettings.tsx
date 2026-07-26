@@ -266,6 +266,9 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       );
     }
     qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+    qc.invalidateQueries({ queryKey: ["guilds"] });
+    qc.invalidateQueries({ queryKey: ["my-guilds"] });
     // Notify followers only about profile update (skip if private)
     if (guild.universe_visibility !== "private") {
       notifyEntityFollowersAndMembers({
