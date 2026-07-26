@@ -35,7 +35,7 @@ export default function OpportunitiesExplore({ bare }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_needs")
-        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status, quest_topics(topic_id))")
+        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status, cover_image_url, owner_type, owner_id, quest_topics(topic_id))")
         .in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
         .limit(100);
@@ -43,6 +43,40 @@ export default function OpportunitiesExplore({ bare }: Props) {
       return data;
     },
   });
+
+  // Resolve the main entity attached to each quest (guild / company / pod)
+  const ownerRefs = useMemo(() => {
+    const map: Record<string, Set<string>> = { GUILD: new Set(), COMPANY: new Set(), POD: new Set() };
+    (needs ?? []).forEach((n: any) => {
+      const t = (n.quests?.owner_type ?? "").toUpperCase();
+      if (n.quests?.owner_id && map[t]) map[t].add(n.quests.owner_id);
+    });
+    return { GUILD: [...map.GUILD], COMPANY: [...map.COMPANY], POD: [...map.POD] };
+  }, [needs]);
+
+  const { data: owners } = useQuery({
+    queryKey: ["explore-opportunities-owners", ownerRefs],
+    enabled: ownerRefs.GUILD.length + ownerRefs.COMPANY.length + ownerRefs.POD.length > 0,
+    queryFn: async () => {
+      const result: Record<string, { name: string; logo_url?: string | null; type: string }> = {};
+      const [guilds, companies, pods] = await Promise.all([
+        ownerRefs.GUILD.length
+          ? supabase.from("guilds").select("id, name, logo_url").in("id", ownerRefs.GUILD)
+          : Promise.resolve({ data: [] as any[] }),
+        ownerRefs.COMPANY.length
+          ? supabase.from("companies").select("id, name, logo_url").in("id", ownerRefs.COMPANY)
+          : Promise.resolve({ data: [] as any[] }),
+        ownerRefs.POD.length
+          ? supabase.from("pods").select("id, name").in("id", ownerRefs.POD)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      (guilds.data ?? []).forEach((g: any) => { result[`GUILD:${g.id}`] = { name: g.name, logo_url: g.logo_url, type: "GUILD" }; });
+      (companies.data ?? []).forEach((c: any) => { result[`COMPANY:${c.id}`] = { name: c.name, logo_url: c.logo_url, type: "COMPANY" }; });
+      (pods.data ?? []).forEach((p: any) => { result[`POD:${p.id}`] = { name: p.name, type: "POD" }; });
+      return result;
+    },
+  });
+
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
