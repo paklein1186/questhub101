@@ -737,6 +737,17 @@ Model the leadership you're teaching.`,
 // =====================================================================
 // profiles has NO foreign key to other tables, so PostgREST embeds like
 // `profiles:user_id(name)` always return null. Hydrate manually via profiles.user_id.
+// Removes leftover JSON fragments (stray "}]", "```json" fences, dangling braces)
+// that leak into the visible reply when the model mixes prose and JSON.
+function sanitizeAiText(text: string): string {
+  return (text || "")
+    .replace(/```(?:json)?/gi, "")
+    .replace(/^\s*[}\])]+[,;]?\s*$/gm, "")
+    .replace(/^\s*"?(action_cards|suggestedActions|nextPrompt|memory|scene|emotion)"?\s*:\s*.*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 async function hydrateProfiles(sb: any, rows: any[] | null, key: string): Promise<any[]> {
   const list = rows || [];
   const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
@@ -1127,7 +1138,7 @@ serve(async (req) => {
         if (!row) return "";
         let authorName = "";
         if (cfg.authorCol && (row as any)[cfg.authorCol]) {
-          const { data: prof } = await sb.from("profiles").select("name").eq("id", (row as any)[cfg.authorCol]).maybeSingle();
+          const { data: prof } = await sb.from("profiles").select("name").eq("user_id", (row as any)[cfg.authorCol]).maybeSingle();
           authorName = prof?.name || "";
         }
         const name = (row as any)[cfg.nameCol] || "Unknown";
@@ -1392,6 +1403,7 @@ serve(async (req) => {
           nextPrompt = parsed.nextPrompt || null;
         }
       } catch {}
+      responseText = sanitizeAiText(responseText);
 
       // Save greeting as Pi message
       const normalizedCards = actionCards.map((c: any) => ({
@@ -1614,6 +1626,7 @@ serve(async (req) => {
     } catch {
       // Plain text response — that's fine
     }
+    responseText = sanitizeAiText(responseText);
 
     // Process memory operations
     for (const mem of memoryOps) {
