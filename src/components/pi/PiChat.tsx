@@ -1,3 +1,4 @@
+import i18n from "@/i18n/config";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -143,7 +144,7 @@ export function PiChat({ className }: PiChatProps) {
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("pi-cognitive", {
-          body: { greeting: true, contextType, contextId },
+          body: { greeting: true, contextType, contextId, language: i18n.language },
         });
         if (error) throw error;
 
@@ -231,6 +232,7 @@ export function PiChat({ className }: PiChatProps) {
           conversationId,
           contextType,
           contextId,
+          language: i18n.language,
         },
       });
 
@@ -311,6 +313,7 @@ export function PiChat({ className }: PiChatProps) {
           conversationId,
           contextType,
           contextId,
+          language: i18n.language,
         },
       });
 

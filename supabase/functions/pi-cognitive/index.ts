@@ -702,6 +702,22 @@ Model the leadership you're teaching.`,
 // =====================================================================
 // System prompt
 // =====================================================================
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
+  pt: "Portuguese", nl: "Dutch", pl: "Polish", ro: "Romanian", ar: "Arabic",
+};
+function languageDirective(code?: string | null): string {
+  const lang = (code || "en").split("-")[0].toLowerCase();
+  const name = LANGUAGE_NAMES[lang] || lang;
+  return `
+
+MULTILINGUAL RULES:
+- The reader's interface language is ${name} (${lang}). ALWAYS write your answer in ${name}, whatever language the question or the source material is in.
+- The activity, discussions, member profiles and uploaded documents you scan may be in other languages. Read them in their original language and translate the relevant parts into ${name} when you quote or summarise them.
+- Keep proper nouns, entity names, quest titles, file names and mention tokens of the form @[Name](type:id) verbatim — never translate or alter them.
+- If a term has no good equivalent, keep the original and add a short gloss in ${name} in parentheses.`;
+}
+
 const BASE_SYSTEM_PROMPT = `You are Pi, the AI assistant of ChangeTheGame — a regenerative ecosystem
 platform where humans collaborate to restore territories, build guilds,
 complete quests, and create new economic flows.
@@ -1045,7 +1061,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest, contextType, contextId } = await req.json();
+    const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest, contextType, contextId, language } = await req.json();
     console.log("[pi-cognitive] req contextType=", contextType, "contextId=", contextId, "greeting=", isGreetingRequest);
     if (!message && !isGreetingRequest) return jsonRes({ error: "message is required" }, 400);
 
@@ -1225,7 +1241,7 @@ serve(async (req) => {
 
       const { contextBlock, profile } = await assembleContext(userId, sb, null);
 
-      let systemPrompt = BASE_SYSTEM_PROMPT;
+      let systemPrompt = BASE_SYSTEM_PROMPT + languageDirective(language);
       if (profile?.current_path && PATH_PROMPTS[profile.current_path]) {
         systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
       }
@@ -1410,7 +1426,7 @@ serve(async (req) => {
     const { contextBlock, history, profile } = await assembleContext(userId, sb, conversationId);
 
     // Build system prompt with path overlay
-    let systemPrompt = BASE_SYSTEM_PROMPT;
+    let systemPrompt = BASE_SYSTEM_PROMPT + languageDirective(language);
     if (profile?.current_path && PATH_PROMPTS[profile.current_path]) {
       systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
     }

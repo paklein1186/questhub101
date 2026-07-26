@@ -1,3 +1,4 @@
+import i18n from "@/i18n/config";
 import { useEffect, useState } from "react";
 import { Bot, Plus, RefreshCw, Trash2, Loader2, Sparkles, FileText, Link as LinkIcon, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ const MODELS = [
 
 async function call(action: string, payload: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke("guild-agent", {
-    body: { action, ...payload },
+    body: { action, language: i18n.language, ...payload },
   });
   if (error) throw error;
   if ((data as any)?.error) throw new Error((data as any).error);

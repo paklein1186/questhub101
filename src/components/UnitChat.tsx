@@ -1,3 +1,4 @@
+import i18n from "@/i18n/config";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -273,7 +274,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
       if (shouldAsk) {
         setAiLoading(true);
         try {
-          const { data, error } = await supabase.functions.invoke("unit-agent", { body: { entityType, entityId, message: msg } });
+          const { data, error } = await supabase.functions.invoke("unit-agent", { body: { entityType, entityId, message: msg, language: i18n.language } });
           if (error) throw error;
           if (data?.error) toast({ title: "Agent unavailable", description: data.error, variant: "destructive" });
           qc.invalidateQueries({ queryKey: ["unit-chat-messages", threadId] });
@@ -291,7 +292,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
       const threadId = await ensureThread();
       await supabase.from("unit_chat_messages").insert({ thread_id: threadId, sender_type: "USER", sender_user_id: currentUser.id, message_text: `@Agent ${prompt}` });
       qc.invalidateQueries({ queryKey: ["unit-chat-messages", threadId] });
-      const { data, error } = await supabase.functions.invoke("unit-agent", { body: { entityType, entityId, message: prompt } });
+      const { data, error } = await supabase.functions.invoke("unit-agent", { body: { entityType, entityId, message: prompt, language: i18n.language } });
       if (error) throw error;
       if (data?.error) toast({ title: "Agent unavailable", description: data.error, variant: "destructive" });
       qc.invalidateQueries({ queryKey: ["unit-chat-messages", threadId] });

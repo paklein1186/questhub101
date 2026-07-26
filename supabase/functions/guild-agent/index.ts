@@ -263,11 +263,28 @@ RECENT POSTS / MESSAGES (${(posts ?? []).length}):
 ${fmtPosts}`;
 }
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
+  pt: "Portuguese", nl: "Dutch", pl: "Polish", ro: "Romanian", ar: "Arabic",
+};
+function languageDirective(code?: string | null): string {
+  const lang = (code || "en").split("-")[0].toLowerCase();
+  const name = LANGUAGE_NAMES[lang] || lang;
+  return `
+
+MULTILINGUAL RULES:
+- The reader's interface language is ${name} (${lang}). ALWAYS write your answer in ${name}, whatever language the question or the source material is in.
+- The activity, discussions, member profiles and uploaded documents you scan may be in other languages. Read them in their original language and translate the relevant parts into ${name} when you quote or summarise them.
+- Keep proper nouns, entity names, quest titles, file names and mention tokens of the form @[Name](type:id) verbatim — never translate or alter them.
+- If a term has no good equivalent, keep the original and add a short gloss in ${name} in parentheses.`;
+}
+
 // ---------- Chat / RAG ----------
 async function answerWithRag(params: {
   agentId: string;
   conversationId: string;
   userMessage: string;
+  language?: string;
 }) {
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -306,7 +323,9 @@ async function answerWithRag(params: {
     .order("created_at", { ascending: true })
     .limit(20);
 
-  const systemPrompt = `${agent.persona_prompt}
+  const systemPrompt = `${languageDirective(params.language)}
+
+${agent.persona_prompt}
 
 You are the AI agent of the guild "${(agent as any).guilds?.name ?? ""}" on the changethegame platform.
 
@@ -545,6 +564,7 @@ Deno.serve(async (req) => {
           agentId,
           conversationId: conversationId!,
           userMessage: message,
+          language: body.language as string | undefined,
         });
         return json({ conversation_id: conversationId, ...result });
       }
