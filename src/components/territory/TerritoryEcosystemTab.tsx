@@ -57,15 +57,16 @@ const PERSONA_OPTIONS = [
 
 // ─── LEVEL HIERARCHY for grouping ───
 const LEVEL_ORDER: Record<string, number> = {
-  GLOBAL: 0, CONTINENT: 1, OTHER: 1, NATIONAL: 2, REGION: 3, PROVINCE: 4, TOWN: 5, LOCALITY: 6,
+  GLOBAL: 0, CONTINENT: 1, OTHER: 1, NATIONAL: 2, REGION: 3, BIOREGION: 3, PROVINCE: 4, TOWN: 5, LOCALITY: 6,
 };
 
 const CHILD_LEVEL: Record<string, string[]> = {
   GLOBAL: ["CONTINENT", "OTHER"],
   CONTINENT: ["NATIONAL"],
   OTHER: ["NATIONAL"],
-  NATIONAL: ["REGION"],
+  NATIONAL: ["REGION", "BIOREGION"],
   REGION: ["PROVINCE", "TOWN"],
+  BIOREGION: ["PROVINCE", "TOWN", "LOCALITY"],
   PROVINCE: ["TOWN", "LOCALITY"],
   TOWN: ["LOCALITY"],
   LOCALITY: [],
@@ -75,13 +76,18 @@ const CHILD_LEVEL: Record<string, string[]> = {
 function useDescendantIds(territoryId: string, includeNested: boolean) {
   return useQuery({
     queryKey: ["territory-descendants", territoryId, includeNested],
+    enabled: !!territoryId,
     queryFn: async () => {
       if (!includeNested) return [territoryId];
-      const { data } = await supabase
-        .from("territory_closure")
-        .select("descendant_id")
-        .eq("ancestor_id", territoryId);
-      return (data ?? []).map((d: any) => d.descendant_id) as string[];
+      const [closureRes, childrenRes] = await Promise.all([
+        supabase.from("territory_closure").select("descendant_id").eq("ancestor_id", territoryId),
+        supabase.from("territories").select("id").eq("parent_id", territoryId),
+      ]);
+      // Always include the territory itself — the closure table may not carry a self row.
+      const ids = new Set<string>([territoryId]);
+      for (const d of (closureRes.data ?? [])) ids.add((d as any).descendant_id);
+      for (const c of (childrenRes.data ?? [])) ids.add((c as any).id);
+      return [...ids] as string[];
     },
   });
 }
