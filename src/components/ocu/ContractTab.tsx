@@ -527,12 +527,18 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 </Badge>
               </div>
               <div className="flex gap-1.5">
-                {(contract.status === "active" || contract.status === "amended") && (
+                {canEditContract && (
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleOpenEditExisting}>
+                    <Pencil className="h-3 w-3" /> Edit
+                  </Button>
+                )}
+                {contract.status !== "draft" && (
                   <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setAmendOpen(true)}>
                     <Pencil className="h-3 w-3" /> Propose Amendment
                   </Button>
                 )}
               </div>
+
             </div>
 
             {/* Contract body */}
