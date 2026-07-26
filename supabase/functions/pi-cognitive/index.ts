@@ -594,6 +594,7 @@ async function executeToolCall(
         sb.from("quest_hosts")
           .select("entity_type, entity_id, role").eq("quest_id", qid),
       ]);
+      await hydrateProfiles(sb, partsR.data as any[], "user_id");
       return {
         participants: (partsR.data || []).map((p: any) => ({
           user_id: p.user_id, role: p.role, status: p.status, name: p.profiles?.name,
@@ -611,6 +612,7 @@ async function executeToolCall(
         .eq("context_type", "QUEST").eq("context_id", qid)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false }).limit(limit);
+      await hydrateProfiles(sb, data as any[], "author_user_id");
       return (data || []).map((p: any) => ({
         id: p.id, author: p.profiles?.name, created_at: p.created_at,
         upvotes: p.upvote_count, content: (p.content || "").slice(0, 600),
@@ -1158,9 +1160,9 @@ serve(async (req) => {
                 .limit(8),
             ]);
 
-            const parts = (partsR.data || []) as any[];
+            const parts = await hydrateProfiles(sb, partsR.data as any[], "user_id");
             const subs = (subsR.data || []) as any[];
-            const posts = (postsR.data || []) as any[];
+            const posts = await hydrateProfiles(sb, postsR.data as any[], "author_user_id");
             const hosts = (hostsR.data || []) as any[];
             const activeMembers = parts.filter(p => (p.status || "").toLowerCase() === "active").length;
             const doneSubs = subs.filter(s => (s.status || "").toUpperCase() === "DONE").length;
@@ -1183,7 +1185,7 @@ serve(async (req) => {
             }
 
             const memberList = parts.slice(0, 12).map(p =>
-              `- ${p.profiles?.name || p.user_id} (${p.role}, ${p.status})`
+              `- ${p.profiles?.name || "Unnamed member"} (${p.role}, ${p.status})`
             ).join("\n") || "- none";
             const hostList = hosts.map(h => `- ${h.entity_type}:${h.entity_id} (${h.role})`).join("\n") || "- none";
             const subList = subs.slice(0, 12).map(s =>
@@ -1217,10 +1219,10 @@ serve(async (req) => {
                 .order("created_at", { ascending: false })
                 .limit(6),
             ]);
-            const members = (membersR.data || []) as any[];
-            const posts = (postsR.data || []) as any[];
+            const members = await hydrateProfiles(sb, membersR.data as any[], "user_id");
+            const posts = await hydrateProfiles(sb, postsR.data as any[], "author_user_id");
             const memberList = members.slice(0, 15).map(m =>
-              `- ${m.profiles?.name || m.user_id} (${m.role}, ${m.status})`
+              `- ${m.profiles?.name || "Unnamed member"} (${m.role}, ${m.status})`
             ).join("\n") || "- none";
             const postList = posts.map(p => {
               const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 160);
