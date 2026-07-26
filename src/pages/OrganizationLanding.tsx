@@ -137,8 +137,8 @@ export default function OrganizationLanding() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight max-w-4xl mx-auto leading-[1.1] px-2"
           >
-            <span>{t("landing.org.hero.title1", "Institutions shaping the future with ")}</span>
-            <span className="text-primary">{t("landing.org.hero.title2", "regenerative collaboration.")}</span>
+            <span>{t("landing.org.hero.title1", "Institutions shaping the future with")}</span>{" "}
+            <span className="text-primary">{t("landing.org.hero.title2", "regenerative collaboration.")}</span>{" "}
             <span>{t("landing.org.hero.title3", "")}</span>
           </motion.h1>
 
