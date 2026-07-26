@@ -241,14 +241,10 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         if (company.description) parts.push(`Description: ${company.description.slice(0, 300)}`);
       }
 
-      const { data: members } = await supabase.from("company_members").select("role, user_id").eq("company_id", entityId).limit(30);
+      const { data: rawCompanyMembers } = await supabase.from("company_members").select("role, user_id").eq("company_id", entityId).limit(30);
+      const members = await hydrateProfiles(supabase, rawCompanyMembers, "user_id");
       if (members?.length) {
-        const userIds = members.map((m: any) => m.user_id).filter(Boolean);
-        const { data: profiles } = userIds.length
-          ? await supabase.from("profiles").select("id,name").in("id", userIds)
-          : { data: [] };
-        const profileMap = new Map<string, string>((profiles || []).map((p: any) => [p.id, p.name]));
-        parts.push(`Company members (${members.length}): ${members.map((m: any) => `${profileMap.get(m.user_id) || "Member"} (${m.role || "member"})`).join(", ")}`);
+        parts.push(`Company members (${members.length}): ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role || "member"})`).join(", ")}`);
       }
 
       const questMap = new Map<string, any>();
