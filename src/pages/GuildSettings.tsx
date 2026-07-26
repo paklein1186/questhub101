@@ -265,7 +265,26 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
         selectedTerritories.map((territoryId) => ({ guild_id: guildId, territory_id: territoryId }))
       );
     }
+
+    // Drop stale auto-translations of name/description so the new text shows in every language
+    const nameChanged = (name.trim() || guild.name) !== guild.name;
+    const descChanged = (description.trim() || null) !== (guild.description ?? null);
+    const staleFields = [nameChanged && "name", descChanged && "description"].filter(Boolean) as string[];
+    if (staleFields.length > 0) {
+      await supabase
+        .from("content_translations")
+        .delete()
+        .eq("entity_type", "GUILD")
+        .eq("entity_id", guildId)
+        .in("field_name", staleFields);
+    }
+
     qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+    qc.invalidateQueries({ queryKey: ["guilds"] });
+    qc.invalidateQueries({ queryKey: ["my-guilds"] });
+    qc.invalidateQueries({ queryKey: ["content-translations-batch", "GUILD", guildId] });
+    qc.invalidateQueries({ queryKey: ["content-translation-all", "GUILD", guildId] });
     // Notify followers only about profile update (skip if private)
     if (guild.universe_visibility !== "private") {
       notifyEntityFollowersAndMembers({
