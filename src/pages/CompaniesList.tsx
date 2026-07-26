@@ -82,7 +82,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
           const memberCount = company.company_members?.length ?? 0;
           return (
             <motion.div key={company.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={isLoggedIn ? `/companies/${company.id}` : "/login"} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+              <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
                 <UnitCoverImage type="COMPANY" imageUrl={company.banner_url} logoUrl={company.logo_url} name={company.name} height="h-32" />
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">

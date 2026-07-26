@@ -216,7 +216,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
           const memberCount = (pod as any).pod_members?.length ?? 0;
           return (
             <motion.div key={pod.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
-              <Link to={isLoggedIn ? `/pods/${pod.id}` : "/login"} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+              <Link to={`/pods/${pod.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
                 <UnitCoverImage type="POD" imageUrl={pod.image_url} name={pod.name} height="h-28" />
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
