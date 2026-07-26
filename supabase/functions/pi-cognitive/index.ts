@@ -1154,12 +1154,20 @@ serve(async (req) => {
             const doneSubs = subs.filter(s => (s.status || "").toUpperCase() === "DONE").length;
 
             let files: any[] = [];
+            const { data: questAtts } = await sb.from("attachments")
+              .select("id, title, file_name, file_url, mime_type, created_at")
+              .eq("target_id", ctxId)
+              .order("created_at", { ascending: false })
+              .limit(20);
+            for (const a of questAtts || []) {
+              files.push({ type: "RESOURCE", file_name: a.title || a.file_name, url: a.file_url, mime_type: a.mime_type });
+            }
             if (posts.length) {
               const { data: attR } = await sb.from("post_attachments")
                 .select("post_id, type, url, file_name, mime_type")
                 .in("post_id", posts.map(p => p.id))
                 .limit(20);
-              files = attR || [];
+              files = files.concat(attR || []);
             }
 
             const memberList = parts.slice(0, 12).map(p =>
