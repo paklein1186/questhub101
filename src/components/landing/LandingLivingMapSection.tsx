@@ -241,7 +241,7 @@ export function LandingLivingMapSection() {
               <h3 className="font-display text-xl font-bold tracking-tight">{k("questsTitle")}</h3>
               <p className="text-sm text-muted-foreground">{k("questsSub")}</p>
             </div>
-            <Link to="/quests" className="text-sm text-primary hover:underline shrink-0">
+            <Link to="/explore?tab=quests" className="text-sm text-primary hover:underline shrink-0">
               {k("seeAll")}
             </Link>
           </div>
