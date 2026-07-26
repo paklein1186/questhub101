@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Lightbulb, Swords, Search } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { usePersona } from "@/hooks/usePersona";
