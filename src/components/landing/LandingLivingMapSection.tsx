@@ -176,6 +176,21 @@ export function LandingLivingMapSection() {
           </Suspense>
         ) : null}
 
+        {/* Clickable territory chips (map shapes can overlap) */}
+        {topTerritories.length > 0 && (
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {topTerritories.map((t) => (
+              <Link
+                key={t.id}
+                to={`/territories/${t.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition-colors hover:border-primary/40 hover:text-primary"
+              >
+                <MapPin className="h-3 w-3" /> {t.name}
+              </Link>
+            ))}
+          </div>
+        )}
+
         <div className="text-center mt-4">
           <Link
             to="/territories"
@@ -184,6 +199,7 @@ export function LandingLivingMapSection() {
             <MapPin className="h-3.5 w-3.5" /> {k("mapCta")} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+
 
         {/* Entities gallery */}
         <div className="mt-16">
