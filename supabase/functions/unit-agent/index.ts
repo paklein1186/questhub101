@@ -230,8 +230,9 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         parts.push(`Pod: ${pod.name} (${pod.type})`);
         if (pod.description) parts.push(`Description: ${pod.description.slice(0, 300)}`);
       }
-      const { data: members } = await supabase.from("pod_members").select("role, profiles(name)").eq("pod_id", entityId).limit(20);
-      if (members?.length) parts.push(`Members: ${members.map((m: any) => `${m.profiles?.name || "?"} (${m.role})`).join(", ")}`);
+      const { data: rawPodMembers } = await supabase.from("pod_members").select("role, user_id").eq("pod_id", entityId).limit(20);
+      const members = await hydrateProfiles(supabase, rawPodMembers, "user_id");
+      if (members?.length) parts.push(`Members: ${members.map((m: any) => `${m.profiles?.name || "Unnamed member"} (${m.role})`).join(", ")}`);
     } else if (entityType === "COMPANY") {
       const { data: company } = await supabase.from("companies").select("name, description, sector, size").eq("id", entityId).single();
       if (company) {
