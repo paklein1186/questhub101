@@ -741,6 +741,28 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
           </DialogContent>
         </Dialog>
 
+        {/* ── AI interview assistant ── */}
+        <ContractAiAssistant
+          open={aiOpen}
+          onOpenChange={setAiOpen}
+          mode={isEditing ? "edit" : "create"}
+          draftHtml={contractBody}
+          context={{
+            questTitle: quest.title,
+            questDescription: quest.description,
+            hostName: (guild as any)?.name ?? "",
+            members: questMembers.map((m: any) => m.name).filter(Boolean).join(", "),
+            fmvRate,
+            budget: quest.credit_budget ?? undefined,
+            governance: (guild as any)?.governance_model ?? undefined,
+          }}
+          onApply={({ title, html }) => {
+            if (html) setContractBody(html);
+            if (title && !isEditing) setContractTitle(title);
+          }}
+        />
+
+
         {/* ── Decline Dialog ── */}
         <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
           <DialogContent className="max-w-sm">
