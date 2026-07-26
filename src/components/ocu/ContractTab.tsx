@@ -183,16 +183,56 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   // ── Handlers ──
   const handleOpenEditor = () => {
+    setIsEditing(false);
     setContractTitle("Quest Contract");
     setContractBody(getDefaultTemplate(quest.title, (guild as any)?.name ?? "", fmvRate));
     setSelectedSignatories([]);
     setEditorOpen(true);
   };
 
+  const handleOpenEditExisting = () => {
+    if (!contract) return;
+    setIsEditing(true);
+    setContractTitle(contract.title ?? "Quest Contract");
+    setContractBody(getContractHtml(contract.content));
+    setSelectedSignatories([]);
+    setEditorOpen(true);
+  };
+
+  /** A quest member who joined later can co-sign the existing contract. */
+  const handleJoinAsSignatory = async () => {
+    if (!contract) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("contract_signatories").insert({
+        contract_id: contract.id,
+        user_id: currentUser.id,
+      });
+      if (error) throw error;
+      toast({ title: "You joined the contract", description: "Sign it to confirm your commitment." });
+      qc.invalidateQueries({ queryKey: ["contract-signatories"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSaveContract = async () => {
     if (!contractBody.trim()) return;
     setSaving(true);
     try {
+      if (isEditing && contract) {
+        const { error } = await supabase
+          .from("quest_contracts")
+          .update({ title: contractTitle, content: { html: contractBody } } as any)
+          .eq("id", contract.id);
+        if (error) throw error;
+        toast({ title: "Contract updated" });
+        qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
+        setEditorOpen(false);
+        return;
+      }
       const status = selectedSignatories.length > 0 ? "pending_signatures" : "draft";
       const { data: newContract, error } = await supabase
         .from("quest_contracts")
@@ -239,6 +279,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
       setSaving(false);
     }
   };
+
 
   const handleSign = async () => {
     if (!contract) return;
