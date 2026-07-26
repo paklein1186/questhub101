@@ -87,7 +87,7 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         .insert({
           quest_id: quest.id,
           title: `Collaboration Agreement — ${quest.title}`,
-          content,
+          content: { html: content },
           status: "pending_signatures",
           created_by: currentUser.id,
         } as any)
