@@ -589,7 +589,7 @@ async function executeToolCall(
       if (!qid) return { error: "quest_id required" };
       const [partsR, hostsR] = await Promise.all([
         sb.from("quest_participants")
-          .select("user_id, role, status, profiles:user_id(name, avatar_url)")
+          .select("user_id, role, status")
           .eq("quest_id", qid).limit(100),
         sb.from("quest_hosts")
           .select("entity_type, entity_id, role").eq("quest_id", qid),
@@ -607,7 +607,7 @@ async function executeToolCall(
       if (!qid) return { error: "quest_id required" };
       const limit = Math.min(params.limit || 10, 30);
       const { data } = await sb.from("feed_posts")
-        .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+        .select("id, author_user_id, content, created_at, upvote_count")
         .eq("context_type", "QUEST").eq("context_id", qid)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false }).limit(limit);
@@ -733,6 +733,18 @@ Model the leadership you're teaching.`,
 // =====================================================================
 // System prompt
 // =====================================================================
+// profiles has NO foreign key to other tables, so PostgREST embeds like
+// `profiles:user_id(name)` always return null. Hydrate manually via profiles.user_id.
+async function hydrateProfiles(sb: any, rows: any[] | null, key: string): Promise<any[]> {
+  const list = rows || [];
+  const ids = Array.from(new Set(list.map((r: any) => r?.[key]).filter(Boolean)));
+  if (!ids.length) return list;
+  const { data } = await sb.from("profiles").select("user_id,name,avatar_url").in("user_id", ids);
+  const map = new Map<string, any>((data || []).map((p: any) => [p.user_id, p]));
+  for (const r of list) r.profiles = map.get(r?.[key]) || null;
+  return list;
+}
+
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
   pt: "Portuguese", nl: "Dutch", pl: "Polish", ro: "Romanian", ar: "Arabic",
@@ -1125,7 +1137,7 @@ serve(async (req) => {
           if (ctxType === "quest") {
             const [partsR, hostsR, subsR, postsR] = await Promise.all([
               sb.from("quest_participants")
-                .select("user_id, role, status, profiles:user_id(name)")
+                .select("user_id, role, status")
                 .eq("quest_id", ctxId)
                 .limit(30),
               sb.from("quest_hosts")
@@ -1138,7 +1150,7 @@ serve(async (req) => {
                 .order("order_index", { ascending: true })
                 .limit(20),
               sb.from("feed_posts")
-                .select("id, author_user_id, content, created_at, upvote_count, profiles:author_user_id(name)")
+                .select("id, author_user_id, content, created_at, upvote_count")
                 .eq("context_type", "QUEST")
                 .eq("context_id", ctxId)
                 .eq("is_deleted", false)
@@ -1194,11 +1206,11 @@ serve(async (req) => {
           } else if (ctxType === "guild") {
             const [membersR, postsR] = await Promise.all([
               sb.from("guild_members")
-                .select("user_id, role, status, profiles:user_id(name)")
+                .select("user_id, role, status")
                 .eq("guild_id", ctxId)
                 .limit(30),
               sb.from("feed_posts")
-                .select("id, author_user_id, content, created_at, profiles:author_user_id(name)")
+                .select("id, author_user_id, content, created_at")
                 .eq("context_type", "GUILD")
                 .eq("context_id", ctxId)
                 .eq("is_deleted", false)
