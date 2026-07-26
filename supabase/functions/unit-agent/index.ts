@@ -49,7 +49,23 @@ function resolveMuseFromTopicNames(topicNames: string[]): { name: string; style:
   return null;
 }
 
-function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string, topicNames: string[] = []) {
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
+  pt: "Portuguese", nl: "Dutch", pl: "Polish", ro: "Romanian", ar: "Arabic",
+};
+function languageDirective(code?: string | null): string {
+  const lang = (code || "en").split("-")[0].toLowerCase();
+  const name = LANGUAGE_NAMES[lang] || lang;
+  return `
+
+MULTILINGUAL RULES:
+- The reader's interface language is ${name} (${lang}). ALWAYS write your answer in ${name}, whatever language the question or the source material is in.
+- The activity, discussions, member profiles and uploaded documents you scan may be in other languages. Read them in their original language and translate the relevant parts into ${name} when you quote or summarise them.
+- Keep proper nouns, entity names, quest titles, file names and mention tokens of the form @[Name](type:id) verbatim — never translate or alter them.
+- If a term has no good equivalent, keep the original and add a short gloss in ${name} in parentheses.`;
+}
+
+function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string, topicNames: string[] = [], language?: string) {
   const agentNames: Record<string, string> = {
     GUILD: "Guild Spirit",
     QUEST: "Quest Companion",
@@ -101,7 +117,7 @@ When making suggestions, you can include structured suggestions in your response
 - For missing skills: [SKILLS:{"skills":["skill1","skill2"],"suggestion":"..."}]
 
 Only include these when genuinely useful. Most responses should be plain text.
-Always respond helpfully even if context is limited. Highlight when you're uncertain.`;
+Always respond helpfully even if context is limited. Highlight when you're uncertain.${languageDirective(language)}`;
 }
 
 async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[]; attachments: { url: string; mime_type: string; file_name: string }[] }> {
@@ -304,7 +320,7 @@ serve(async (req) => {
   // --- End auth check ---
 
   try {
-    const { entityType, entityId, message } = await req.json();
+    const { entityType, entityId, message, language } = await req.json();
     
     if (!entityType || !entityId || !message) {
       return new Response(JSON.stringify({ error: "Missing entityType, entityId, or message" }), {
@@ -322,7 +338,7 @@ serve(async (req) => {
     const { name: entityName, summary: contextSummary, attachments } = await gatherContext(supabase, entityType, entityId);
     const { threadId: existingThreadId, messages: dbHistory, starredSummary } = await getConversationFromDB(supabase, entityType, entityId);
 
-    const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary);
+    const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary, [], language);
 
     const aiMessages: any[] = [{ role: "system", content: systemPrompt }];
     for (const msg of dbHistory) {
