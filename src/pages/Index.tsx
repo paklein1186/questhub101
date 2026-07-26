@@ -12,8 +12,8 @@ export default function Index() {
     </div>
   );
 
-  // Unlogged visitors go to the persona selector
-  if (!session) return <Navigate to="/welcome" replace />;
+  // Unlogged visitors land on the public home
+  if (!session) return <Navigate to="/home" replace />;
 
   // Redirect to onboarding if not completed
   if (user && !user.hasCompletedOnboarding) {
