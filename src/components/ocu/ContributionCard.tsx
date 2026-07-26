@@ -144,7 +144,7 @@ export function ContributionCard({ contribution, currentUserId, onReview, showRe
                 </Badge>
               ) : coinsCompensated > 0 ? (
                 <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
-                  🟡 Partial (€{coinsCompensated} / €{fmvValue})
+                  🟩 Partial (€{coinsCompensated} / €{fmvValue})
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-700 border-red-500/30">

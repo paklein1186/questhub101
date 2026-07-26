@@ -237,7 +237,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
               <span className="text-muted-foreground">×</span>
               <span>{multiplier}x</span>
               <span className="text-muted-foreground">=</span>
-              <span className="font-bold text-primary">🟡 {fmvValue} Coins</span>
+              <span className="font-bold text-primary">🟩 {fmvValue} Coins</span>
             </div>
           </div>
         </div>

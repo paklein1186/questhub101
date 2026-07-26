@@ -174,7 +174,7 @@ export function GuildContributionMap({ guildId }: Props) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`🟡 ${value}`, "FMV"]}
+                  formatter={(value: number) => [`🟩 ${value}`, "FMV"]}
                   contentStyle={{ fontSize: "12px", borderRadius: "8px" }}
                 />
               </PieChart>
@@ -189,7 +189,7 @@ export function GuildContributionMap({ guildId }: Props) {
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">#</th>
                     <th className="text-left px-3 py-2 font-medium">Contributor</th>
-                    <th className="text-right px-3 py-2 font-medium">Total FMV 🟡</th>
+                    <th className="text-right px-3 py-2 font-medium">Total FMV 🟩</th>
                     <th className="text-right px-3 py-2 font-medium">Guild %</th>
                     <th className="text-right px-3 py-2 font-medium">Quests</th>
                   </tr>
@@ -222,7 +222,7 @@ export function GuildContributionMap({ guildId }: Props) {
                           {c.questBreakdown.map((qb) => (
                             <div key={qb.questId} className="flex justify-between gap-4 text-xs">
                               <span className="truncate">{qb.questTitle}</span>
-                              <span className="font-medium shrink-0">🟡 {qb.fmv}</span>
+                              <span className="font-medium shrink-0">🟩 {qb.fmv}</span>
                             </div>
                           ))}
                         </div>

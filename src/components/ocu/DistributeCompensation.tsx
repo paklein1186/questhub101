@@ -307,7 +307,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             <Banknote className="h-4 w-4" /> Distribute Compensation
           </h3>
           <Badge variant="outline" className="text-[10px]">
-            🟡 {totalRemaining.toFixed(0)} outstanding
+            🟩 {totalRemaining.toFixed(0)} outstanding
           </Badge>
         </div>
 
@@ -334,7 +334,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
-                    <th className="text-right p-2 font-medium">FMV 🟡</th>
+                    <th className="text-right p-2 font-medium">FMV 🟩</th>
                     <th className="text-right p-2 font-medium">Paid</th>
                     <th className="text-right p-2 font-medium">Remaining</th>
                     <th className="p-2 font-medium w-24">Progress</th>
@@ -431,7 +431,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coins" className="text-xs">🟡 Coins (platform)</SelectItem>
+                    <SelectItem value="coins" className="text-xs">🟩 Coins (platform)</SelectItem>
                     <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
                     <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
                   </SelectContent>
@@ -451,7 +451,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                   {preview.map((p) => (
                     <div key={p.user_id} className="flex justify-between text-xs">
                       <span>{p.name}</span>
-                      <span className="font-medium text-primary">🟡 {p.distribution.toFixed(0)}</span>
+                      <span className="font-medium text-primary">🟩 {p.distribution.toFixed(0)}</span>
                     </div>
                   ))}
                 </div>
@@ -479,7 +479,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
               {preview.map((p) => (
                 <div key={p.user_id} className="flex justify-between text-sm">
                   <span>{p.name}</span>
-                  <span className="font-medium">🟡 {p.distribution.toFixed(0)}</span>
+                  <span className="font-medium">🟩 {p.distribution.toFixed(0)}</span>
                 </div>
               ))}
               {note && <p className="text-xs text-muted-foreground">Note: {note}</p>}
