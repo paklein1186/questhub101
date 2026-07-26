@@ -177,13 +177,18 @@ export default function OpportunitiesExplore({ bare }: Props) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((need) => {
           const quest = need.quests as any;
+          const ownerKey = quest?.owner_type && quest?.owner_id
+            ? `${String(quest.owner_type).toUpperCase()}:${quest.owner_id}`
+            : null;
+          const owner = ownerKey ? owners?.[ownerKey] : undefined;
           return (
             <Link
               key={need.id}
               to={`/quests/${need.quest_id}?tab=explore`}
-              className="group rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-all"
+              className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all"
             >
-              <div className="flex items-start gap-3">
+              <UnitCoverImage type="QUEST" imageUrl={quest?.cover_image_url} name={quest?.title} height="h-24" />
+              <div className="flex items-start gap-3 p-4">
                 <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{need.title}</p>
@@ -204,10 +209,20 @@ export default function OpportunitiesExplore({ bare }: Props) {
                       <span className="truncate">{quest.title}</span>
                     </div>
                   )}
+                  {owner && (
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-muted-foreground">
+                      <Avatar className="h-4 w-4">
+                        <AvatarImage src={owner.logo_url ?? undefined} alt={owner.name} />
+                        <AvatarFallback className="text-[8px]">{owner.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className="truncate">{owner.name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Link>
           );
+
         })}
       </div>
 
