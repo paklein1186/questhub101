@@ -78,6 +78,8 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   const { toast } = useToast();
 
   const [editorOpen, setEditorOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const [contractTitle, setContractTitle] = useState("Quest Contract");
   const [contractBody, setContractBody] = useState("");
   const [selectedSignatories, setSelectedSignatories] = useState<string[]>([]);
@@ -183,16 +185,56 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   // ── Handlers ──
   const handleOpenEditor = () => {
+    setIsEditing(false);
     setContractTitle("Quest Contract");
     setContractBody(getDefaultTemplate(quest.title, (guild as any)?.name ?? "", fmvRate));
     setSelectedSignatories([]);
     setEditorOpen(true);
   };
 
+  const handleOpenEditExisting = () => {
+    if (!contract) return;
+    setIsEditing(true);
+    setContractTitle(contract.title ?? "Quest Contract");
+    setContractBody(getContractHtml(contract.content));
+    setSelectedSignatories([]);
+    setEditorOpen(true);
+  };
+
+  /** A quest member who joined later can co-sign the existing contract. */
+  const handleJoinAsSignatory = async () => {
+    if (!contract) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("contract_signatories").insert({
+        contract_id: contract.id,
+        user_id: currentUser.id,
+      });
+      if (error) throw error;
+      toast({ title: "You joined the contract", description: "Sign it to confirm your commitment." });
+      qc.invalidateQueries({ queryKey: ["contract-signatories"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSaveContract = async () => {
     if (!contractBody.trim()) return;
     setSaving(true);
     try {
+      if (isEditing && contract) {
+        const { error } = await supabase
+          .from("quest_contracts")
+          .update({ title: contractTitle, content: { html: contractBody } } as any)
+          .eq("id", contract.id);
+        if (error) throw error;
+        toast({ title: "Contract updated" });
+        qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
+        setEditorOpen(false);
+        return;
+      }
       const status = selectedSignatories.length > 0 ? "pending_signatures" : "draft";
       const { data: newContract, error } = await supabase
         .from("quest_contracts")
@@ -239,6 +281,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
       setSaving(false);
     }
   };
+
 
   const handleSign = async () => {
     if (!contract) return;
@@ -446,7 +489,12 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   const mySig = signatories.find((s) => s.user_id === currentUser?.id);
   const canSign = mySig && !mySig.signed_at && !mySig.rejected_at;
+  const isQuestMember = questMembers.some((m: any) => m.user_id === currentUser?.id);
+  // Late joiners: quest members who are not yet signatories can opt into the contract.
+  const canJoinAsSignatory = !!contract && !mySig && (isQuestMember || isAdmin) && contract.status !== "draft";
+  const canEditContract = !!contract && contract.created_by === currentUser?.id && (contract.status === "draft" || contract.status === "pending_signatures");
   const contractStatus = STATUS_STYLES[contract?.status ?? "draft"] ?? STATUS_STYLES.draft;
+
 
   return (
     <OCUFeatureGate quest={quest} isAdmin={isAdmin} onEnable={onEnableOCU}>
@@ -479,12 +527,18 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 </Badge>
               </div>
               <div className="flex gap-1.5">
-                {(contract.status === "active" || contract.status === "amended") && (
+                {canEditContract && (
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleOpenEditExisting}>
+                    <Pencil className="h-3 w-3" /> Edit
+                  </Button>
+                )}
+                {contract.status !== "draft" && (
                   <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setAmendOpen(true)}>
                     <Pencil className="h-3 w-3" /> Propose Amendment
                   </Button>
                 )}
               </div>
+
             </div>
 
             {/* Contract body */}
@@ -528,7 +582,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
 
               {/* Sign / Decline buttons */}
-              {canSign && contract.status === "pending_signatures" && (
+              {canSign && (
                 <div className="flex gap-2 pt-2">
                   <Button size="sm" className="h-8 text-xs gap-1" onClick={handleSign} disabled={saving}>
                     <Check className="h-3 w-3" /> Sign Contract
@@ -538,6 +592,19 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                   </Button>
                 </div>
               )}
+
+              {/* Late joiners can add themselves as signatory */}
+              {canJoinAsSignatory && (
+                <div className="pt-2">
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={handleJoinAsSignatory} disabled={saving}>
+                    <Plus className="h-3 w-3" /> Join this contract as signatory
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Joining later? Add yourself, then sign — you'll also be able to propose and vote on amendments.
+                  </p>
+                </div>
+              )}
+
             </div>
 
             {/* ── Amendments ── */}
@@ -593,7 +660,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-sm">Create Contract</DialogTitle>
+              <DialogTitle className="text-sm">{isEditing ? "Edit Contract" : "Create Contract"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -614,6 +681,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
 
               {/* Signatory selection */}
+              {!isEditing && (
               <div>
                 <label className="text-xs font-medium">Signatories</label>
                 <p className="text-[10px] text-muted-foreground mb-2">Select quest members who must sign this contract.</p>
@@ -640,13 +708,15 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                   )}
                 </div>
               </div>
+              )}
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setEditorOpen(false)}>Cancel</Button>
                 <Button size="sm" onClick={handleSaveContract} disabled={saving}>
-                  {saving ? "Saving…" : selectedSignatories.length > 0 ? "Save & Send for Signatures" : "Save as Draft"}
+                  {saving ? "Saving…" : isEditing ? "Save changes" : selectedSignatories.length > 0 ? "Save & Send for Signatures" : "Save as Draft"}
                 </Button>
               </div>
+
             </div>
           </DialogContent>
         </Dialog>
