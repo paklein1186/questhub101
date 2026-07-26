@@ -67,11 +67,6 @@ export default function HomeLanding() {
     { icon: Leaf, t: k("personas.a6t"), d: k("personas.a6d") },
   ];
 
-  const horizons = [
-    { h: "H1", w: k("engage.h1w"), t: k("engage.h1t"), d: k("engage.h1d") },
-    { h: "H2", w: k("engage.h2w"), t: k("engage.h2t"), d: k("engage.h2d") },
-    { h: "H3", w: k("engage.h3w"), t: k("engage.h3t"), d: k("engage.h3d") },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
