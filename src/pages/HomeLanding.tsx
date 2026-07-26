@@ -67,11 +67,6 @@ export default function HomeLanding() {
     { icon: Leaf, t: k("personas.a6t"), d: k("personas.a6d") },
   ];
 
-  const horizons = [
-    { h: "H1", w: k("engage.h1w"), t: k("engage.h1t"), d: k("engage.h1d") },
-    { h: "H2", w: k("engage.h2w"), t: k("engage.h2t"), d: k("engage.h2d") },
-    { h: "H3", w: k("engage.h3w"), t: k("engage.h3t"), d: k("engage.h3d") },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -395,64 +390,8 @@ export default function HomeLanding() {
           </div>
         </section>
 
-        {/* ─── Engage ─── */}
-        <section className="border-b border-border bg-muted/30">
-          <div className="container py-20 px-4">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <SectionLabel>{k("engage.label")}</SectionLabel>
-              <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("engage.title")}</h2>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              {horizons.map((h) => (
-                <div key={h.h} className="rounded-2xl border border-border bg-card p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-semibold">{h.h}</span>
-                    <span className="text-xs text-muted-foreground">{h.w}</span>
-                  </div>
-                  <h3 className="font-display text-xl font-bold">{h.t}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">{h.d}</p>
-                </div>
-              ))}
-            </div>
 
-            <div className="mt-6 rounded-2xl border border-border bg-background p-7 md:p-9">
-              <h3 className="font-display text-2xl font-bold">{k("engage.circleTitle")}</h3>
-              <p className="text-muted-foreground leading-relaxed mt-2 max-w-3xl">{k("engage.circleLead")}</p>
-
-              <div className="grid gap-6 md:grid-cols-2 mt-7">
-                <div>
-                  <h4 className="font-display font-semibold text-sm uppercase tracking-wide mb-3">
-                    {k("engage.givesTitle")}
-                  </h4>
-                  <ul className="space-y-2.5">
-                    {[1, 2, 3, 4].map((i) => (
-                      <li key={i} className="flex gap-2.5 text-sm text-muted-foreground">
-                        <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0 mt-1.5" />
-                        {k(`engage.g${i}`)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-display font-semibold text-sm uppercase tracking-wide mb-3 text-primary">
-                    {k("engage.getsTitle")}
-                  </h4>
-                  <ul className="space-y-2.5">
-                    {[1, 2, 3, 4].map((i) => (
-                      <li key={i} className="flex gap-2.5 text-sm">
-                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        {k(`engage.r${i}`)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <p className="mt-7 text-sm font-medium border-l-2 border-primary pl-4">{k("engage.circleNote")}</p>
-            </div>
-          </div>
-        </section>
 
         {/* ─── Final CTA ─── */}
         <section>
