@@ -881,6 +881,18 @@
         "body": "Nous cherchons des acteurs structurels — des organisations dont la mission est précisément de tisser des coopérations, de repérer des acteurs clés, d'animer des écosystèmes.",
         "cta1": "Rejoindre le commun",
         "cta2": "Nous écrire"
+      },
+      "livingMap": {
+        "label": "Carte vivante",
+        "title": "Voir le tissu vivant des territoires",
+        "sub": "Les territoires, entités et quêtes qui bougent en ce moment.",
+        "mapCta": "Explorer tous les territoires",
+        "entitiesTitle": "Entités les plus actives",
+        "entitiesSub": "Guildes et organisations qui portent la coopération.",
+        "questsTitle": "Quêtes en avant",
+        "questsSub": "Les quêtes avec le plus d'élan.",
+        "seeAll": "Tout voir",
+        "empty": "Rien à afficher pour l'instant."
       }
     }
   },
