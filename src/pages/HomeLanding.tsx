@@ -94,7 +94,7 @@ export default function HomeLanding() {
     <div className="min-h-screen flex flex-col bg-background">
       {/* ─── Nav ─── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="container flex h-14 items-center justify-between">
+        <div className="container px-5 sm:px-6 lg:px-8 flex h-14 items-center justify-between">
           <Link to="/home" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
             <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
           </Link>
@@ -114,7 +114,7 @@ export default function HomeLanding() {
         {/* ─── Hero ─── */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-          <div className="container relative z-10 py-20 md:py-28 text-center px-4">
+          <div className="container relative z-10 px-5 sm:px-6 lg:px-8 py-16 md:py-28 text-center">
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6">
                 <Sparkles className="h-3 w-3" /> {k("hero.badge")}
@@ -158,7 +158,7 @@ export default function HomeLanding() {
 
         {/* ─── Problem ─── */}
         <section className="border-b border-border">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="max-w-3xl">
               <SectionLabel>{k("problem.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight">
@@ -196,7 +196,7 @@ export default function HomeLanding() {
 
         {/* ─── Shift ─── */}
         <section className="border-b border-border bg-muted/30">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="text-center max-w-2xl mx-auto">
               <SectionLabel>{k("shift.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("shift.title")}</h2>
@@ -221,7 +221,7 @@ export default function HomeLanding() {
 
         {/* ─── Concept ─── */}
         <section className="border-b border-border">
-          <div className="container py-20 px-4 grid gap-10 lg:grid-cols-2 lg:items-start">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20 grid gap-10 lg:grid-cols-2 lg:items-start">
             <div>
               <SectionLabel>{k("concept.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight">
@@ -259,7 +259,7 @@ export default function HomeLanding() {
 
         {/* ─── Pillars / features ─── */}
         <section className="border-b border-border bg-muted/30">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <SectionLabel>{k("pillars.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("pillars.title")}</h2>
@@ -303,7 +303,7 @@ export default function HomeLanding() {
 
         {/* ─── Personas ─── */}
         <section className="border-b border-border bg-muted/30">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <SectionLabel>{k("personas.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("personas.title")}</h2>
@@ -342,7 +342,7 @@ export default function HomeLanding() {
 
         {/* ─── Story (example) ─── */}
         <section className="border-b border-border">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="max-w-3xl">
               <SectionLabel>{k("story.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("story.title")}</h2>
@@ -391,7 +391,7 @@ export default function HomeLanding() {
 
         {/* ─── Governance ─── */}
         <section className="border-b border-border">
-          <div className="container py-20 px-4">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
             <div className="max-w-3xl">
               <SectionLabel>{k("governance.label")}</SectionLabel>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("governance.title")}</h2>
@@ -435,7 +435,7 @@ export default function HomeLanding() {
 
         {/* ─── Final CTA ─── */}
         <section>
-          <div className="container py-20 px-4 text-center max-w-2xl mx-auto">
+          <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20 text-center max-w-2xl mx-auto">
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("final.title")}</h2>
             <p className="mt-3 text-lg text-primary">{k("final.sub")}</p>
             <p className="mt-5 text-muted-foreground leading-relaxed">{k("final.body")}</p>
