@@ -7,6 +7,8 @@ import {
   ShieldCheck, GitBranch, Mail,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
+import heroCollective from "@/assets/home-collective.png.asset.json";
+
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
@@ -151,9 +153,23 @@ export default function HomeLanding() {
                 <Link to="/explore">{k("hero.cta2")}</Link>
               </Button>
             </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.7 }}
+              className="mt-12 max-w-5xl mx-auto"
+            >
+              <img
+                src={heroCollective.url}
+                alt={k("hero.title1") + " " + k("hero.title2")}
+                loading="lazy"
+                className="w-full rounded-2xl border border-border shadow-lg"
+              />
+            </motion.div>
             <div className="mt-12">
               <LandingStatBar />
             </div>
+
           </div>
         </section>
 
