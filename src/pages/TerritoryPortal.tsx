@@ -509,6 +509,6 @@ export default function TerritoryPortal() {
           currentUserId={currentUser.id}
         />
       )}
-    </div>
+    </PageShell>
   );
 }
