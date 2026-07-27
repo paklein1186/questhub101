@@ -801,6 +801,7 @@
         "title": "D'un lieu à cinquante.",
         "lead": "Tout commence par le lancement d'un lieu : une ferme partagée qui rassemble 30 habitants et 30 entrepreneurs, avec autant de projets vivants — école, maraîchage, restaurant, campus, boulangerie, chai de vinification.",
         "lead2": "Autour de cette matrice, un réseau de fondateurs de lieux se tisse. Une académie prend forme, puis un incubateur en communauté apprenante. Le collectif devient une entité autonome et remporte un marché public en Région wallonne — déclenchant un partenariat public-privé-citoyens inédit.",
+        "lead3": "Cet exemple est porté par Trois-Tiers, la communauté apprenante des tiers-lieux, et fut propulsé par Poiethic. Le tout en Belgique : plus de 200 usagers et 50 lieux réunis en réseau de praticiens, riches d'une expertise d'usage.",
         "s1t": "Un lieu",
         "s1d": "Ferme partagée · 30+30",
         "s2t": "Un réseau",
@@ -812,7 +813,12 @@
         "s5t": "50 lieux",
         "s5d": "Foncière solidaire · AMO",
         "quote": "Cinquante lieux se retrouvent régulièrement, échangent leurs pratiques, et cette communauté apprenante se structure pour faire éclore à leur tour les prochains lieux.",
-        "quoteAuthor": "Le réseau des fondateurs de lieux"
+        "quoteAuthor": "Le réseau des fondateurs de lieux",
+        "tag1": "Belgique",
+        "tag2": "200+ usagers",
+        "tag3": "50 lieux en réseau",
+        "tag4": "Expertise d'usage",
+        "credit": "Porté par l'entité Trois-Tiers (communauté apprenante des tiers-lieux) · Propulsé par l'entité Poiethic."
       },
       "personas": {
         "label": "Pour qui",
