@@ -384,7 +384,7 @@ export default function HomeLanding() {
             </figure>
 
             <p className="mt-6 max-w-3xl text-sm text-muted-foreground border-l-2 border-primary pl-4">
-              {k("story.credit")}
+              {linkifyEntities(k("story.credit"))}
             </p>
           </div>
         </section>
