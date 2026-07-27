@@ -449,40 +449,15 @@ export function useCreateConversation() {
     mutationFn: async ({ participantIds, title, isGroup }: { participantIds: string[]; title?: string; isGroup?: boolean }) => {
       const userId = session!.user.id;
 
-      // Check if 1:1 conversation already exists
+      // Check if 1:1 conversation already exists (via security-definer RPC —
+      // RLS prevents reading the other user's participant rows directly)
       if (!isGroup && participantIds.length === 1) {
-        const otherId = participantIds[0];
-        const { data: myConvs } = await supabase
-          .from("conversation_participants")
-          .select("conversation_id")
-          .eq("user_id", userId);
-
-        if (myConvs?.length) {
-          const { data: otherConvs } = await supabase
-            .from("conversation_participants")
-            .select("conversation_id")
-            .eq("user_id", otherId)
-            .in("conversation_id", myConvs.map((c) => c.conversation_id));
-
-          if (otherConvs?.length) {
-            for (const conv of otherConvs) {
-              const { data: convData } = await supabase
-                .from("conversations")
-                .select("id, is_group")
-                .eq("id", conv.conversation_id)
-                .eq("is_group", false)
-                .maybeSingle();
-              if (!convData) continue;
-
-              const { count } = await supabase
-                .from("conversation_participants")
-                .select("id", { count: "exact", head: true })
-                .eq("conversation_id", convData.id);
-              if (count === 2) return convData.id;
-            }
-          }
-        }
+        const { data: existingId } = await supabase.rpc("find_direct_conversation", {
+          other_user_id: participantIds[0],
+        });
+        if (existingId) return existingId as string;
       }
+
 
       const { data: conv, error } = await supabase
         .from("conversations")

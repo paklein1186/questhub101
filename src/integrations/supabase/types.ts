@@ -10759,6 +10759,10 @@ export type Database = {
         Args: { p_ctg_amount: number; p_user_id: string }
         Returns: Json
       }
+      find_direct_conversation: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       get_co_occurring_natural_systems: {
         Args: { p_natural_system_id: string }
         Returns: {
