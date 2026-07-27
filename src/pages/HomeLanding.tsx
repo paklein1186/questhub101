@@ -109,8 +109,6 @@ export default function HomeLanding() {
             </Button>
           </nav>
         </div>
-
-        </div>
       </header>
 
       <main className="flex-1">
