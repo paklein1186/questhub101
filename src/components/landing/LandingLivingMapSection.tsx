@@ -214,7 +214,7 @@ export function LandingLivingMapSection() {
           </div>
 
           {loadingE ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
               {[0, 1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-24 rounded-2xl" />
               ))}
@@ -222,7 +222,7 @@ export function LandingLivingMapSection() {
           ) : entities.length === 0 ? (
             <p className="text-sm text-muted-foreground">{k("empty")}</p>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
               {entities.map((e) => (
                 <Link
                   key={`${e.type}-${e.id}`}
@@ -263,7 +263,7 @@ export function LandingLivingMapSection() {
           </div>
 
           {loadingQ ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {[0, 1, 2].map((i) => (
                 <Skeleton key={i} className="h-52 rounded-2xl" />
               ))}
@@ -271,7 +271,7 @@ export function LandingLivingMapSection() {
           ) : quests.length === 0 ? (
             <p className="text-sm text-muted-foreground">{k("empty")}</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {quests.map((q) => (
                 <Link
                   key={q.id}
