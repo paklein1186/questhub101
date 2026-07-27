@@ -59,6 +59,8 @@ interface TerritoryGeoData {
 
 interface Props {
   territories: TerritoryLeaderboardItem[];
+  /** Disable wheel zoom (useful on marketing pages where the page should scroll instead) */
+  scrollWheelZoom?: boolean;
 }
 
 /** Try to geocode a territory name via Nominatim and persist the result */
@@ -85,7 +87,7 @@ async function geocodeAndPersist(id: string, name: string): Promise<{ lat: numbe
   }
 }
 
-export function TerritoryMapView({ territories }: Props) {
+export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props) {
   const navigate = useNavigate();
 
   const territoryIds = useMemo(() => territories.map((t) => t.id), [territories]);
@@ -144,7 +146,7 @@ export function TerritoryMapView({ territories }: Props) {
         <MapContainer
           center={[30, 0]}
           zoom={2}
-          scrollWheelZoom
+          scrollWheelZoom={scrollWheelZoom}
           style={{ height: "100%", width: "100%" }}
           className="z-0"
         >

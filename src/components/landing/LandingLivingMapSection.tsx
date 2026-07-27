@@ -172,7 +172,7 @@ export function LandingLivingMapSection() {
           <Skeleton className="h-[500px] w-full rounded-2xl" />
         ) : topTerritories.length > 0 ? (
           <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-2xl" />}>
-            <TerritoryMapView territories={topTerritories} />
+            <TerritoryMapView territories={topTerritories} scrollWheelZoom={false} />
           </Suspense>
         ) : null}
 

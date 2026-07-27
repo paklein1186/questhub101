@@ -25,7 +25,27 @@ const fadeUp = {
   }),
 };
 
+const ENTITY_LINKS: { label: string; to: string }[] = [
+  { label: "Trois-Tiers", to: "/guilds/4964c699-4684-43a9-b508-cee21c77e24e" },
+  { label: "Poiethic", to: "/companies/e786a8cc-6e46-4fed-ae25-0e5fed5f7f90" },
+];
+
+/** Turns known entity names inside a plain string into bold links to their pages. */
+function linkifyEntities(text: string): React.ReactNode[] {
+  const pattern = new RegExp(`(${ENTITY_LINKS.map((e) => e.label).join("|")})`, "g");
+  return text.split(pattern).map((part, i) => {
+    const match = ENTITY_LINKS.find((e) => e.label === part);
+    if (!match) return <span key={i}>{part}</span>;
+    return (
+      <Link key={i} to={match.to} className="font-semibold text-primary hover:underline">
+        {part}
+      </Link>
+    );
+  });
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
+
   return (
     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary mb-3">
       {children}
@@ -328,7 +348,7 @@ export default function HomeLanding() {
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("story.title")}</h2>
               <p className="mt-5 text-muted-foreground leading-relaxed">{k("story.lead")}</p>
               <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead2")}</p>
-              <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead3")}</p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">{linkifyEntities(k("story.lead3"))}</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5 mt-10">
@@ -364,7 +384,7 @@ export default function HomeLanding() {
             </figure>
 
             <p className="mt-6 max-w-3xl text-sm text-muted-foreground border-l-2 border-primary pl-4">
-              {k("story.credit")}
+              {linkifyEntities(k("story.credit"))}
             </p>
           </div>
         </section>
