@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords, Brain, MessageSquarePlus, Sparkles } from "lucide-react";
 
+import { PageShell } from "@/components/PageShell";
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
 import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
@@ -319,21 +320,25 @@ export default function TerritoryPortal() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <PageShell>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </PageShell>
     );
   }
 
   if (!territory) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
-        <Globe className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-muted-foreground font-medium">Territory not found</p>
-        <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
-          ← Back to Explore
-        </button>
-      </div>
+      <PageShell>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
+          <Globe className="h-10 w-10 text-muted-foreground/40" />
+          <p className="text-muted-foreground font-medium">Territory not found</p>
+          <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
+            ← Back to Explore
+          </button>
+        </div>
+      </PageShell>
     );
   }
 
@@ -349,8 +354,9 @@ export default function TerritoryPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <PageShell>
+      <div className="max-w-5xl mx-auto space-y-6">
+
         <div className="flex gap-6">
           {/* Main content */}
           <div className="flex-1 min-w-0 space-y-6">
@@ -503,6 +509,6 @@ export default function TerritoryPortal() {
           currentUserId={currentUser.id}
         />
       )}
-    </div>
+    </PageShell>
   );
 }
