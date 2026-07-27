@@ -319,21 +319,25 @@ export default function TerritoryPortal() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <PageShell>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </PageShell>
     );
   }
 
   if (!territory) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
-        <Globe className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-muted-foreground font-medium">Territory not found</p>
-        <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
-          ← Back to Explore
-        </button>
-      </div>
+      <PageShell>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
+          <Globe className="h-10 w-10 text-muted-foreground/40" />
+          <p className="text-muted-foreground font-medium">Territory not found</p>
+          <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
+            ← Back to Explore
+          </button>
+        </div>
+      </PageShell>
     );
   }
 
