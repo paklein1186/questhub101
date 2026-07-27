@@ -160,7 +160,7 @@ export function LandingLivingMapSection() {
 
   return (
     <section className="border-b border-border bg-muted/30">
-      <div className="container py-20 px-4">
+      <div className="container px-5 sm:px-6 lg:px-8 py-14 md:py-20">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <SectionLabel>{k("label")}</SectionLabel>
           <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("title")}</h2>
