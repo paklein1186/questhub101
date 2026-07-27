@@ -815,6 +815,7 @@
         "title": "From one place to fifty.",
         "lead": "It all starts with the launch of one place: a shared farm bringing together 30 residents and 30 entrepreneurs, with as many living projects — a school, market gardening, a restaurant, a campus, a bakery, a winery.",
         "lead2": "Around this matrix, a network of place founders is woven. An academy takes shape, then an incubator run as a learning community. The collective becomes an autonomous entity and wins a public tender in the Walloon Region — triggering an unprecedented public-private-citizen partnership.",
+        "lead3": "This example is carried by Trois-Tiers, the learning community of third places, and was powered by Poiethic. All of it in Belgium: 200+ users and 50 places gathered in a network of practitioners with deep hands-on expertise.",
         "s1t": "One place",
         "s1d": "Shared farm · 30+30",
         "s2t": "A network",
@@ -826,7 +827,12 @@
         "s5t": "50 places",
         "s5d": "Solidarity land trust · advisory",
         "quote": "Fifty places now meet regularly, exchange their practices, and this learning community is structuring itself to help the next places emerge in turn.",
-        "quoteAuthor": "The network of place founders"
+        "quoteAuthor": "The network of place founders",
+        "tag1": "Belgium",
+        "tag2": "200+ users",
+        "tag3": "50 places networked",
+        "tag4": "Hands-on expertise",
+        "credit": "Carried by the Trois-Tiers entity (learning community of third places) · Powered by the Poiethic entity."
       },
       "personas": {
         "label": "Who it's for",
