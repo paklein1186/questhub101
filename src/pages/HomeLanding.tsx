@@ -355,6 +355,55 @@ export default function HomeLanding() {
           </div>
         </section>
 
+        {/* ─── Story (example) ─── */}
+        <section className="border-b border-border">
+          <div className="container py-20 px-4">
+            <div className="max-w-3xl">
+              <SectionLabel>{k("story.label")}</SectionLabel>
+              <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("story.title")}</h2>
+              <p className="mt-5 text-muted-foreground leading-relaxed">{k("story.lead")}</p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead2")}</p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead3")}</p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5 mt-10">
+              {storySteps.map((s, i) => (
+                <motion.div
+                  key={s.t}
+                  custom={i}
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-40px" }}
+                  className="relative rounded-2xl border border-border bg-card p-5"
+                >
+                  <span className="text-xs font-mono text-primary">{`0${i + 1}`}</span>
+                  <h3 className="font-display font-semibold mt-2">{s.t}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{s.d}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-2">
+              {[k("story.tag1"), k("story.tag2"), k("story.tag3"), k("story.tag4")].map((tag) => (
+                <span key={tag} className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <figure className="mt-8 max-w-3xl rounded-2xl border border-primary/30 bg-primary/5 p-7">
+              <Quote className="h-6 w-6 text-primary mb-3" />
+              <blockquote className="text-lg leading-relaxed font-display">{k("story.quote")}</blockquote>
+              <figcaption className="mt-4 text-sm text-muted-foreground">— {k("story.quoteAuthor")}</figcaption>
+            </figure>
+
+            <p className="mt-6 max-w-3xl text-sm text-muted-foreground border-l-2 border-primary pl-4">
+              {k("story.credit")}
+            </p>
+          </div>
+        </section>
+
         {/* ─── Governance ─── */}
         <section className="border-b border-border">
           <div className="container py-20 px-4">
