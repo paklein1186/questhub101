@@ -25,7 +25,27 @@ const fadeUp = {
   }),
 };
 
+const ENTITY_LINKS: { label: string; to: string }[] = [
+  { label: "Trois-Tiers", to: "/guilds/4964c699-4684-43a9-b508-cee21c77e24e" },
+  { label: "Poiethic", to: "/companies/e786a8cc-6e46-4fed-ae25-0e5fed5f7f90" },
+];
+
+/** Turns known entity names inside a plain string into bold links to their pages. */
+function linkifyEntities(text: string): React.ReactNode[] {
+  const pattern = new RegExp(`(${ENTITY_LINKS.map((e) => e.label).join("|")})`, "g");
+  return text.split(pattern).map((part, i) => {
+    const match = ENTITY_LINKS.find((e) => e.label === part);
+    if (!match) return <span key={i}>{part}</span>;
+    return (
+      <Link key={i} to={match.to} className="font-semibold text-primary hover:underline">
+        {part}
+      </Link>
+    );
+  });
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
+
   return (
     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary mb-3">
       {children}
