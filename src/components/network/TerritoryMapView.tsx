@@ -87,7 +87,7 @@ async function geocodeAndPersist(id: string, name: string): Promise<{ lat: numbe
   }
 }
 
-export function TerritoryMapView({ territories }: Props) {
+export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props) {
   const navigate = useNavigate();
 
   const territoryIds = useMemo(() => territories.map((t) => t.id), [territories]);
