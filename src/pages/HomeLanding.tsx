@@ -348,7 +348,7 @@ export default function HomeLanding() {
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{k("story.title")}</h2>
               <p className="mt-5 text-muted-foreground leading-relaxed">{k("story.lead")}</p>
               <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead2")}</p>
-              <p className="mt-3 text-muted-foreground leading-relaxed">{k("story.lead3")}</p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">{linkifyEntities(k("story.lead3"))}</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5 mt-10">
