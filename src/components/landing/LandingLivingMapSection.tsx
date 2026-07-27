@@ -156,7 +156,7 @@ export function LandingLivingMapSection() {
   const { data: entities = [], isLoading: loadingE } = useActiveEntities();
   const { data: quests = [], isLoading: loadingQ } = useActiveQuests();
 
-  const topTerritories = useMemo(() => territories.slice(0, 15), [territories]);
+  const chipTerritories = useMemo(() => territories.slice(0, 15), [territories]);
 
   return (
     <section className="border-b border-border bg-muted/30">
@@ -170,16 +170,16 @@ export function LandingLivingMapSection() {
         {/* Map */}
         {loadingT ? (
           <Skeleton className="h-[500px] w-full rounded-2xl" />
-        ) : topTerritories.length > 0 ? (
+        ) : territories.length > 0 ? (
           <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-2xl" />}>
-            <TerritoryMapView territories={topTerritories} scrollWheelZoom={false} />
+            <TerritoryMapView territories={territories} scrollWheelZoom={false} />
           </Suspense>
         ) : null}
 
         {/* Clickable territory chips (map shapes can overlap) */}
-        {topTerritories.length > 0 && (
+        {chipTerritories.length > 0 && (
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {topTerritories.map((t) => (
+            {chipTerritories.map((t) => (
               <Link
                 key={t.id}
                 to={`/territories/${t.id}`}

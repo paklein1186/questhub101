@@ -112,7 +112,7 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
 
       // Auto-geocode territories missing coordinates (batch up to 5 at a time)
       if (toGeocode.length > 0) {
-        const batch = toGeocode.slice(0, 5);
+        const batch = toGeocode.slice(0, 10);
         // Nominatim requires sequential requests (rate limit), so run serially
         for (const item of batch) {
           const coords = await geocodeAndPersist(item.id, item.name);
