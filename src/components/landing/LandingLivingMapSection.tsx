@@ -101,7 +101,7 @@ function useActiveEntities() {
       return entities
         .filter((e) => e.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 8);
+        .slice(0, 50);
     },
   });
 }
@@ -137,7 +137,7 @@ function useActiveQuests() {
           return { ...q, participants: p, updates: u, score: p * 3 + u * 2 };
         })
         .sort((a, b) => b.score - a.score)
-        .slice(0, 6);
+        .slice(0, 50);
     },
   });
 }
@@ -156,7 +156,7 @@ export function LandingLivingMapSection() {
   const { data: entities = [], isLoading: loadingE } = useActiveEntities();
   const { data: quests = [], isLoading: loadingQ } = useActiveQuests();
 
-  const chipTerritories = useMemo(() => territories.slice(0, 15), [territories]);
+  const chipTerritories = useMemo(() => territories.slice(0, 50), [territories]);
 
   return (
     <section className="border-b border-border bg-muted/30">
