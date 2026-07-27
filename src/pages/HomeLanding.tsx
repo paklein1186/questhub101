@@ -94,19 +94,22 @@ export default function HomeLanding() {
     <div className="min-h-screen flex flex-col bg-background">
       {/* ─── Nav ─── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="container px-5 sm:px-6 lg:px-8 flex h-14 items-center justify-between">
-          <Link to="/home" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-            <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
+        <div className="container px-5 sm:px-6 lg:px-8 flex h-14 items-center justify-between gap-2">
+          <Link to="/home" className="flex items-center gap-2 font-display text-base sm:text-lg font-bold tracking-tight min-w-0">
+            <img src={logoImg} alt="changethegame" className="h-6 w-6 shrink-0" />
+            <span className="truncate">changethegame</span>
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1 sm:gap-2 shrink-0">
             <LandingLanguageSwitcher />
-            <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => navigate("/login")}>
               {k("nav.login")}
             </Button>
-            <Button size="sm" className="gap-1.5" onClick={() => navigate("/welcome")}>
-              {k("nav.cta")} <ArrowRight className="h-3.5 w-3.5" />
+            <Button size="sm" className="gap-1.5 px-2.5 sm:px-3" onClick={() => navigate("/welcome")}>
+              <span className="truncate max-w-[9rem]">{k("nav.cta")}</span> <ArrowRight className="h-3.5 w-3.5 shrink-0" />
             </Button>
           </nav>
+        </div>
+
         </div>
       </header>
 
