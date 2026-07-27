@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords, Brain, MessageSquarePlus, Sparkles } from "lucide-react";
 
+import { PageShell } from "@/components/PageShell";
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
 import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
