@@ -208,7 +208,35 @@ export default function NotificationsCenter() {
     return groups;
   }, [sorted, visibleCount, t, lang]);
 
+  // Within each day, bulk XP / milestone notifications into a single row
+  const groupedRows = useMemo(() => {
+    const isXpLike = (n: (typeof sorted)[number]) =>
+      (n.type as string) === "milestone_completed" || n.type === NotificationType.XP_GAINED;
+
+    return grouped.map((g) => {
+      const xpItems = g.items.filter(isXpLike);
+      const rest = g.items.filter((n) => !isXpLike(n));
+      const rows: Array<
+        | { kind: "single"; n: (typeof sorted)[number] }
+        | { kind: "bulk"; items: typeof sorted }
+      > = [];
+      if (xpItems.length >= 3) {
+        // keep chronological position of the first XP item
+        const firstIdx = g.items.findIndex(isXpLike);
+        rest.forEach((n, i) => {
+          if (i === Math.min(firstIdx, rest.length)) rows.push({ kind: "bulk", items: xpItems });
+          rows.push({ kind: "single", n });
+        });
+        if (!rows.some((r) => r.kind === "bulk")) rows.unshift({ kind: "bulk", items: xpItems });
+      } else {
+        g.items.forEach((n) => rows.push({ kind: "single", n }));
+      }
+      return { label: g.label, rows };
+    });
+  }, [grouped]);
+
   const hasMore = visibleCount < sorted.length;
+
 
   return (
     <PageShell>
