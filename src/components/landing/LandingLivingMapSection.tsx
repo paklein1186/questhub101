@@ -156,7 +156,7 @@ export function LandingLivingMapSection() {
   const { data: entities = [], isLoading: loadingE } = useActiveEntities();
   const { data: quests = [], isLoading: loadingQ } = useActiveQuests();
 
-  const chipTerritories = useMemo(() => territories.slice(0, 50), [territories]);
+  const chipTerritories = useMemo(() => territories.slice(0, 20), [territories]);
 
   return (
     <section className="border-b border-border bg-muted/30">
