@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
-import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb, Scale } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -25,6 +25,7 @@ import MyAvailability from "./MyAvailability";
 import MyCourses from "./MyCourses";
 import { WorkTasksTab } from "@/components/work/WorkTasksTab";
 import { WorkCalendarTab } from "@/components/work/WorkCalendarTab";
+import { ContributionsDashboard } from "@/components/ocu/ContributionsDashboard";
 
 import questPattern from "@/assets/patterns/quest-pattern.jpg";
 import guildPattern from "@/assets/patterns/guild-pattern.jpg";
@@ -127,6 +128,7 @@ export default function WorkHub() {
             { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
             { value: "bookings", label: <>{t("tabs.bookings")}<HintTooltip {...HINTS.tooltips.workBookings} /></> },
             { value: "calendar", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Calendar</span></> },
+            { value: "contributions", label: <><Scale className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Contributions</span></> },
             { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
           return <WorkTabsListInner tabs={workTabs} />;
@@ -270,6 +272,11 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        {/* ── Contributions ── */}
+        <TabsContent value="contributions">
+          <ContributionsDashboard />
+        </TabsContent>
+
         {/* ── Drafts ── */}
         <TabsContent value="drafts">
           {totalDrafts === 0 && <p className="text-muted-foreground">No drafts.</p>}
@@ -371,7 +378,7 @@ export default function WorkHub() {
   );
 }
 
-const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "calendar", "drafts"];
+const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "calendar", "contributions", "drafts"];
 
 function WorkTabsListInner({ tabs }: { tabs: TabDefinition[] }) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("work_hub", WORK_DEFAULT_TABS);
