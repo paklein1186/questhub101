@@ -7,6 +7,13 @@ import type { Notification } from "@/types";
  */
 export function translateNotificationTitle(n: Notification, t: TFunction): string {
   const typeKey = `notifications.titles.${n.type}`;
+
+  // Milestones: keep the concrete milestone name in the title
+  if ((n.type as string) === "milestone_completed") {
+    const name = (n.title || "").replace(/^Milestone unlocked:\s*/i, "").trim();
+    if (name) return t(typeKey, { name, defaultValue: name });
+  }
+
   const translated = t(typeKey, { defaultValue: "" });
 
   // If we got a real translation (not the key itself), use it
@@ -31,6 +38,7 @@ export function translateNotificationTitle(n: Notification, t: TFunction): strin
   return n.title || t("nav.notifications");
 }
 
+
 /**
  * Translate a notification's body using pattern matching and i18n templates.
  * Falls back to the stored body if no pattern matches.
@@ -38,6 +46,27 @@ export function translateNotificationTitle(n: Notification, t: TFunction): strin
 export function translateNotificationBody(n: Notification, t: TFunction): string {
   const body = n.body || "";
   if (!body) return "";
+
+  // Milestone rewards: '+20 XP for "Name" — description'
+  const msXp = body.match(/^\+(\d+) XP for "(.+?)"(?: — (.+))?$/);
+  if (msXp) {
+    const base = t("notifications.bodies.milestoneXp", { amount: msXp[1], name: msXp[2] });
+    return msXp[3] ? `${base} — ${msXp[3]}` : base;
+  }
+  const msCr = body.match(/^\+(\d+) Credits for "(.+?)"(?: — (.+))?$/);
+  if (msCr) {
+    const base = t("notifications.bodies.milestoneCredits", { amount: msCr[1], name: msCr[2] });
+    return msCr[3] ? `${base} — ${msCr[3]}` : base;
+  }
+  // Legacy bodies: "You earned +20 XP!" — enrich with the milestone name from the title
+  const legacyXp = body.match(/^You earned \+(\d+) (XP|Credits)!$/);
+  if (legacyXp) {
+    const name = (n.title || "").replace(/^Milestone unlocked:\s*/i, "").trim();
+    const key = legacyXp[2] === "XP" ? "notifications.bodies.milestoneXp" : "notifications.bodies.milestoneCredits";
+    return t(key, { amount: legacyXp[1], name: name || "—" });
+  }
+
+
 
   // Try pattern matching for known body formats
   // "X commented on your entity: "snippet""
