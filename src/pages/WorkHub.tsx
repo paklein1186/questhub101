@@ -25,6 +25,7 @@ import MyAvailability from "./MyAvailability";
 import MyCourses from "./MyCourses";
 import { WorkTasksTab } from "@/components/work/WorkTasksTab";
 import { WorkCalendarTab } from "@/components/work/WorkCalendarTab";
+import { ContributionsDashboard } from "@/components/ocu/ContributionsDashboard";
 
 import questPattern from "@/assets/patterns/quest-pattern.jpg";
 import guildPattern from "@/assets/patterns/guild-pattern.jpg";
