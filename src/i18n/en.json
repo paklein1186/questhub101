@@ -1168,10 +1168,19 @@
       "CREDIT_RECEIVED": "Credits received",
       "TRUST_RENEWAL_DUE": "Trust renewal due",
       "TRUST_EDGE_OUTDATED": "Trust attestation expired",
-      "milestone_completed": "Milestone completed"
+      "milestone_completed": "Milestone reached: {{name}}"
+    },
+    "bulkXp": {
+      "title": "{{count}} milestones reached",
+      "body": "+{{xp}} XP in total — earned from your actions on the platform",
+      "expand": "Show details",
+      "collapse": "Hide details"
     },
     "bodies": {
+      "milestoneXp": "+{{amount}} XP for “{{name}}”",
+      "milestoneCredits": "+{{amount}} Credits for “{{name}}”",
       "commentedOn": "{{actor}} commented on your {{entity}}: \"{{snippet}}\"",
+
       "upvotedComment": "{{actor}} upvoted your comment: \"{{snippet}}\"",
       "questUpdate": "New update: \"{{title}}\"",
       "bookingRequested": "{{requester}} requested \"{{service}}\"",
