@@ -6,6 +6,7 @@ import {
   CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
 import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
@@ -140,10 +141,15 @@ export function GlobalSearchDialog() {
                   onSelect={() => handleSelect(item.url)}
                   className="cursor-pointer"
                 >
+                  <Avatar className="mr-2 h-6 w-6 shrink-0 rounded-md">
+                    <AvatarImage src={item.logoUrl ?? item.imageUrl ?? undefined} alt={item.title} className="object-cover" />
+                    <AvatarFallback className="rounded-md text-[10px]">{item.title?.charAt(0) ?? "?"}</AvatarFallback>
+                  </Avatar>
                   <Badge variant="secondary" className={`mr-2 text-[10px] px-1.5 py-0 ${TYPE_COLORS[item.type]}`}>
                     {t(TYPE_I18N_KEYS[item.type])}
                   </Badge>
                   <span className="font-medium">{item.title}</span>
+
                    {item.subtitle && (
                     <span className="ml-2 text-muted-foreground text-xs truncate max-w-[200px]">
                       {item.subtitle}
