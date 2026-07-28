@@ -407,3 +407,91 @@ export default function NotificationsCenter() {
     </PageShell>
   );
 }
+
+/**
+ * BulkXpCard — groups all XP / milestone notifications of a day into one card,
+ * showing the total XP and, on expand, the concrete source of each gain.
+ */
+function BulkXpCard({
+  items,
+  t,
+  markAsRead,
+}: {
+  items: any[];
+  t: ReturnType<typeof useTranslation>["t"];
+  markAsRead: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const totalXp = items.reduce((sum, n) => {
+    const m = (n.body || "").match(/\+(\d+)\s*XP/i) || (n.title || "").match(/\+(\d+)\s*XP/i);
+    return sum + (m ? parseInt(m[1], 10) : 0);
+  }, 0);
+  const unread = items.filter((n) => !n.isRead);
+
+  return (
+    <div className={cn("rounded-xl border", unread.length ? "border-primary/20 bg-primary/5" : "border-border bg-card")}>
+      <div className="flex items-start gap-4 p-4">
+        <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center shrink-0", unread.length ? "bg-primary/10" : "bg-muted")}>
+          <Zap className="h-4 w-4 text-accent" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-xs font-semibold text-foreground">
+              {t("notifications.bulkXp.title", { count: items.length })}
+            </span>
+            {unread.length > 0 && <span className="h-2 w-2 rounded-full bg-primary" />}
+          </div>
+          <p className="text-sm text-foreground">
+            {t("notifications.bulkXp.body", { xp: totalXp })}
+          </p>
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="mt-1 text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1"
+          >
+            <ChevronDown className={cn("h-3 w-3 transition-transform", open && "rotate-180")} />
+            {open ? t("notifications.bulkXp.collapse") : t("notifications.bulkXp.expand")}
+          </button>
+        </div>
+        {unread.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+            onClick={() => unread.forEach((n) => markAsRead(n.id))}
+            title="Mark as read"
+          >
+            <CheckCheck className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {open && (
+        <ul className="border-t border-border divide-y divide-border/60">
+          {items.map((n) => (
+            <li key={n.id}>
+              <Link
+                to={n.deepLinkUrl || linkForNotification(n)}
+                onClick={() => markAsRead(n.id)}
+                className="flex items-start justify-between gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">
+                    {translateNotificationTitle(n, t)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {translateNotificationBody(n, t)}
+                  </p>
+                </div>
+                <span className="text-[11px] text-muted-foreground shrink-0">
+                  {(() => {
+                    try { return format(parseISO(n.createdAt), "h:mm a"); } catch { return ""; }
+                  })()}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
