@@ -128,6 +128,7 @@ export default function WorkHub() {
             { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
             { value: "bookings", label: <>{t("tabs.bookings")}<HintTooltip {...HINTS.tooltips.workBookings} /></> },
             { value: "calendar", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Calendar</span></> },
+            { value: "contributions", label: <><Scale className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Contributions</span></> },
             { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
           return <WorkTabsListInner tabs={workTabs} />;
