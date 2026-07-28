@@ -302,11 +302,23 @@ export default function NotificationsCenter() {
         </div>
       )}
 
-      {grouped.map((group) => (
+      {groupedRows.map((group) => (
         <div key={group.label} className="mb-6">
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">{group.label}</h2>
           <div className="space-y-2">
-            {group.items.map((notification, i) => {
+            {group.rows.map((row, i) => {
+              if (row.kind === "bulk") {
+                return (
+                  <BulkXpCard
+                    key={`bulk-${group.label}`}
+                    items={row.items}
+                    t={t}
+                    markAsRead={markAsRead}
+                  />
+                );
+              }
+              const notification = row.n;
+
               const Icon = typeIcons[notification.type] || Bell;
               const iconColor = typeColors[notification.type] || "text-muted-foreground";
               const translatedTitle = translateNotificationTitle(notification, t);
