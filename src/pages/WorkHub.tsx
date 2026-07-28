@@ -270,6 +270,11 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        {/* ── Contributions ── */}
+        <TabsContent value="contributions">
+          <ContributionsDashboard />
+        </TabsContent>
+
         {/* ── Drafts ── */}
         <TabsContent value="drafts">
           {totalDrafts === 0 && <p className="text-muted-foreground">No drafts.</p>}
