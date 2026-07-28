@@ -207,23 +207,24 @@ export function useMilestones() {
         }
       }
 
-      // Create notification
+      // Create notification — always explicit about WHAT was achieved and WHY
       await supabase.from("notifications").insert({
         user_id: user.id,
         type: "milestone_completed",
         title: `Milestone unlocked: ${milestone.title}`,
         body:
           milestone.reward_type === "XP"
-            ? `You earned +${milestone.reward_amount} XP!`
+            ? `+${milestone.reward_amount} XP for "${milestone.title}"${milestone.description ? ` — ${milestone.description}` : ""}`
             : milestone.reward_type === "CREDITS"
-            ? `You earned +${milestone.reward_amount} Credits!`
+            ? `+${milestone.reward_amount} Credits for "${milestone.title}"${milestone.description ? ` — ${milestone.description}` : ""}`
             : milestone.reward_type === "BADGE"
-            ? `You earned a new badge!`
-            : `Congratulations!`,
+            ? `New badge for "${milestone.title}"`
+            : `Milestone completed: ${milestone.title}`,
         related_entity_type: "milestone",
         related_entity_id: milestone.id,
         deep_link_url: "/me/milestones",
       });
+
 
       qc.invalidateQueries({ queryKey: ["user-milestones", user.id] });
       qc.invalidateQueries({ queryKey: ["user-profile"] });
