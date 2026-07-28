@@ -65,6 +65,7 @@ import { IcsFeedsManager } from "@/components/IcsFeedsManager";
 import { GiveBackSettingsSection } from "@/components/giveback/GiveBackSettingsSection";
 import { Heart } from "lucide-react";
 import { MonOVNPanel } from "@/components/home/MonOVNPanel";
+import { ContributionsDashboard } from "@/components/ocu/ContributionsDashboard";
 
 
 type SettingsTab = { key: string; label: string; icon: React.ComponentType<{ className?: string }> };
