@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
-import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb, Scale } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -378,7 +378,7 @@ export default function WorkHub() {
   );
 }
 
-const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "calendar", "drafts"];
+const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "calendar", "contributions", "drafts"];
 
 function WorkTabsListInner({ tabs }: { tabs: TabDefinition[] }) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("work_hub", WORK_DEFAULT_TABS);
