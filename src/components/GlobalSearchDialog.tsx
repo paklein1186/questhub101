@@ -6,6 +6,7 @@ import {
   CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
 import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
