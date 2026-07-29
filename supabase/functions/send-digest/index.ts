@@ -349,25 +349,30 @@ Rules:
           continue;
         }
 
-        // Create in-app notification
+        // Create in-app notification (only if the user still wants in-app digests)
         const clusterSummary = (digest.clusters ?? [])
           .map((c: any) => `${c.label}: ${c.items?.length || 0}`)
           .join(" • ");
-        await supabase.from("notifications").insert({
-          user_id: userId,
-          type: "AI_JOURNEY_DIGEST",
-          title: digest.subject ?? "Your network digest",
-          body: clusterSummary || "Here's what's happening in your network.",
-          deep_link_url: digest.cta_url || "/explore",
-          is_read: false,
-          metadata: {
-            clusters: digest.clusters,
-            preheader: digest.preheader,
-          },
-        });
+        if (pref.notify_daily_digest_in_app !== false) {
+          await supabase.from("notifications").insert({
+            user_id: userId,
+            type: "AI_JOURNEY_DIGEST",
+            title: digest.subject ?? "Your network digest",
+            body: clusterSummary || "Here's what's happening in your network.",
+            deep_link_url: digest.cta_url || "/explore",
+            is_read: false,
+            metadata: {
+              clusters: digest.clusters,
+              preheader: digest.preheader,
+            },
+          });
+        }
 
-        // Send email
-        if (pref.channel_email_enabled && profile.email) {
+        // Send email — requires the global email channel AND the digest email toggle
+        const emailAllowed =
+          pref.channel_email_enabled !== false && pref.notify_daily_digest_email !== false;
+        if (emailAllowed && profile.email) {
+
           // Fetch digest template from DB (fall back to hardcoded)
           let templateBodyHtml: string | null = null;
           let templateCtaLabel = "Explore what's new";
