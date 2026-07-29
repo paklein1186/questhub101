@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     event:     { table: "guild_events", title: "title", desc: "description", img: "",                fallback: "",         path: "/events",      label: "Event" },
     course:    { table: "courses",      title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/courses",     label: "Course" },
     profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "avatar_url",      fallback: "",         path: "/users",       label: "Human" },
-    territory: { table: "territories",  title: "name",  desc: "summary",     img: "",                fallback: "",         path: "/territories", label: "Territory" },
+    territory: { table: "territories",  title: "name",  desc: "summary",     img: "logo_url",        fallback: "",         path: "/territories", label: "Territory" },
     pod:       { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/pods",        label: "Pod" },
     topic:     { table: "topics",       title: "name",  desc: "description", img: "image_url",       fallback: "",         path: "/topics",      label: "Topic" },
   };
