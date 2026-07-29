@@ -241,11 +241,14 @@ export function useMilestones() {
         deep_link_url: "/me/milestones",
       });
 
-
       qc.invalidateQueries({ queryKey: ["user-milestones", user.id] });
       qc.invalidateQueries({ queryKey: ["user-profile"] });
+      } finally {
+        inFlightMilestones.delete(guardKey);
+      }
     },
     [user?.id, milestones, userMilestones, qc]
+
   );
 
   return {
