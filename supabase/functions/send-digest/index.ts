@@ -583,16 +583,25 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
 
     const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
       const linkHtml = item.link
-        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
+        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:none;font-weight:600;font-size:13px;">Read more →</a>`
+        : "";
+      const title = item.title || item.text || "";
+      const summary = item.summary || (item.title ? "" : "");
+      const meta = item.meta
+        ? `<p style="font-size:12px;color:hsl(250,12%,55%);margin:0 0 6px;">${item.meta}</p>`
         : "";
       return `
         <tr>
-          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
-          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
-            ${item.text} ${linkHtml}
+          <td style="padding:8px 10px 8px 0;font-size:18px;vertical-align:top;width:26px;">${item.icon || "•"}</td>
+          <td style="padding:8px 0 14px;border-bottom:1px solid hsl(250,18%,94%);">
+            <p style="font-size:15px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 4px;line-height:1.4;">${title}</p>
+            ${meta}
+            ${summary ? `<p style="font-size:14px;line-height:1.6;color:hsl(250,12%,35%);margin:0 0 6px;">${summary}</p>` : ""}
+            ${linkHtml}
           </td>
         </tr>`;
     }).join("");
+
 
     const divider = idx < clusters.length - 1
       ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
