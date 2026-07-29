@@ -236,11 +236,12 @@ serve(async (req) => {
           xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
         }
 
-        // Build rich context for AI — network-first
+        // Build rich context for AI — network-first, content-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
           context: contextNames[p.context_id] || p.context_type,
-          snippet: (p.content || "").slice(0, 200),
+          contextId: p.context_id,
+          content: (p.content || "").replace(/\s+/g, " ").slice(0, 600),
           upvotes: p.upvote_count,
         }));
 
@@ -261,15 +262,21 @@ serve(async (req) => {
           notificationCounts: notifCounts,
           topPosts,
           newQuests: newQuests.slice(0, 5).map((q: any) => ({
+            id: q.id,
             title: q.title,
             guild: (q as any).guilds?.name,
+            description: (q.description || "").replace(/\s+/g, " ").slice(0, 500),
           })),
           upcomingEvents: newEvents.slice(0, 3).map((e: any) => ({
+            id: e.id,
             title: e.title,
             guild: (e as any).guilds?.name,
+            location: e.location,
+            description: (e.description || "").replace(/\s+/g, " ").slice(0, 400),
             date: new Date(e.start_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
           })),
         };
+
 
         // Call AI to generate clustered digest
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
