@@ -405,9 +405,11 @@ Rules:
             }
           } catch { /* use defaults */ }
 
-          const emailHtml = templateBodyHtml
+          // The clustered content-rich layout wins over the legacy DB template
+          const emailHtml = (digest.clusters?.length ?? 0) === 0 && templateBodyHtml
             ? buildDigestFromTemplate(templateBodyHtml, templateCtaLabel, templateCtaUrl, digest, profile.name)
             : buildDigestEmailHtml(digest, profile.name);
+
           const resendKey = Deno.env.get("RESEND_API_KEY");
           if (resendKey) {
             try {
