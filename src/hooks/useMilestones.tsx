@@ -48,6 +48,10 @@ export interface MilestoneWithProgress extends Milestone {
   isAcknowledged: boolean;
 }
 
+// Session-level guard: prevents the same milestone being awarded twice
+// when several checks run concurrently (stale React Query cache).
+const inFlightMilestones = new Set<string>();
+
 // ─── Hook: useMilestones ────────────────────────────────────
 export function useMilestones() {
   const { user } = useAuth();
@@ -145,9 +149,24 @@ export function useMilestones() {
       const milestone = milestones.find((m) => m.code === milestoneCode);
       if (!milestone) return;
 
-      // Check if already completed
+      // Guard against duplicate awards within the same session/tab
+      const guardKey = `${user.id}:${milestone.id}`;
+      if (inFlightMilestones.has(guardKey)) return;
+      inFlightMilestones.add(guardKey);
+
+      try {
+      // Check cached state first
       const existing = userMilestones.find((u) => u.milestone_id === milestone.id);
       if (existing?.completed_at) return;
+
+      // Authoritative check against the DB (cache may be stale → duplicate rewards)
+      const { data: dbRow } = await supabase
+        .from("user_milestones")
+        .select("completed_at")
+        .eq("user_id", user.id)
+        .eq("milestone_id", milestone.id)
+        .maybeSingle();
+      if ((dbRow as any)?.completed_at) return;
 
       // Upsert user_milestone
       const { error } = await supabase.from("user_milestones").upsert(
@@ -160,6 +179,7 @@ export function useMilestones() {
         { onConflict: "user_id,milestone_id" }
       );
       if (error) return;
+
 
       // Deliver reward
       if (milestone.reward_type === "XP" && milestone.reward_amount > 0) {
@@ -225,11 +245,14 @@ export function useMilestones() {
         deep_link_url: "/me/milestones",
       });
 
-
       qc.invalidateQueries({ queryKey: ["user-milestones", user.id] });
       qc.invalidateQueries({ queryKey: ["user-profile"] });
+      } finally {
+        inFlightMilestones.delete(guardKey);
+      }
     },
     [user?.id, milestones, userMilestones, qc]
+
   );
 
   return {
