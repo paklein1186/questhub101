@@ -368,6 +368,20 @@ serve(async (req) => {
       });
     }
 
+    // Instant-email master switches (booking / invite families)
+    const BOOKING_TYPES = new Set(["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED", "BOOKING_UPDATED"]);
+    const INVITE_TYPES = new Set(["USER_INVITED_TO_UNIT", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED"]);
+    if (prefs && BOOKING_TYPES.has(notification.type) && prefs.instant_email_for_bookings === false) {
+      return new Response(JSON.stringify({ skipped: true, reason: "instant_bookings_disabled" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    if (prefs && INVITE_TYPES.has(notification.type) && prefs.instant_email_for_invites === false) {
+      return new Response(JSON.stringify({ skipped: true, reason: "instant_invites_disabled" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { key: prefKey, alwaysSend } = prefKeyForType(notification.type);
     if (!alwaysSend) {
       if (!prefKey) {
@@ -381,6 +395,7 @@ serve(async (req) => {
         });
       }
     }
+
 
     const { data: profile } = await supabase
       .from("profiles")
