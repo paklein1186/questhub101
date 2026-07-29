@@ -147,7 +147,7 @@ serve(async (req) => {
         if (guildIds.length > 0) {
           const { data: quests } = await supabase
             .from("quests")
-            .select("id, title, guild_id, created_at, guilds(name)")
+            .select("id, title, description, guild_id, created_at, guilds(name)")
             .in("guild_id", guildIds.slice(0, 15))
             .gte("created_at", since)
             .eq("is_deleted", false)
@@ -161,7 +161,7 @@ serve(async (req) => {
         if (guildIds.length > 0) {
           const { data: events } = await supabase
             .from("guild_events")
-            .select("id, title, guild_id, start_at, guilds(name)")
+            .select("id, title, description, location, guild_id, start_at, guilds(name)")
             .in("guild_id", guildIds.slice(0, 15))
             .gte("created_at", since)
             .eq("is_cancelled", false)
@@ -169,6 +169,7 @@ serve(async (req) => {
             .limit(5);
           newEvents = events ?? [];
         }
+
 
         // 7. New members in user's guilds (social proof)
         let newGuildMembers = 0;
