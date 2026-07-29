@@ -32,8 +32,9 @@ serve(async (req) => {
     // 1. Get users whose digest is due
     const { data: prefs, error: prefsErr } = await supabase
       .from("notification_preferences")
-      .select("user_id, digest_frequency, last_digest_sent_at, channel_email_enabled")
-      .neq("digest_frequency", "none");
+      .select(
+        "user_id, digest_frequency, last_digest_sent_at, channel_email_enabled, notify_daily_digest_email, notify_daily_digest_in_app"
+      );
 
     if (prefsErr) throw prefsErr;
     if (!prefs || prefs.length === 0) {
@@ -45,10 +46,18 @@ serve(async (req) => {
 
     const now = Date.now();
     const dueUsers = prefs.filter((p) => {
-      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
+      // Respect opt-out: 'never'/'none'/'off' all mean disabled
+      const freq = (p.digest_frequency ?? "").toLowerCase();
+      if (["never", "none", "off", "disabled"].includes(freq)) return false;
+      // If both channels are off, there is nothing to deliver
+      const emailOk = p.channel_email_enabled !== false && p.notify_daily_digest_email !== false;
+      const inAppOk = p.notify_daily_digest_in_app !== false;
+      if (!emailOk && !inAppOk) return false;
+      const interval = FREQUENCY_INTERVALS[freq] ?? FREQUENCY_INTERVALS.twice_weekly;
       if (!p.last_digest_sent_at) return true;
       return now - new Date(p.last_digest_sent_at).getTime() >= interval;
     });
+
 
     if (dueUsers.length === 0) {
       return new Response(
@@ -138,7 +147,7 @@ serve(async (req) => {
         if (guildIds.length > 0) {
           const { data: quests } = await supabase
             .from("quests")
-            .select("id, title, guild_id, created_at, guilds(name)")
+            .select("id, title, description, guild_id, created_at, guilds(name)")
             .in("guild_id", guildIds.slice(0, 15))
             .gte("created_at", since)
             .eq("is_deleted", false)
@@ -152,7 +161,7 @@ serve(async (req) => {
         if (guildIds.length > 0) {
           const { data: events } = await supabase
             .from("guild_events")
-            .select("id, title, guild_id, start_at, guilds(name)")
+            .select("id, title, description, location, guild_id, start_at, guilds(name)")
             .in("guild_id", guildIds.slice(0, 15))
             .gte("created_at", since)
             .eq("is_cancelled", false)
@@ -160,6 +169,7 @@ serve(async (req) => {
             .limit(5);
           newEvents = events ?? [];
         }
+
 
         // 7. New members in user's guilds (social proof)
         let newGuildMembers = 0;
@@ -226,11 +236,12 @@ serve(async (req) => {
           xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
         }
 
-        // Build rich context for AI — network-first
+        // Build rich context for AI — network-first, content-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
           context: contextNames[p.context_id] || p.context_type,
-          snippet: (p.content || "").slice(0, 200),
+          contextId: p.context_id,
+          content: (p.content || "").replace(/\s+/g, " ").slice(0, 600),
           upvotes: p.upvote_count,
         }));
 
@@ -251,15 +262,21 @@ serve(async (req) => {
           notificationCounts: notifCounts,
           topPosts,
           newQuests: newQuests.slice(0, 5).map((q: any) => ({
+            id: q.id,
             title: q.title,
             guild: (q as any).guilds?.name,
+            description: (q.description || "").replace(/\s+/g, " ").slice(0, 500),
           })),
           upcomingEvents: newEvents.slice(0, 3).map((e: any) => ({
+            id: e.id,
             title: e.title,
             guild: (e as any).guilds?.name,
+            location: e.location,
+            description: (e.description || "").replace(/\s+/g, " ").slice(0, 400),
             date: new Date(e.start_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
           })),
         };
+
 
         // Call AI to generate clustered digest
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -273,47 +290,54 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a clustered digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief grouped by category.
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Write a SUBSTANTIVE news brief about what actually happened in the user's NETWORK — their guilds, followed topics, communities, quests and events.
+
+CRITICAL EDITORIAL RULE: the email must carry the news itself, not tease it. Never write "there are new posts", "check what's new", "go see the updates". Instead summarize the actual substance: who did what, what a post says, what a new quest is about, what an event is for. A reader who never clicks should still be fully informed.
 
 Your output must be a JSON object:
 {
-  "subject": "compelling subject line mentioning a specific guild or activity (max 55 chars)",
-  "preheader": "short preview text shown in inbox before opening (max 90 chars)",
+  "subject": "specific subject line naming a real item or person (max 60 chars)",
+  "preheader": "short preview text summarizing the top story (max 90 chars)",
   "greeting": "warm 1-line greeting using their name",
   "clusters": [
     {
       "label": "🏛 Guild Activity",
       "items": [
-        { "icon": "emoji", "text": "descriptive line about what happened", "link": "/relevant-deep-link" }
+        {
+          "icon": "emoji",
+          "title": "short headline of the actual news (max 70 chars)",
+          "summary": "2 to 3 full sentences describing the real content: what was said, proposed, planned or achieved, with names, guilds, dates and numbers when available",
+          "meta": "Author · Guild · date-or-context (short)",
+          "link": "/relevant-deep-link"
+        }
       ]
     }
   ],
-  "closing": "1 motivational sentence",
-  "cta_label": "Explore what's new",
+  "closing": "1 short motivational sentence",
+  "cta_label": "Open changethegame",
   "cta_url": "/explore"
 }
 
 Available cluster categories (use only those that have data):
-- "🏛 Guild Activity" — new posts, decisions, member joins in their guilds
-- "⚡ Quests & Projects" — new quests, quest updates, proposals
-- "📅 Upcoming Events" — events from guilds and followed entities
-- "🏆 Your Progress" — XP gained, achievements, credits received, contributions
+- "🏛 Guild Activity" — real content of new posts and discussions in their guilds
+- "⚡ Quests & Projects" — new quests: describe their purpose and what help they need
+- "📅 Upcoming Events" — events: what they are about, when, where
+- "🏆 Your Progress" — XP gained, achievements, credits, contributions (aggregate)
 
 Rules:
-- Only include clusters that have items. Max 4 items per cluster. Max 4 clusters total.
-- Subject line should create curiosity: mention a specific guild name or count.
-- Preheader should complement the subject, not repeat it.
-- Use real deep links: /explore, /quests, /guilds, /network, /me, /me?tab=contributions
-- For guild-specific links use /guilds/GUILD_ID format if you have context, otherwise /explore
-- "Your Progress" cluster: summarize XP, achievements, credits in aggregate lines
-- If there's little activity, highlight communities and suggest exploration
-- Keep it punchy — this is a news brief, not a letter
+- Only include clusters that have real data. Max 4 items per cluster, max 4 clusters.
+- "summary" is mandatory and must paraphrase the source content faithfully — never invent facts, never pad with generic encouragement.
+- Rewrite raw post text into clean prose; strip mention tokens like @[Name](type:id) and keep only the readable name.
+- Use real deep links: /quests/QUEST_ID, /guilds/GUILD_ID, /events/EVENT_ID when ids are given, otherwise /explore, /quests, /guilds, /me?tab=contributions
+- Write in the same language as the majority of the source content.
+- If there is little activity, write a short honest brief about the state of their communities rather than filler.
 - ONLY output valid JSON, no markdown fences`,
               },
               {
                 role: "user",
-                content: `Generate a clustered network digest for:\n${JSON.stringify(userContext, null, 2)}`,
+                content: `Generate a content-rich network digest for:\n${JSON.stringify(userContext, null, 2)}`,
               },
+
             ],
           }),
         });
@@ -340,25 +364,30 @@ Rules:
           continue;
         }
 
-        // Create in-app notification
+        // Create in-app notification (only if the user still wants in-app digests)
         const clusterSummary = (digest.clusters ?? [])
           .map((c: any) => `${c.label}: ${c.items?.length || 0}`)
           .join(" • ");
-        await supabase.from("notifications").insert({
-          user_id: userId,
-          type: "AI_JOURNEY_DIGEST",
-          title: digest.subject ?? "Your network digest",
-          body: clusterSummary || "Here's what's happening in your network.",
-          deep_link_url: digest.cta_url || "/explore",
-          is_read: false,
-          metadata: {
-            clusters: digest.clusters,
-            preheader: digest.preheader,
-          },
-        });
+        if (pref.notify_daily_digest_in_app !== false) {
+          await supabase.from("notifications").insert({
+            user_id: userId,
+            type: "AI_JOURNEY_DIGEST",
+            title: digest.subject ?? "Your network digest",
+            body: clusterSummary || "Here's what's happening in your network.",
+            deep_link_url: digest.cta_url || "/explore",
+            is_read: false,
+            metadata: {
+              clusters: digest.clusters,
+              preheader: digest.preheader,
+            },
+          });
+        }
 
-        // Send email
-        if (pref.channel_email_enabled && profile.email) {
+        // Send email — requires the global email channel AND the digest email toggle
+        const emailAllowed =
+          pref.channel_email_enabled !== false && pref.notify_daily_digest_email !== false;
+        if (emailAllowed && profile.email) {
+
           // Fetch digest template from DB (fall back to hardcoded)
           let templateBodyHtml: string | null = null;
           let templateCtaLabel = "Explore what's new";
@@ -376,9 +405,11 @@ Rules:
             }
           } catch { /* use defaults */ }
 
-          const emailHtml = templateBodyHtml
+          // The clustered content-rich layout wins over the legacy DB template
+          const emailHtml = (digest.clusters?.length ?? 0) === 0 && templateBodyHtml
             ? buildDigestFromTemplate(templateBodyHtml, templateCtaLabel, templateCtaUrl, digest, profile.name)
             : buildDigestEmailHtml(digest, profile.name);
+
           const resendKey = Deno.env.get("RESEND_API_KEY");
           if (resendKey) {
             try {
@@ -554,16 +585,25 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
 
     const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
       const linkHtml = item.link
-        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
+        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:none;font-weight:600;font-size:13px;">Read more →</a>`
+        : "";
+      const title = item.title || item.text || "";
+      const summary = item.summary || (item.title ? "" : "");
+      const meta = item.meta
+        ? `<p style="font-size:12px;color:hsl(250,12%,55%);margin:0 0 6px;">${item.meta}</p>`
         : "";
       return `
         <tr>
-          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
-          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
-            ${item.text} ${linkHtml}
+          <td style="padding:8px 10px 8px 0;font-size:18px;vertical-align:top;width:26px;">${item.icon || "•"}</td>
+          <td style="padding:8px 0 14px;border-bottom:1px solid hsl(250,18%,94%);">
+            <p style="font-size:15px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 4px;line-height:1.4;">${title}</p>
+            ${meta}
+            ${summary ? `<p style="font-size:14px;line-height:1.6;color:hsl(250,12%,35%);margin:0 0 6px;">${summary}</p>` : ""}
+            ${linkHtml}
           </td>
         </tr>`;
     }).join("");
+
 
     const divider = idx < clusters.length - 1
       ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
