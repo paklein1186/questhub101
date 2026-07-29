@@ -48,6 +48,10 @@ export interface MilestoneWithProgress extends Milestone {
   isAcknowledged: boolean;
 }
 
+// Session-level guard: prevents the same milestone being awarded twice
+// when several checks run concurrently (stale React Query cache).
+const inFlightMilestones = new Set<string>();
+
 // ─── Hook: useMilestones ────────────────────────────────────
 export function useMilestones() {
   const { user } = useAuth();
