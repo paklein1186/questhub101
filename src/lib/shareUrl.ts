@@ -22,6 +22,10 @@
  */
 const SHARE_DOMAIN = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-share`;
 
+/** Production domain used for display / canonical URLs */
+const PRODUCTION_DOMAIN = "https://changethegame.xyz";
+
+
 
 export type ShareEntityType =
   | "quest"
