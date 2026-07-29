@@ -14,11 +14,14 @@
  * the share subdomain.
  */
 
-/** Share path on the production domain — proxied to og-share edge function via _redirects */
-const SHARE_DOMAIN = "https://changethegame.xyz/share";
+/**
+ * Share links resolve through the og-share endpoint, which serves per-item
+ * OG tags to crawlers and instantly redirects humans to the clean app URL.
+ * NOTE: a /share/* proxy on the main domain is NOT honoured by hosting
+ * (it falls through to index.html), so we target the endpoint directly.
+ */
+const SHARE_DOMAIN = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-share`;
 
-/** Production domain used for display / canonical URLs */
-const PRODUCTION_DOMAIN = "https://changethegame.xyz";
 
 export type ShareEntityType =
   | "quest"
