@@ -32,8 +32,9 @@ serve(async (req) => {
     // 1. Get users whose digest is due
     const { data: prefs, error: prefsErr } = await supabase
       .from("notification_preferences")
-      .select("user_id, digest_frequency, last_digest_sent_at, channel_email_enabled")
-      .neq("digest_frequency", "none");
+      .select(
+        "user_id, digest_frequency, last_digest_sent_at, channel_email_enabled, notify_daily_digest_email, notify_daily_digest_in_app"
+      );
 
     if (prefsErr) throw prefsErr;
     if (!prefs || prefs.length === 0) {
@@ -45,10 +46,18 @@ serve(async (req) => {
 
     const now = Date.now();
     const dueUsers = prefs.filter((p) => {
-      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
+      // Respect opt-out: 'never'/'none'/'off' all mean disabled
+      const freq = (p.digest_frequency ?? "").toLowerCase();
+      if (["never", "none", "off", "disabled"].includes(freq)) return false;
+      // If both channels are off, there is nothing to deliver
+      const emailOk = p.channel_email_enabled !== false && p.notify_daily_digest_email !== false;
+      const inAppOk = p.notify_daily_digest_in_app !== false;
+      if (!emailOk && !inAppOk) return false;
+      const interval = FREQUENCY_INTERVALS[freq] ?? FREQUENCY_INTERVALS.twice_weekly;
       if (!p.last_digest_sent_at) return true;
       return now - new Date(p.last_digest_sent_at).getTime() >= interval;
     });
+
 
     if (dueUsers.length === 0) {
       return new Response(
