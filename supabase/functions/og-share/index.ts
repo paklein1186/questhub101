@@ -121,16 +121,12 @@ Deno.serve(async (req) => {
 
     if (!type || !id) {
       // Root hit — redirect to main site
-      return new Response(buildHtml(BRAND + " — " + TAGLINE, TAGLINE, DEFAULT_IMAGE, APP_URL, true), {
-        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
-      });
+      return new Response(null, { status: 302, headers: { ...corsHeaders, Location: APP_URL } });
     }
 
     const c = MAP[type];
     if (!c) {
-      return new Response(buildHtml(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL, true), {
-        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
-      });
+      return new Response(null, { status: 302, headers: { ...corsHeaders, Location: APP_URL } });
     }
 
     const sbUrl = Deno.env.get("SUPABASE_URL") || "";
@@ -150,6 +146,13 @@ Deno.serve(async (req) => {
 
     const appUrl = APP_URL + c.path + "/" + encodeURIComponent(id) + (ref ? "?ref=" + encodeURIComponent(ref) : "");
 
+    if (!data && !socialBot) {
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, Location: appUrl, "Cache-Control": "no-store, max-age=0" },
+      });
+    }
+
     if (!data) {
       return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, resolveImage(type, id, null), appUrl, !socialBot), {
         headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
@@ -164,7 +167,14 @@ Deno.serve(async (req) => {
 
     console.log(`OG card: type=${type} id=${id} title="${rawTitle}" image=${image ? "yes" : "fallback"}`);
 
-    return new Response(buildHtml(title, description, image, appUrl, !socialBot), {
+    if (!socialBot) {
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, Location: appUrl, "Cache-Control": "no-store, max-age=0" },
+      });
+    }
+
+    return new Response(buildHtml(title, description, image, appUrl, false), {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
     });
   } catch (err) {
