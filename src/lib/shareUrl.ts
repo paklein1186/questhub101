@@ -4,23 +4,22 @@
  * Social-media crawlers don't execute JS, so the SPA can't serve per-page
  * OG tags from index.html alone.
  *
- * Share links use share.changethegame.xyz which proxies to the og-share
- * edge function. The function:
+ * Share links use the branded path https://changethegame.xyz/share which
+ * proxies to the og-share edge function (see public/_redirects). The function:
  *   1. Fetches entity-specific title, description & image from the DB
  *   2. Serves HTML with proper OG meta tags for crawlers
  *   3. Redirects real browsers to changethegame.xyz instantly
  *
  * Social media cards display the clean og:url (changethegame.xyz), not
- * the share subdomain.
+ * the internal function endpoint.
  */
 
 /**
- * Share links resolve through the og-share endpoint, which serves per-item
- * OG tags to crawlers and instantly redirects humans to the clean app URL.
- * NOTE: a /share/* proxy on the main domain is NOT honoured by hosting
- * (it falls through to index.html), so we target the endpoint directly.
+ * Branded share domain. The `public/_redirects` rule proxies /share/* to the
+ * og-share edge function, so end users never see the raw Supabase URL.
+ * Override via VITE_SHARE_DOMAIN if you want a dedicated subdomain later.
  */
-const SHARE_DOMAIN = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-share`;
+const SHARE_DOMAIN = import.meta.env.VITE_SHARE_DOMAIN ?? "https://changethegame.xyz/share";
 
 /** Production domain used for display / canonical URLs */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
@@ -53,16 +52,16 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a share URL on the branded share subdomain.
- * Format: share.changethegame.xyz/quest/ID
+ * Returns a share URL on the branded path.
+ * Format: https://changethegame.xyz/share/quest/ID
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link on the branded share subdomain.
- * Format: share.changethegame.xyz/quest/ID?ref=invite
+ * Returns an invite link on the branded path.
+ * Format: https://changethegame.xyz/share/quest/ID?ref=invite
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}?ref=invite`;
