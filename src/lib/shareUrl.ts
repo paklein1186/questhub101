@@ -52,16 +52,16 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a share URL on the branded share subdomain.
- * Format: share.changethegame.xyz/quest/ID
+ * Returns a share URL on the branded path.
+ * Format: https://changethegame.xyz/share/quest/ID
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link on the branded share subdomain.
- * Format: share.changethegame.xyz/quest/ID?ref=invite
+ * Returns an invite link on the branded path.
+ * Format: https://changethegame.xyz/share/quest/ID?ref=invite
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}?ref=invite`;
