@@ -52,20 +52,19 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a share URL on the branded path.
- * Format: https://changethegame.xyz/share/quest/ID
+ * Returns a share URL that serves rich OG previews to crawlers.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link on the branded path.
- * Format: https://changethegame.xyz/share/quest/ID?ref=invite
+ * Returns an invite link with a ?ref=invite marker.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
   return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}?ref=invite`;
 }
+
 
 /**
  * Returns the clean, human-readable URL for display in the UI.
