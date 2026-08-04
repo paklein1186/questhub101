@@ -347,9 +347,6 @@ export function useMilestoneChecker() {
     if (guildCount >= 1) {
       completeMilestone("join_first_guild");
       completeMilestone("join_first_guild_v2");
-      completeMilestone("join_creative_circle");
-      completeMilestone("impact_guild");
-      completeMilestone("explore_guilds"); // if joined, you explored
     }
     if (guildCount >= 2) {
       completeMilestone("join_second_guild");
@@ -360,8 +357,6 @@ export function useMilestoneChecker() {
     if (questCount >= 1) {
       completeMilestone("create_first_quest");
       completeMilestone("create_quest");
-      completeMilestone("creative_artwork_quest");
-      completeMilestone("impact_quest");
     }
 
     // Services
@@ -378,7 +373,6 @@ export function useMilestoneChecker() {
       completeMilestone("contribute_territory");
       completeMilestone("impact_territory_memory");
       completeMilestone("add_knowledge");
-      completeMilestone("visit_territory"); // if contributed, you visited
     }
 
     // Events attended
@@ -396,7 +390,6 @@ export function useMilestoneChecker() {
     // Courses
     if ((coursesRes.count ?? 0) >= 1) {
       completeMilestone("publish_course");
-      completeMilestone("creative_class");
       completeMilestone("create_course");
     }
 
@@ -420,8 +413,8 @@ export function useMilestoneChecker() {
     const contribCount = contributionsRes.count ?? 0;
     if (contribCount >= 1) {
       completeMilestone("log_contribution");
-      completeMilestone("help_or_resource");
     }
+
 
     // Verified contributions
     if ((verifiedContributionsRes.count ?? 0) >= 1) {
