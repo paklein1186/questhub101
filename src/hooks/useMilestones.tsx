@@ -312,7 +312,7 @@ export function useMilestoneChecker() {
       (supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", uid) as any).eq("is_deleted", false),
       (supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", uid) as any).eq("is_published", true),
       supabase.from("comments").select("id", { count: "exact", head: true }).eq("author_id", uid),
-      (supabase.from("conversation_participants").select("id", { count: "exact", head: true }) as any).eq("user_id", uid),
+      (supabase.from("direct_messages").select("id", { count: "exact", head: true }).eq("sender_id", uid) as any).eq("is_deleted", false),
       supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid),
       (supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid) as any).eq("status", "VERIFIED"),
       supabase.from("bookings").select("id", { count: "exact", head: true }).eq("requester_id", uid),
