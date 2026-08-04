@@ -429,7 +429,6 @@ export function useMilestoneChecker() {
     // Follows (users)
     if ((followsRes.count ?? 0) >= 1) {
       completeMilestone("follow_user");
-      completeMilestone("view_user_profile"); // if followed, you viewed
     }
 
     // Quest follows
