@@ -312,7 +312,7 @@ export function useMilestoneChecker() {
       (supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", uid) as any).eq("is_deleted", false),
       (supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", uid) as any).eq("is_published", true),
       supabase.from("comments").select("id", { count: "exact", head: true }).eq("author_id", uid),
-      (supabase.from("conversation_participants").select("id", { count: "exact", head: true }) as any).eq("user_id", uid),
+      (supabase.from("direct_messages").select("id", { count: "exact", head: true }).eq("sender_id", uid) as any).eq("is_deleted", false),
       supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid),
       (supabase.from("contribution_logs").select("id", { count: "exact", head: true }).eq("user_id", uid) as any).eq("status", "VERIFIED"),
       supabase.from("bookings").select("id", { count: "exact", head: true }).eq("requester_id", uid),
@@ -321,7 +321,7 @@ export function useMilestoneChecker() {
       supabase.from("comment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
       supabase.from("attachment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
       supabase.from("profiles").select("xp").eq("user_id", uid).single(),
-      (supabase.from("quest_subtasks").select("id", { count: "exact", head: true }) as any).eq("status", "DONE"),
+      (supabase.from("quest_subtasks").select("id", { count: "exact", head: true }).eq("status", "DONE") as any).eq("completed_by_user_id", uid),
     ]);
 
     // Profile completeness
@@ -347,9 +347,6 @@ export function useMilestoneChecker() {
     if (guildCount >= 1) {
       completeMilestone("join_first_guild");
       completeMilestone("join_first_guild_v2");
-      completeMilestone("join_creative_circle");
-      completeMilestone("impact_guild");
-      completeMilestone("explore_guilds"); // if joined, you explored
     }
     if (guildCount >= 2) {
       completeMilestone("join_second_guild");
@@ -360,8 +357,6 @@ export function useMilestoneChecker() {
     if (questCount >= 1) {
       completeMilestone("create_first_quest");
       completeMilestone("create_quest");
-      completeMilestone("creative_artwork_quest");
-      completeMilestone("impact_quest");
     }
 
     // Services
@@ -378,7 +373,6 @@ export function useMilestoneChecker() {
       completeMilestone("contribute_territory");
       completeMilestone("impact_territory_memory");
       completeMilestone("add_knowledge");
-      completeMilestone("visit_territory"); // if contributed, you visited
     }
 
     // Events attended
@@ -396,7 +390,6 @@ export function useMilestoneChecker() {
     // Courses
     if ((coursesRes.count ?? 0) >= 1) {
       completeMilestone("publish_course");
-      completeMilestone("creative_class");
       completeMilestone("create_course");
     }
 
@@ -420,8 +413,8 @@ export function useMilestoneChecker() {
     const contribCount = contributionsRes.count ?? 0;
     if (contribCount >= 1) {
       completeMilestone("log_contribution");
-      completeMilestone("help_or_resource");
     }
+
 
     // Verified contributions
     if ((verifiedContributionsRes.count ?? 0) >= 1) {
@@ -436,7 +429,6 @@ export function useMilestoneChecker() {
     // Follows (users)
     if ((followsRes.count ?? 0) >= 1) {
       completeMilestone("follow_user");
-      completeMilestone("view_user_profile"); // if followed, you viewed
     }
 
     // Quest follows
