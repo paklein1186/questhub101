@@ -321,7 +321,7 @@ export function useMilestoneChecker() {
       supabase.from("comment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
       supabase.from("attachment_upvotes").select("id", { count: "exact", head: true }).eq("user_id", uid),
       supabase.from("profiles").select("xp").eq("user_id", uid).single(),
-      (supabase.from("quest_subtasks").select("id", { count: "exact", head: true }) as any).eq("status", "DONE"),
+      (supabase.from("quest_subtasks").select("id", { count: "exact", head: true }).eq("status", "DONE") as any).eq("completed_by_user_id", uid),
     ]);
 
     // Profile completeness
