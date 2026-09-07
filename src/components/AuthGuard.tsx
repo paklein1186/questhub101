@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-/** Redirects to /login if user is not authenticated */
+/** Redirects to /login if user is not authenticated, preserving the target page */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
+  const location = useLocation();
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -13,9 +14,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!session) return <Navigate to="/error/login-required" replace />;
+  if (!session) {
+    const target = `${location.pathname}${location.search}${location.hash}`;
+    try {
+      sessionStorage.setItem("postAuthRedirect", target);
+    } catch { /* ignore */ }
+    return <Navigate to={`/login?redirect=${encodeURIComponent(target)}`} replace />;
+  }
   return <>{children}</>;
 }
+
 
 /** Redirects authenticated users away from login/signup */
 export function RedirectIfAuthed({ children }: { children: ReactNode }) {

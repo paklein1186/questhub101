@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogIn, Loader2, ArrowLeft } from "lucide-react";
@@ -23,9 +23,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (redirectTo) {
-    sessionStorage.setItem("postAuthRedirect", redirectTo);
-  }
+  useEffect(() => {
+    if (redirectTo) sessionStorage.setItem("postAuthRedirect", redirectTo);
+  }, [redirectTo]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

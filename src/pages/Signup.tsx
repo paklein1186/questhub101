@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserPlus, Loader2, Gift } from "lucide-react";
@@ -23,9 +23,10 @@ export default function Signup() {
   const refCode = searchParams.get("ref") || "";
   const redirectTo = searchParams.get("redirect") || "";
 
-  if (redirectTo) {
-    sessionStorage.setItem("postAuthRedirect", redirectTo);
-  }
+  useEffect(() => {
+    if (redirectTo) sessionStorage.setItem("postAuthRedirect", redirectTo);
+  }, [redirectTo]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
