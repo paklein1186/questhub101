@@ -372,7 +372,7 @@ export default function Onboarding() {
     } catch (e) {
       console.error("Incremental save error:", e);
     }
-  }, [authUser?.id, name, headline, avatarUrl, bio, location, affLinks, personaType, selectedTopics, selectedTerritories, spokenLangCodes, saveSpokenLanguages]);
+  }, [authUser?.id, name, headline, avatarUrl, bio, location, affLinks, personaType, representsOrg, selectedTopics, selectedTerritories, spokenLangCodes, saveSpokenLanguages]);
 
   // ─── Save all onboarding data ─────────────────────────────
   const finishOnboarding = async () => {
@@ -395,6 +395,7 @@ export default function Onboarding() {
         onboarding_skipped: false,
         persona_type: personaType,
         persona_source: "onboarding_intent",
+        role: representsOrg ? (personaType === "CREATIVE" ? "BOTH" : "ECOSYSTEM_BUILDER") : "GAMECHANGER",
         preferred_language: preferredLang,
         website_url: affLinks.website.trim() || null,
         linkedin_url: affLinks.linkedin.trim() || null,
