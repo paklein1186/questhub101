@@ -259,7 +259,13 @@ export default function Onboarding() {
         if (ctx.org_url && !data?.website_url) {
           setAffLinks(prev => ({ ...prev, website: ctx.org_url }));
         }
+        // Avoid asking the intention/path question twice: the guest wizard
+        // already captured persona + goals, so jump straight to identity.
+        if (ctx.persona) {
+          setStep(prev => (prev === 0 ? 1 : prev));
+        }
       }
+
     } catch { /* ignore */ }
     setPreloaded(true);
     })();
