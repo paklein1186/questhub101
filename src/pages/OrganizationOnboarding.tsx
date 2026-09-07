@@ -89,6 +89,22 @@ export default function OrganizationOnboarding() {
     return territories.filter((t: any) => t.name.toLowerCase().includes(q));
   }, [territories, terrSearch]);
 
+  // Reuse answers already given during personal onboarding (no duplicate questions)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("orgOnboardingPrefill");
+      if (!raw) return;
+      const pre = JSON.parse(raw) as {
+        topicIds?: string[]; territoryIds?: string[]; websiteUrl?: string; linkedinUrl?: string;
+      };
+      if (pre.topicIds?.length) setSelectedTopicIds(prev => [...new Set([...prev, ...pre.topicIds!])]);
+      if (pre.territoryIds?.length) setSelectedTerritoryIds(prev => [...new Set([...prev, ...pre.territoryIds!])]);
+      if (pre.websiteUrl) setWebsiteUrl(prev => prev || pre.websiteUrl!);
+      if (pre.linkedinUrl) setLinkedinUrl(prev => prev || pre.linkedinUrl!);
+      sessionStorage.removeItem("orgOnboardingPrefill");
+    } catch { /* ignore */ }
+  }, []);
+
   // Auto-match scraped suggestions to platform taxonomy
   useEffect(() => {
     if (!scraped) return;

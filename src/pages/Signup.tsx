@@ -7,7 +7,7 @@ import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,7 +31,7 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isEcosystemBuilder, setIsEcosystemBuilder] = useState(false);
+  
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +46,8 @@ export default function Signup() {
       return;
     }
     setLoading(true);
-    const role = isEcosystemBuilder ? "ECOSYSTEM_BUILDER" : "GAMECHANGER";
+    // Role is determined later by the onboarding persona step (single source of truth)
+    const role = "GAMECHANGER";
     const { error } = await signUp(email.trim(), password, name.trim(), role);
     setLoading(false);
     if (error) {
@@ -116,10 +117,6 @@ export default function Signup() {
               <Label htmlFor="confirm">{t("auth.confirmPassword")}</Label>
               <Input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t("auth.repeatPassword")} required autoComplete="new-password" />
             </div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={isEcosystemBuilder} onCheckedChange={(v) => setIsEcosystemBuilder(!!v)} />
-              <span className="text-sm">{t("auth.imEcosystemBuilder")}</span>
-            </label>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
               {t("auth.createAccount")}
