@@ -344,6 +344,10 @@ export default function Onboarding() {
       if (affLinks.other.trim()) updates.instagram_url = affLinks.other.trim(); // stores any social/portfolio link, not just Instagram
       updates.persona_type = personaType;
       updates.persona_source = "onboarding_intent";
+      // Role now derives from the persona/org answers instead of a separate signup checkbox
+      updates.role = representsOrg
+        ? (personaType === "CREATIVE" ? "BOTH" : "ECOSYSTEM_BUILDER")
+        : "GAMECHANGER";
 
       if (Object.keys(updates).length > 0) {
         await supabase.from("profiles").update(updates).eq("user_id", authUser.id);
@@ -1581,7 +1585,24 @@ export default function Onboarding() {
                   You'll register your institution and configure its presence on the platform.
                 </p>
                 <Button asChild className="w-full mt-3" variant="default">
-                  <Link to="/onboarding/organization">
+                  <Link
+                    to="/onboarding/organization"
+                    onClick={() => {
+                      // Carry over what was already answered so the organization
+                      // flow never asks the same questions twice.
+                      try {
+                        sessionStorage.setItem(
+                          "orgOnboardingPrefill",
+                          JSON.stringify({
+                            topicIds: selectedTopics,
+                            territoryIds: selectedTerritories,
+                            websiteUrl: affLinks.website.trim() || "",
+                            linkedinUrl: affLinks.linkedin.trim() || "",
+                          })
+                        );
+                      } catch { /* storage unavailable */ }
+                    }}
+                  >
                     <Building2 className="h-4 w-4 mr-2" /> Onboard your organization
                   </Link>
                 </Button>
