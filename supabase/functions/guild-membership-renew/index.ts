@@ -55,7 +55,7 @@ serve(async (req) => {
           user_id: m.user_id,
           type: "GUILD_MEMBERSHIP_RENEWAL_REMINDER",
           title: "Membership renewal coming up",
-          body: `Your membership of ${guild.name} renews in ${daysLeft} day${daysLeft > 1 ? "s" : ""} for ${guild.monthly_fee_credits} Coins.`,
+          body: `Your membership of ${guild.name} renews in ${daysLeft} day${daysLeft > 1 ? "s" : ""} for ${fee} Coins.`,
           related_entity_type: "guild",
           related_entity_id: guild.id,
           deep_link_url: `/guilds/${guild.id}`,
@@ -76,7 +76,6 @@ serve(async (req) => {
         continue;
       }
 
-      const fee = Number(guild.monthly_fee_credits ?? 0);
       const { data: profile } = await admin
         .from("profiles")
         .select("coins_balance, name")
