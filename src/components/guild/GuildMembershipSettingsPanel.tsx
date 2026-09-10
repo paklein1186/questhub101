@@ -183,11 +183,18 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             </Select>
           </div>
 
+          <p className="text-xs text-muted-foreground -mt-2">
+            Membership fees are paid in 🟩 Coins — 1 Coin = {rate.toFixed(2)} €. Members top up their Coins from their{" "}
+            <Link to="/settings/wallet" className="text-primary underline underline-offset-2">wallet</Link>.
+          </p>
+
           {billingModel === "monthly" && (
             <>
               <div>
                 <Label className="text-sm font-medium mb-1 block">Monthly fee (🟩 Coins)</Label>
-                <p className="text-xs text-muted-foreground mb-2">Charged every month to keep the member role.</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Charged every month in Coins to keep the member role{monthlyFee > 0 ? ` — about ${toEur(monthlyFee)} € per month` : ""}.
+                </p>
                 <Input
                   type="number"
                   min={0}
@@ -197,7 +204,9 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
               </div>
               <div>
                 <Label className="text-sm font-medium mb-1 block">Joining fee (🟩 Coins, optional)</Label>
-                <p className="text-xs text-muted-foreground mb-2">Charged once, on top of the first monthly payment.</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Charged once in Coins, on top of the first monthly payment{joiningFee > 0 ? ` — about ${toEur(joiningFee)} €` : ""}.
+                </p>
                 <Input
                   type="number"
                   min={0}
