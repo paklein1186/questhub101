@@ -79,6 +79,13 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   const [monthlyFeeMax, setMonthlyFeeMax] = useState<number>(guild.monthly_fee_max_credits ?? 0);
   const [entryFeeMax, setEntryFeeMax] = useState<number>(guild.entry_fee_max_credits ?? 0);
   const [joiningFee, setJoiningFee] = useState<number>(guild.joining_fee_credits ?? 0);
+  const [priceMode, setPriceMode] = useState<"fixed" | "range">(
+    (guild.billing_model === "monthly"
+      ? Number(guild.monthly_fee_max_credits ?? 0) > Number(guild.monthly_fee_credits ?? 0)
+      : Number(guild.entry_fee_max_credits ?? 0) > Number(guild.entry_fee_credits ?? 0))
+      ? "range"
+      : "fixed",
+  );
   const [requiresApplication, setRequiresApplication] = useState<boolean>(guild.requires_application_before_payment ?? false);
   const [benefitsText, setBenefitsText] = useState<string>(guild.membership_benefits_text ?? "");
   const [commitmentsText, setCommitmentsText] = useState<string>(guild.membership_commitments_text ?? "");
@@ -111,13 +118,16 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   };
 
   const handleSave = async () => {
+    const isMonthly = billingModel === "monthly";
+    const useRange = priceMode === "range";
     const { error } = await supabase
       .from("guilds")
       .update({
         enable_membership: enableMembership,
         membership_style: membershipStyle,
-        entry_fee_credits: entryFee || null,
-        entry_fee_max_credits: entryFeeMax > entryFee ? entryFeeMax : null,
+        entry_fee_credits: isMonthly ? null : entryFee || null,
+        entry_fee_max_credits:
+          !isMonthly && useRange && entryFeeMax > entryFee ? entryFeeMax : null,
         members_only_quests: membersOnlyQuests,
         members_only_events: membersOnlyEvents,
         members_only_voting: membersOnlyVoting,
@@ -127,12 +137,13 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
         member_xp_bonus_percent: xpBonus,
         membership_duration_months: durationMonths ? parseInt(durationMonths) : null,
         billing_model: billingModel,
-        monthly_fee_credits: billingModel === "monthly" ? monthlyFee || null : null,
+        monthly_fee_credits: isMonthly ? monthlyFee || null : null,
         monthly_fee_max_credits:
-          billingModel === "monthly" && monthlyFeeMax > monthlyFee ? monthlyFeeMax : null,
-        joining_fee_credits: billingModel === "monthly" ? joiningFee || null : null,
+          isMonthly && useRange && monthlyFeeMax > monthlyFee ? monthlyFeeMax : null,
+        joining_fee_credits: isMonthly ? joiningFee || null : null,
         requires_application_before_payment: requiresApplication,
       } as any)
+
       .eq("id", guildId);
 
     if (error) {
@@ -195,48 +206,103 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             <Link to="/settings/wallet" className="text-primary underline underline-offset-2">wallet</Link>.
           </p>
 
-          {billingModel === "monthly" && (
-            <>
-              <div>
-                <Label className="text-sm font-medium mb-1 block">Monthly fee (🟩 Coins)</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Minimum charged every month to keep the member role{monthlyFee > 0 ? ` — about ${toEur(monthlyFee)} € per month` : ""}.
-                </p>
-                <Input
-                  type="number"
-                  min={0}
-                  value={monthlyFee}
-                  onChange={(e) => setMonthlyFee(parseInt(e.target.value) || 0)}
-                />
+          {/* Fee editor — depends on the billing model */}
+          {(() => {
+            const isMonthly = billingModel === "monthly";
+            const per = isMonthly ? " / month" : "";
+            const fee = isMonthly ? monthlyFee : entryFee;
+            const feeMax = isMonthly ? monthlyFeeMax : entryFeeMax;
+            const setFee = isMonthly ? setMonthlyFee : setEntryFee;
+            const setFeeMax = isMonthly ? setMonthlyFeeMax : setEntryFeeMax;
+            const validRange = priceMode === "range" && feeMax > fee;
+
+            return (
+              <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    {isMonthly ? "Monthly membership price" : "One-time entry price"}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Paid in 🟩 Coins{isMonthly ? ", every month, to keep the member role" : " to become a member"}.
+                  </p>
+                </div>
+
+                <Select value={priceMode} onValueChange={(v) => setPriceMode(v as "fixed" | "range")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Fixed price — everyone pays the same</SelectItem>
+                    <SelectItem value="range">Free choice — each member picks an amount in a range</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {priceMode === "fixed" ? (
+                  <div>
+                    <Label className="text-xs mb-1 block">Price (🟩 Coins{per})</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={fee}
+                      onChange={(e) => setFee(parseInt(e.target.value) || 0)}
+                    />
+                    {fee > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Members pay 🟩 {fee} Coins{per} (~{toEur(fee)} €{per}).
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs mb-1 block">Minimum (🟩 Coins{per})</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={fee}
+                          onChange={(e) => setFee(parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs mb-1 block">Maximum (🟩 Coins{per})</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={feeMax}
+                          onChange={(e) => setFeeMax(parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                    </div>
+                    {validRange ? (
+                      <p className="text-xs text-muted-foreground">
+                        Each member chooses what they pay between 🟩 {fee} and 🟩 {feeMax} Coins{per} (
+                        {toEur(fee)} € – {toEur(feeMax)} €).
+                      </p>
+                    ) : (
+                      <p className="text-xs text-destructive">
+                        The maximum must be higher than the minimum, otherwise the price stays fixed at 🟩 {fee} Coins.
+                      </p>
+                    )}
+                  </>
+                )}
+
+                {isMonthly && (
+                  <div>
+                    <Label className="text-xs mb-1 block">Joining fee (🟩 Coins, optional)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={joiningFee}
+                      onChange={(e) => setJoiningFee(parseInt(e.target.value) || 0)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Charged once, on top of the first monthly payment
+                      {joiningFee > 0 ? ` — about ${toEur(joiningFee)} €` : ""}.
+                    </p>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label className="text-sm font-medium mb-1 block">Maximum monthly fee (🟩 Coins, optional)</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Leave at 0 for a fixed price. If higher than the monthly fee, each member chooses what they pay between
-                  🟩 {monthlyFee} and 🟩 {monthlyFeeMax} Coins per month
-                  {monthlyFeeMax > monthlyFee ? ` (${toEur(monthlyFee)} € – ${toEur(monthlyFeeMax)} €)` : ""}.
-                </p>
-                <Input
-                  type="number"
-                  min={0}
-                  value={monthlyFeeMax}
-                  onChange={(e) => setMonthlyFeeMax(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium mb-1 block">Joining fee (🟩 Coins, optional)</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Charged once in Coins, on top of the first monthly payment{joiningFee > 0 ? ` — about ${toEur(joiningFee)} €` : ""}.
-                </p>
-                <Input
-                  type="number"
-                  min={0}
-                  value={joiningFee}
-                  onChange={(e) => setJoiningFee(parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </>
-          )}
+            );
+          })()}
 
           {/* Application gating */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
@@ -247,31 +313,6 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             <Switch checked={requiresApplication} onCheckedChange={setRequiresApplication} />
           </div>
 
-          {/* Entry fee */}
-          <div className={billingModel === "monthly" ? "hidden" : ""}>
-            <Label className="text-sm font-medium mb-1 block">Entry fee (🟩 Coins)</Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              One-time minimum fee in Coins to become a member{entryFee > 0 ? ` — about ${toEur(entryFee)} €` : ""}.
-            </p>
-            <Input
-              type="number"
-              min={0}
-              value={entryFee}
-              onChange={(e) => setEntryFee(parseInt(e.target.value) || 0)}
-            />
-            <Label className="text-sm font-medium mb-1 mt-4 block">Maximum entry fee (🟩 Coins, optional)</Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Leave at 0 for a fixed price. If higher than the entry fee, each new member chooses what they pay between
-              🟩 {entryFee} and 🟩 {entryFeeMax} Coins
-              {entryFeeMax > entryFee ? ` (${toEur(entryFee)} € – ${toEur(entryFeeMax)} €)` : ""}.
-            </p>
-            <Input
-              type="number"
-              min={0}
-              value={entryFeeMax}
-              onChange={(e) => setEntryFeeMax(parseInt(e.target.value) || 0)}
-            />
-          </div>
 
           {/* Gating checkboxes */}
           <div className="space-y-3">
