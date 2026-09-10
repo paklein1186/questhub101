@@ -79,6 +79,13 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   const [monthlyFeeMax, setMonthlyFeeMax] = useState<number>(guild.monthly_fee_max_credits ?? 0);
   const [entryFeeMax, setEntryFeeMax] = useState<number>(guild.entry_fee_max_credits ?? 0);
   const [joiningFee, setJoiningFee] = useState<number>(guild.joining_fee_credits ?? 0);
+  const [priceMode, setPriceMode] = useState<"fixed" | "range">(
+    (guild.billing_model === "monthly"
+      ? Number(guild.monthly_fee_max_credits ?? 0) > Number(guild.monthly_fee_credits ?? 0)
+      : Number(guild.entry_fee_max_credits ?? 0) > Number(guild.entry_fee_credits ?? 0))
+      ? "range"
+      : "fixed",
+  );
   const [requiresApplication, setRequiresApplication] = useState<boolean>(guild.requires_application_before_payment ?? false);
   const [benefitsText, setBenefitsText] = useState<string>(guild.membership_benefits_text ?? "");
   const [commitmentsText, setCommitmentsText] = useState<string>(guild.membership_commitments_text ?? "");
