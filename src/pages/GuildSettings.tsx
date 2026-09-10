@@ -47,6 +47,7 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
 import { GuildGiveBackReceived } from "@/components/giveback/GiveBackHistory";
+import { GuildMembershipIncome } from "@/components/guild/GuildMembershipIncome";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
