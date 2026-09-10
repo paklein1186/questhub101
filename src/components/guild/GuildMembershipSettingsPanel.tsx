@@ -229,7 +229,9 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
           {/* Entry fee */}
           <div className={billingModel === "monthly" ? "hidden" : ""}>
             <Label className="text-sm font-medium mb-1 block">Entry fee (🟩 Coins)</Label>
-            <p className="text-xs text-muted-foreground mb-2">One-time fee in Coins to become a member.</p>
+            <p className="text-xs text-muted-foreground mb-2">
+              One-time fee in Coins to become a member{entryFee > 0 ? ` — about ${toEur(entryFee)} €` : ""}.
+            </p>
             <Input
               type="number"
               min={0}
