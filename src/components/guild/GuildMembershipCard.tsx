@@ -129,13 +129,13 @@ export function GuildMembershipCard({ guild }: Props) {
               <span>
                 {monthly ? (
                   <>
-                    Monthly fee: <strong className="text-foreground">{recurringFee} Coins / month</strong>
+                    Monthly fee: <strong className="text-foreground">🟩 {recurringFee} Coins / month</strong> (~{toEur(recurringFee)} €)
                     {joiningFee > 0 && (
-                      <> · one-time joining fee <strong className="text-foreground">{joiningFee} Coins</strong></>
+                      <> · one-time joining fee <strong className="text-foreground">🟩 {joiningFee} Coins</strong></>
                     )}
                   </>
                 ) : (
-                  <>One-time entry fee: <strong className="text-foreground">{oneTimeFee} Coins</strong></>
+                  <>One-time entry fee: <strong className="text-foreground">🟩 {oneTimeFee} Coins</strong> (~{toEur(oneTimeFee)} €)</>
                 )}
               </span>
             </div>
