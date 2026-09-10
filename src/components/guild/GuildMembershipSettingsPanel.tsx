@@ -118,13 +118,16 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   };
 
   const handleSave = async () => {
+    const isMonthly = billingModel === "monthly";
+    const useRange = priceMode === "range";
     const { error } = await supabase
       .from("guilds")
       .update({
         enable_membership: enableMembership,
         membership_style: membershipStyle,
-        entry_fee_credits: entryFee || null,
-        entry_fee_max_credits: entryFeeMax > entryFee ? entryFeeMax : null,
+        entry_fee_credits: isMonthly ? null : entryFee || null,
+        entry_fee_max_credits:
+          !isMonthly && useRange && entryFeeMax > entryFee ? entryFeeMax : null,
         members_only_quests: membersOnlyQuests,
         members_only_events: membersOnlyEvents,
         members_only_voting: membersOnlyVoting,
@@ -134,12 +137,13 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
         member_xp_bonus_percent: xpBonus,
         membership_duration_months: durationMonths ? parseInt(durationMonths) : null,
         billing_model: billingModel,
-        monthly_fee_credits: billingModel === "monthly" ? monthlyFee || null : null,
+        monthly_fee_credits: isMonthly ? monthlyFee || null : null,
         monthly_fee_max_credits:
-          billingModel === "monthly" && monthlyFeeMax > monthlyFee ? monthlyFeeMax : null,
-        joining_fee_credits: billingModel === "monthly" ? joiningFee || null : null,
+          isMonthly && useRange && monthlyFeeMax > monthlyFee ? monthlyFeeMax : null,
+        joining_fee_credits: isMonthly ? joiningFee || null : null,
         requires_application_before_payment: requiresApplication,
       } as any)
+
       .eq("id", guildId);
 
     if (error) {
