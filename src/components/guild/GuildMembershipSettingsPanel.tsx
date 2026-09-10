@@ -120,6 +120,10 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
         redistribution_percent: redistributionPercent,
         member_xp_bonus_percent: xpBonus,
         membership_duration_months: durationMonths ? parseInt(durationMonths) : null,
+        billing_model: billingModel,
+        monthly_fee_credits: billingModel === "monthly" ? monthlyFee || null : null,
+        joining_fee_credits: billingModel === "monthly" ? joiningFee || null : null,
+        requires_application_before_payment: requiresApplication,
       } as any)
       .eq("id", guildId);
 
@@ -166,8 +170,54 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             </Select>
           </div>
 
-          {/* Entry fee */}
+          {/* Billing model */}
           <div>
+            <Label className="text-sm font-medium mb-1 block">Billing model</Label>
+            <Select value={billingModel} onValueChange={setBillingModel}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="one_time">One-time entry fee</SelectItem>
+                <SelectItem value="monthly">Monthly fee (keeps the member role active)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {billingModel === "monthly" && (
+            <>
+              <div>
+                <Label className="text-sm font-medium mb-1 block">Monthly fee (credits)</Label>
+                <p className="text-xs text-muted-foreground mb-2">Charged every month to keep the member role.</p>
+                <Input
+                  type="number"
+                  min={0}
+                  value={monthlyFee}
+                  onChange={(e) => setMonthlyFee(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium mb-1 block">Joining fee (credits, optional)</Label>
+                <p className="text-xs text-muted-foreground mb-2">Charged once, on top of the first monthly payment.</p>
+                <Input
+                  type="number"
+                  min={0}
+                  value={joiningFee}
+                  onChange={(e) => setJoiningFee(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Application gating */}
+          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+            <div className="pr-3">
+              <Label className="text-sm font-medium">Require an approved application before paying</Label>
+              <p className="text-xs text-muted-foreground">Candidates fill the form, an admin approves, then they can pay.</p>
+            </div>
+            <Switch checked={requiresApplication} onCheckedChange={setRequiresApplication} />
+          </div>
+
+          {/* Entry fee */}
+          <div className={billingModel === "monthly" ? "hidden" : ""}>
             <Label className="text-sm font-medium mb-1 block">Entry fee (credits)</Label>
             <p className="text-xs text-muted-foreground mb-2">One-time entry fee in credits to become a member.</p>
             <Input
