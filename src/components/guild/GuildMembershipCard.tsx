@@ -27,6 +27,20 @@ export function GuildMembershipCard({ guild }: Props) {
     cancelRenewal,
   } = useGuildMembership(guild.id);
   const [processing, setProcessing] = useState(false);
+  const { rate, toEur } = useCoinsRate();
+
+  const { data: coinsBalance } = useQuery({
+    queryKey: ["my-coins-balance", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("coins_balance")
+        .eq("user_id", session!.user.id)
+        .maybeSingle();
+      return Number((data as any)?.coins_balance ?? 0);
+    },
+  });
 
   if (!guild.enable_membership) return null;
 
