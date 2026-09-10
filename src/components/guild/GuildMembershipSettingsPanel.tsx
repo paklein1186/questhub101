@@ -65,6 +65,7 @@ interface Props {
 export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { rate, toEur } = useCoinsRate();
 
   const [enableMembership, setEnableMembership] = useState<boolean>(guild.enable_membership ?? false);
   const [membershipStyle, setMembershipStyle] = useState<MembershipStyle>((guild.membership_style as MembershipStyle) ?? "none");
