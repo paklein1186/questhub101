@@ -28,7 +28,9 @@ serve(async (req) => {
 
     const { data: memberships } = await admin
       .from("user_guild_memberships")
-      .select("*, guilds!inner(id, name, billing_model, monthly_fee_credits, enable_membership)")
+      .select(
+        "*, guilds!inner(id, name, billing_model, monthly_fee_credits, monthly_fee_max_credits, enable_membership)",
+      )
       .eq("role", "member")
       .in("status", ["active", "grace"])
       .not("current_period_end", "is", null);
