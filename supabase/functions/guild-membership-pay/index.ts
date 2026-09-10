@@ -185,7 +185,7 @@ serve(async (req) => {
           user_id: aid,
           type: "GUILD_MEMBERSHIP_PAYMENT",
           title: "New paid membership",
-          body: `${profile.name ?? "Someone"} paid ${amount} credits to join ${guild.name}.`,
+          body: `${profile.name ?? "Someone"} paid ${amount} Coins to join ${guild.name}.`,
           related_entity_type: "guild",
           related_entity_id: guildId,
           deep_link_url: `/guilds/${guildId}`,
