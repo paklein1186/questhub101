@@ -71,6 +71,10 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   const [membersOnlyQuests, setMembersOnlyQuests] = useState<boolean>(guild.members_only_quests ?? false);
   const [membersOnlyEvents, setMembersOnlyEvents] = useState<boolean>(guild.members_only_events ?? false);
   const [membersOnlyVoting, setMembersOnlyVoting] = useState<boolean>(guild.members_only_voting ?? false);
+  const [billingModel, setBillingModel] = useState<string>(guild.billing_model ?? "one_time");
+  const [monthlyFee, setMonthlyFee] = useState<number>(guild.monthly_fee_credits ?? 0);
+  const [joiningFee, setJoiningFee] = useState<number>(guild.joining_fee_credits ?? 0);
+  const [requiresApplication, setRequiresApplication] = useState<boolean>(guild.requires_application_before_payment ?? false);
   const [benefitsText, setBenefitsText] = useState<string>(guild.membership_benefits_text ?? "");
   const [commitmentsText, setCommitmentsText] = useState<string>(guild.membership_commitments_text ?? "");
 
