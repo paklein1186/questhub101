@@ -42,6 +42,13 @@ serve(async (req) => {
       const periodEnd = new Date(m.current_period_end);
       const daysLeft = Math.ceil((periodEnd.getTime() - now.getTime()) / 86400000);
 
+      // The member may have chosen an amount inside the guild's price range
+      const minFee = Number(guild.monthly_fee_credits ?? 0);
+      const maxFee = Number(guild.monthly_fee_max_credits ?? 0);
+      const chosen = Number(m.chosen_fee_credits ?? 0);
+      const fee =
+        chosen > 0 ? Math.min(Math.max(chosen, minFee), maxFee > minFee ? maxFee : chosen) : minFee;
+
       // Reminders before renewal
       if (daysLeft === 7 || daysLeft === 1) {
         await admin.from("notifications").insert({
