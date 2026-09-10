@@ -1,0 +1,1 @@
+ALTER TABLE public.guild_credit_transactions ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'credits';
