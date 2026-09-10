@@ -70,17 +70,17 @@ serve(async (req) => {
       const fee = Number(guild.monthly_fee_credits ?? 0);
       const { data: profile } = await admin
         .from("profiles")
-        .select("credits_balance, name")
+        .select("coins_balance, name")
         .eq("user_id", m.user_id)
         .maybeSingle();
-      const balance = Number(profile?.credits_balance ?? 0);
+      const balance = Number(profile?.coins_balance ?? 0);
 
       if (fee > 0 && balance >= fee) {
         const nextEnd = new Date(periodEnd);
         nextEnd.setMonth(nextEnd.getMonth() + 1);
 
-        await admin.from("profiles").update({ credits_balance: balance - fee }).eq("user_id", m.user_id);
-        await admin.from("credit_transactions").insert({
+        await admin.from("profiles").update({ coins_balance: balance - fee }).eq("user_id", m.user_id);
+        await admin.from("coin_transactions").insert({
           user_id: m.user_id,
           type: "GUILD_MEMBERSHIP",
           amount: -fee,
@@ -91,24 +91,25 @@ serve(async (req) => {
 
         const { data: wallet } = await admin
           .from("guild_wallets")
-          .select("id, credits_balance")
+          .select("id, coins_balance")
           .eq("guild_id", guild.id)
           .maybeSingle();
         if (wallet) {
           await admin
             .from("guild_wallets")
-            .update({ credits_balance: Number(wallet.credits_balance ?? 0) + fee })
+            .update({ coins_balance: Number(wallet.coins_balance ?? 0) + fee })
             .eq("id", wallet.id);
         } else {
-          await admin.from("guild_wallets").insert({ guild_id: guild.id, credits_balance: fee });
+          await admin.from("guild_wallets").insert({ guild_id: guild.id, coins_balance: fee });
         }
 
         await admin.from("guild_credit_transactions").insert({
           guild_id: guild.id,
           user_id: m.user_id,
           amount: fee,
+          currency: "coins",
           type: "MEMBERSHIP_RENEWAL",
-          source: `${profile?.name ?? "A member"} renewed for ${fee} credits`,
+          source: `${profile?.name ?? "A member"} renewed for ${fee} Coins`,
         });
 
         await admin
