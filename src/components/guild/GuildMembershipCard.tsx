@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CreditCard, Users, CalendarClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuildMembership, isActiveMember } from "@/hooks/useGuildMembership";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 
 interface Props {
   guild: any;
