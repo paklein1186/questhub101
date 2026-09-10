@@ -128,11 +128,11 @@ export function useGuildMembership(guildId: string | undefined) {
     refresh();
   }, [userId, guildId, membership, toast, refresh]);
 
-  const becomeMember = useCallback(async () => {
+  const becomeMember = useCallback(async (chosenAmount?: number) => {
     if (!userId || !guildId) return false;
 
     const { data, error } = await supabase.functions.invoke("guild-membership-pay", {
-      body: { guild_id: guildId },
+      body: { guild_id: guildId, chosen_amount: chosenAmount },
     });
 
     const errMsg = (data as any)?.error || (error as any)?.message;

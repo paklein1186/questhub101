@@ -4878,6 +4878,7 @@ export type Database = {
           description: string | null
           enable_membership: boolean
           entry_fee_credits: number | null
+          entry_fee_max_credits: number | null
           evidence_required_override: boolean | null
           exit_bad_leaver_decision: string
           exit_bad_leaver_fmv_pct: number
@@ -4910,6 +4911,7 @@ export type Database = {
           membership_duration_months: number | null
           membership_style: string
           monthly_fee_credits: number | null
+          monthly_fee_max_credits: number | null
           name: string
           ocu_default_enabled: boolean
           public_visibility: string
@@ -4942,6 +4944,7 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          entry_fee_max_credits?: number | null
           evidence_required_override?: boolean | null
           exit_bad_leaver_decision?: string
           exit_bad_leaver_fmv_pct?: number
@@ -4974,6 +4977,7 @@ export type Database = {
           membership_duration_months?: number | null
           membership_style?: string
           monthly_fee_credits?: number | null
+          monthly_fee_max_credits?: number | null
           name: string
           ocu_default_enabled?: boolean
           public_visibility?: string
@@ -5006,6 +5010,7 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          entry_fee_max_credits?: number | null
           evidence_required_override?: boolean | null
           exit_bad_leaver_decision?: string
           exit_bad_leaver_fmv_pct?: number
@@ -5038,6 +5043,7 @@ export type Database = {
           membership_duration_months?: number | null
           membership_style?: string
           monthly_fee_credits?: number | null
+          monthly_fee_max_credits?: number | null
           name?: string
           ocu_default_enabled?: boolean
           public_visibility?: string
@@ -9881,6 +9887,7 @@ export type Database = {
       user_guild_memberships: {
         Row: {
           cancel_at_period_end: boolean
+          chosen_fee_credits: number | null
           current_period_end: string | null
           guild_id: string
           id: string
@@ -9893,6 +9900,7 @@ export type Database = {
         }
         Insert: {
           cancel_at_period_end?: boolean
+          chosen_fee_credits?: number | null
           current_period_end?: string | null
           guild_id: string
           id?: string
@@ -9905,6 +9913,7 @@ export type Database = {
         }
         Update: {
           cancel_at_period_end?: boolean
+          chosen_fee_credits?: number | null
           current_period_end?: string | null
           guild_id?: string
           id?: string

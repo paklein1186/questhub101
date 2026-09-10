@@ -34,11 +34,13 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const guildId = typeof body?.guild_id === "string" ? body.guild_id : null;
     if (!guildId || !/^[0-9a-f-]{36}$/i.test(guildId)) return fail("Invalid guild_id");
+    const rawChosen = Number(body?.chosen_amount);
+    const chosenAmount = Number.isFinite(rawChosen) && rawChosen > 0 ? Math.round(rawChosen) : null;
 
     const { data: guild } = await admin
       .from("guilds")
       .select(
-        "id, name, enable_membership, entry_fee_credits, monthly_fee_credits, joining_fee_credits, billing_model, membership_duration_months, requires_application_before_payment, join_policy, created_by_user_id",
+        "id, name, enable_membership, entry_fee_credits, entry_fee_max_credits, monthly_fee_credits, monthly_fee_max_credits, joining_fee_credits, billing_model, membership_duration_months, requires_application_before_payment, join_policy, created_by_user_id",
       )
       .eq("id", guildId)
       .maybeSingle();
@@ -80,7 +82,19 @@ serve(async (req) => {
 
     const firstPayment = !membership?.last_payment_at;
     const joiningFee = firstPayment ? Number(guild.joining_fee_credits ?? 0) : 0;
-    const baseFee = monthly ? Number(guild.monthly_fee_credits ?? 0) : Number(guild.entry_fee_credits ?? 0);
+    const minFee = monthly ? Number(guild.monthly_fee_credits ?? 0) : Number(guild.entry_fee_credits ?? 0);
+    const maxFee = Number(
+      (monthly ? guild.monthly_fee_max_credits : guild.entry_fee_max_credits) ?? 0,
+    );
+    const isRange = maxFee > minFee;
+
+    let baseFee = minFee;
+    if (isRange && chosenAmount !== null) {
+      if (chosenAmount < minFee || chosenAmount > maxFee) {
+        return fail(`Choose an amount between ${minFee} and ${maxFee} Coins.`);
+      }
+      baseFee = chosenAmount;
+    }
     const amount = baseFee + joiningFee;
 
     if (!amount || amount <= 0) return fail("No membership fee is configured for this guild.");
@@ -160,6 +174,7 @@ serve(async (req) => {
         membership_expires_at: periodEnd,
         current_period_end: periodEnd,
         cancel_at_period_end: false,
+        chosen_fee_credits: baseFee,
         last_payment_at: now.toISOString(),
       },
       { onConflict: "user_id,guild_id" },
