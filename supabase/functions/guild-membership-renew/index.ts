@@ -127,15 +127,15 @@ serve(async (req) => {
         continue;
       }
 
-      // Not enough credits
+      // Not enough Coins
       const graceUntil = new Date(periodEnd.getTime() + GRACE_DAYS * 86400000);
       if (m.status !== "grace") {
         await admin.from("user_guild_memberships").update({ status: "grace" }).eq("id", m.id);
         await admin.from("notifications").insert({
           user_id: m.user_id,
           type: "GUILD_MEMBERSHIP_PAYMENT_FAILED",
-          title: "Membership renewal needs credits",
-          body: `We could not renew your membership of ${guild.name} (${fee} credits). You have ${GRACE_DAYS} days to top up.`,
+          title: "Membership renewal needs Coins",
+          body: `We could not renew your membership of ${guild.name} (${fee} Coins). You have ${GRACE_DAYS} days to top up.`,
           related_entity_type: "guild",
           related_entity_id: guild.id,
           deep_link_url: `/guilds/${guild.id}`,
