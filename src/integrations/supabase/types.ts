@@ -4368,6 +4368,44 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          guild_id: string
+          id: string
+          source: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          guild_id: string
+          id?: string
+          source?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          guild_id?: string
+          id?: string
+          source?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_credit_transactions_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_decisions: {
         Row: {
           created_at: string
@@ -4789,6 +4827,7 @@ export type Database = {
         Row: {
           coins_balance: number
           created_at: string
+          credits_balance: number
           guild_id: string
           id: string
           updated_at: string
@@ -4796,6 +4835,7 @@ export type Database = {
         Insert: {
           coins_balance?: number
           created_at?: string
+          credits_balance?: number
           guild_id: string
           id?: string
           updated_at?: string
@@ -4803,6 +4843,7 @@ export type Database = {
         Update: {
           coins_balance?: number
           created_at?: string
+          credits_balance?: number
           guild_id?: string
           id?: string
           updated_at?: string
@@ -4824,6 +4865,7 @@ export type Database = {
           allow_agent_subscription: boolean
           application_questions: Json | null
           banner_url: string | null
+          billing_model: string
           cash_multiplier: number
           coins_balance: number
           created_at: string
@@ -4853,6 +4895,7 @@ export type Database = {
           is_deleted: boolean
           is_draft: boolean
           join_policy: Database["public"]["Enums"]["guild_join_policy"]
+          joining_fee_credits: number | null
           linkedin_url: string | null
           logo_url: string | null
           member_xp_bonus_percent: number
@@ -4863,10 +4906,12 @@ export type Database = {
           membership_commitments_text: string | null
           membership_duration_months: number | null
           membership_style: string
+          monthly_fee_credits: number | null
           name: string
           ocu_default_enabled: boolean
           public_visibility: string
           redistribution_percent: number
+          requires_application_before_payment: boolean
           sales_commission_default_pct: number
           twitter_url: string | null
           type: Database["public"]["Enums"]["guild_type"]
@@ -4884,6 +4929,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          billing_model?: string
           cash_multiplier?: number
           coins_balance?: number
           created_at?: string
@@ -4913,6 +4959,7 @@ export type Database = {
           is_deleted?: boolean
           is_draft?: boolean
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
+          joining_fee_credits?: number | null
           linkedin_url?: string | null
           logo_url?: string | null
           member_xp_bonus_percent?: number
@@ -4923,10 +4970,12 @@ export type Database = {
           membership_commitments_text?: string | null
           membership_duration_months?: number | null
           membership_style?: string
+          monthly_fee_credits?: number | null
           name: string
           ocu_default_enabled?: boolean
           public_visibility?: string
           redistribution_percent?: number
+          requires_application_before_payment?: boolean
           sales_commission_default_pct?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
@@ -4944,6 +4993,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          billing_model?: string
           cash_multiplier?: number
           coins_balance?: number
           created_at?: string
@@ -4973,6 +5023,7 @@ export type Database = {
           is_deleted?: boolean
           is_draft?: boolean
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
+          joining_fee_credits?: number | null
           linkedin_url?: string | null
           logo_url?: string | null
           member_xp_bonus_percent?: number
@@ -4983,10 +5034,12 @@ export type Database = {
           membership_commitments_text?: string | null
           membership_duration_months?: number | null
           membership_style?: string
+          monthly_fee_credits?: number | null
           name?: string
           ocu_default_enabled?: boolean
           public_visibility?: string
           redistribution_percent?: number
+          requires_application_before_payment?: boolean
           sales_commission_default_pct?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
@@ -9824,27 +9877,39 @@ export type Database = {
       }
       user_guild_memberships: {
         Row: {
+          cancel_at_period_end: boolean
+          current_period_end: string | null
           guild_id: string
           id: string
           joined_at: string
+          last_payment_at: string | null
           membership_expires_at: string | null
           role: string
+          status: string
           user_id: string
         }
         Insert: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
           guild_id: string
           id?: string
           joined_at?: string
+          last_payment_at?: string | null
           membership_expires_at?: string | null
           role?: string
+          status?: string
           user_id: string
         }
         Update: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
           guild_id?: string
           id?: string
           joined_at?: string
+          last_payment_at?: string | null
           membership_expires_at?: string | null
           role?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
