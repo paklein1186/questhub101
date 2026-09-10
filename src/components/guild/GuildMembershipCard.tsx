@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Loader2, CreditCard, Users, CalendarClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuildMembership, isActiveMember } from "@/hooks/useGuildMembership";
@@ -27,6 +28,7 @@ export function GuildMembershipCard({ guild }: Props) {
     cancelRenewal,
   } = useGuildMembership(guild.id);
   const [processing, setProcessing] = useState(false);
+  const [chosenAmount, setChosenAmount] = useState<number | null>(null);
   const { rate, toEur } = useCoinsRate();
 
   const { data: coinsBalance } = useQuery({
@@ -49,7 +51,14 @@ export function GuildMembershipCard({ guild }: Props) {
   const recurringFee = Number(guild.monthly_fee_credits ?? 0);
   const oneTimeFee = Number(guild.entry_fee_credits ?? 0);
   const firstPayment = !membership?.last_payment_at;
-  const dueNow = monthly ? recurringFee + (firstPayment ? joiningFee : 0) : oneTimeFee;
+
+  const minFee = monthly ? recurringFee : oneTimeFee;
+  const maxFee = Number(
+    (monthly ? guild.monthly_fee_max_credits : guild.entry_fee_max_credits) ?? 0
+  );
+  const isRange = maxFee > minFee;
+  const chosenFee = isRange ? Math.min(Math.max(chosenAmount ?? minFee, minFee), maxFee) : minFee;
+  const dueNow = monthly ? chosenFee + (firstPayment ? joiningFee : 0) : chosenFee;
 
   const active = isActiveMember(membership, guild);
   const isCreator = guild.created_by_user_id === session?.user?.id;
@@ -63,9 +72,29 @@ export function GuildMembershipCard({ guild }: Props) {
 
   const handleBecomeMember = async () => {
     setProcessing(true);
-    await becomeMember();
+    await becomeMember(isRange ? chosenFee : undefined);
     setProcessing(false);
   };
+
+  const AmountPicker = () =>
+    isRange ? (
+      <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-2.5">
+        <p className="text-xs text-foreground">
+          Choose what you pay{monthly ? " each month" : ""}: <strong>🟩 {chosenFee} Coins</strong> (~{toEur(chosenFee)} €)
+        </p>
+        <Slider
+          value={[chosenFee]}
+          min={minFee}
+          max={maxFee}
+          step={1}
+          onValueChange={(v) => setChosenAmount(v[0])}
+        />
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>🟩 {minFee}</span>
+          <span>🟩 {maxFee}</span>
+        </div>
+      </div>
+    ) : null;
 
   const payLabel = monthly
     ? `Become Member (${dueNow} Coins / month${firstPayment && joiningFee ? ", incl. joining fee" : ""})`
@@ -75,6 +104,7 @@ export function GuildMembershipCard({ guild }: Props) {
 
   const PayButton = ({ label }: { label: string }) => (
     <div className="space-y-1.5">
+      <AmountPicker />
       <Button
         size="sm"
         onClick={handleBecomeMember}
@@ -129,13 +159,23 @@ export function GuildMembershipCard({ guild }: Props) {
               <span>
                 {monthly ? (
                   <>
-                    Monthly fee: <strong className="text-foreground">🟩 {recurringFee} Coins / month</strong> (~{toEur(recurringFee)} €)
+                    Monthly fee:{" "}
+                    <strong className="text-foreground">
+                      🟩 {isRange ? `${minFee} – ${maxFee}` : recurringFee} Coins / month
+                    </strong>{" "}
+                    (~{toEur(minFee)} €{isRange ? ` – ${toEur(maxFee)} €` : ""})
                     {joiningFee > 0 && (
                       <> · one-time joining fee <strong className="text-foreground">🟩 {joiningFee} Coins</strong></>
                     )}
                   </>
                 ) : (
-                  <>One-time entry fee: <strong className="text-foreground">🟩 {oneTimeFee} Coins</strong> (~{toEur(oneTimeFee)} €)</>
+                  <>
+                    One-time entry fee:{" "}
+                    <strong className="text-foreground">
+                      🟩 {isRange ? `${minFee} – ${maxFee}` : oneTimeFee} Coins
+                    </strong>{" "}
+                    (~{toEur(minFee)} €{isRange ? ` – ${toEur(maxFee)} €` : ""})
+                  </>
                 )}
               </span>
             </div>

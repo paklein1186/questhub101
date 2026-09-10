@@ -28,7 +28,9 @@ serve(async (req) => {
 
     const { data: memberships } = await admin
       .from("user_guild_memberships")
-      .select("*, guilds!inner(id, name, billing_model, monthly_fee_credits, enable_membership)")
+      .select(
+        "*, guilds!inner(id, name, billing_model, monthly_fee_credits, monthly_fee_max_credits, enable_membership)",
+      )
       .eq("role", "member")
       .in("status", ["active", "grace"])
       .not("current_period_end", "is", null);
@@ -40,13 +42,20 @@ serve(async (req) => {
       const periodEnd = new Date(m.current_period_end);
       const daysLeft = Math.ceil((periodEnd.getTime() - now.getTime()) / 86400000);
 
+      // The member may have chosen an amount inside the guild's price range
+      const minFee = Number(guild.monthly_fee_credits ?? 0);
+      const maxFee = Number(guild.monthly_fee_max_credits ?? 0);
+      const chosen = Number(m.chosen_fee_credits ?? 0);
+      const fee =
+        chosen > 0 ? Math.min(Math.max(chosen, minFee), maxFee > minFee ? maxFee : chosen) : minFee;
+
       // Reminders before renewal
       if (daysLeft === 7 || daysLeft === 1) {
         await admin.from("notifications").insert({
           user_id: m.user_id,
           type: "GUILD_MEMBERSHIP_RENEWAL_REMINDER",
           title: "Membership renewal coming up",
-          body: `Your membership of ${guild.name} renews in ${daysLeft} day${daysLeft > 1 ? "s" : ""} for ${guild.monthly_fee_credits} Coins.`,
+          body: `Your membership of ${guild.name} renews in ${daysLeft} day${daysLeft > 1 ? "s" : ""} for ${fee} Coins.`,
           related_entity_type: "guild",
           related_entity_id: guild.id,
           deep_link_url: `/guilds/${guild.id}`,
@@ -67,7 +76,6 @@ serve(async (req) => {
         continue;
       }
 
-      const fee = Number(guild.monthly_fee_credits ?? 0);
       const { data: profile } = await admin
         .from("profiles")
         .select("coins_balance, name")
