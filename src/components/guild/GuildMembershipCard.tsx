@@ -71,11 +71,28 @@ export function GuildMembershipCard({ guild }: Props) {
     ? `Become Member (${dueNow} Coins / month${firstPayment && joiningFee ? ", incl. joining fee" : ""})`
     : `Become Member (${dueNow} Coins)`;
 
+  const notEnoughCoins = dueNow > 0 && coinsBalance !== undefined && coinsBalance < dueNow;
+
   const PayButton = ({ label }: { label: string }) => (
-    <Button size="sm" onClick={handleBecomeMember} disabled={processing || blockedByApproval} className="w-full">
-      {processing && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-      {label}
-    </Button>
+    <div className="space-y-1.5">
+      <Button
+        size="sm"
+        onClick={handleBecomeMember}
+        disabled={processing || blockedByApproval || notEnoughCoins}
+        className="w-full"
+      >
+        {processing && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+        {label}
+      </Button>
+      {notEnoughCoins && (
+        <p className="text-xs text-muted-foreground">
+          You have 🟩 {coinsBalance} Coins and need {dueNow}. 1 Coin = {rate.toFixed(2)} €.{" "}
+          <Link to="/settings/wallet" className="text-primary underline underline-offset-2">
+            Top up your wallet
+          </Link>
+        </p>
+      )}
+    </div>
   );
 
   return (
