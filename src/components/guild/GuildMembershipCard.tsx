@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CreditCard, Users, CalendarClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuildMembership, isActiveMember } from "@/hooks/useGuildMembership";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 
 interface Props {
   guild: any;
@@ -24,6 +27,20 @@ export function GuildMembershipCard({ guild }: Props) {
     cancelRenewal,
   } = useGuildMembership(guild.id);
   const [processing, setProcessing] = useState(false);
+  const { rate, toEur } = useCoinsRate();
+
+  const { data: coinsBalance } = useQuery({
+    queryKey: ["my-coins-balance", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("coins_balance")
+        .eq("user_id", session!.user.id)
+        .maybeSingle();
+      return Number((data as any)?.coins_balance ?? 0);
+    },
+  });
 
   if (!guild.enable_membership) return null;
 
@@ -54,11 +71,28 @@ export function GuildMembershipCard({ guild }: Props) {
     ? `Become Member (${dueNow} Coins / month${firstPayment && joiningFee ? ", incl. joining fee" : ""})`
     : `Become Member (${dueNow} Coins)`;
 
+  const notEnoughCoins = dueNow > 0 && coinsBalance !== undefined && coinsBalance < dueNow;
+
   const PayButton = ({ label }: { label: string }) => (
-    <Button size="sm" onClick={handleBecomeMember} disabled={processing || blockedByApproval} className="w-full">
-      {processing && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-      {label}
-    </Button>
+    <div className="space-y-1.5">
+      <Button
+        size="sm"
+        onClick={handleBecomeMember}
+        disabled={processing || blockedByApproval || notEnoughCoins}
+        className="w-full"
+      >
+        {processing && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+        {label}
+      </Button>
+      {notEnoughCoins && (
+        <p className="text-xs text-muted-foreground">
+          You have 🟩 {coinsBalance} Coins and need {dueNow}. 1 Coin = {rate.toFixed(2)} €.{" "}
+          <Link to="/settings/wallet" className="text-primary underline underline-offset-2">
+            Top up your wallet
+          </Link>
+        </p>
+      )}
+    </div>
   );
 
   return (
@@ -95,13 +129,13 @@ export function GuildMembershipCard({ guild }: Props) {
               <span>
                 {monthly ? (
                   <>
-                    Monthly fee: <strong className="text-foreground">{recurringFee} Coins / month</strong>
+                    Monthly fee: <strong className="text-foreground">🟩 {recurringFee} Coins / month</strong> (~{toEur(recurringFee)} €)
                     {joiningFee > 0 && (
-                      <> · one-time joining fee <strong className="text-foreground">{joiningFee} Coins</strong></>
+                      <> · one-time joining fee <strong className="text-foreground">🟩 {joiningFee} Coins</strong></>
                     )}
                   </>
                 ) : (
-                  <>One-time entry fee: <strong className="text-foreground">{oneTimeFee} Coins</strong></>
+                  <>One-time entry fee: <strong className="text-foreground">🟩 {oneTimeFee} Coins</strong> (~{toEur(oneTimeFee)} €)</>
                 )}
               </span>
             </div>

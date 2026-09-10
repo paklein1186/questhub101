@@ -11,6 +11,8 @@ import { Save, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
+import { Link } from "react-router-dom";
 
 type MembershipStyle = "none" | "symbolic_supporter" | "core_members" | "cooperative_circle";
 
@@ -64,6 +66,7 @@ interface Props {
 export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { rate, toEur } = useCoinsRate();
 
   const [enableMembership, setEnableMembership] = useState<boolean>(guild.enable_membership ?? false);
   const [membershipStyle, setMembershipStyle] = useState<MembershipStyle>((guild.membership_style as MembershipStyle) ?? "none");
@@ -182,11 +185,18 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             </Select>
           </div>
 
+          <p className="text-xs text-muted-foreground -mt-2">
+            Membership fees are paid in 🟩 Coins — 1 Coin = {rate.toFixed(2)} €. Members top up their Coins from their{" "}
+            <Link to="/settings/wallet" className="text-primary underline underline-offset-2">wallet</Link>.
+          </p>
+
           {billingModel === "monthly" && (
             <>
               <div>
                 <Label className="text-sm font-medium mb-1 block">Monthly fee (🟩 Coins)</Label>
-                <p className="text-xs text-muted-foreground mb-2">Charged every month to keep the member role.</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Charged every month in Coins to keep the member role{monthlyFee > 0 ? ` — about ${toEur(monthlyFee)} € per month` : ""}.
+                </p>
                 <Input
                   type="number"
                   min={0}
@@ -196,7 +206,9 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
               </div>
               <div>
                 <Label className="text-sm font-medium mb-1 block">Joining fee (🟩 Coins, optional)</Label>
-                <p className="text-xs text-muted-foreground mb-2">Charged once, on top of the first monthly payment.</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Charged once in Coins, on top of the first monthly payment{joiningFee > 0 ? ` — about ${toEur(joiningFee)} €` : ""}.
+                </p>
                 <Input
                   type="number"
                   min={0}
@@ -219,7 +231,9 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
           {/* Entry fee */}
           <div className={billingModel === "monthly" ? "hidden" : ""}>
             <Label className="text-sm font-medium mb-1 block">Entry fee (🟩 Coins)</Label>
-            <p className="text-xs text-muted-foreground mb-2">One-time fee in Coins to become a member.</p>
+            <p className="text-xs text-muted-foreground mb-2">
+              One-time fee in Coins to become a member{entryFee > 0 ? ` — about ${toEur(entryFee)} €` : ""}.
+            </p>
             <Input
               type="number"
               min={0}
