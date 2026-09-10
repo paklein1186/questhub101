@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useXpCredits } from "@/hooks/useXpCredits";
 import { useCallback } from "react";
 
 export type GuildMembershipRow = {
@@ -12,6 +11,10 @@ export type GuildMembershipRow = {
   role: "guest" | "member";
   joined_at: string;
   membership_expires_at: string | null;
+  status?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean | null;
+  last_payment_at?: string | null;
 };
 
 type GuildLike = {
@@ -27,8 +30,10 @@ export function isActiveMember(
   guild: GuildLike | null | undefined
 ): boolean {
   if (!membership || membership.role !== "member") return false;
-  if (!membership.membership_expires_at) return true;
-  return new Date(membership.membership_expires_at) > new Date();
+  if (membership.status && !["active", "grace"].includes(membership.status)) return false;
+  const end = membership.current_period_end ?? membership.membership_expires_at;
+  if (!end) return true;
+  return new Date(end) > new Date();
 }
 
 export function canCreateGuildQuest(
@@ -60,11 +65,10 @@ export function useGuildMembership(guildId: string | undefined) {
   const userId = session?.user?.id;
   const { toast } = useToast();
   const qc = useQueryClient();
-  const { spendCredits } = useXpCredits();
 
   const queryKey = ["guild-membership", guildId, userId];
 
-  const { data: membership = null, isLoading, refetch } = useQuery({
+  const { data: membership = null, isLoading } = useQuery({
     queryKey,
     enabled: !!guildId && !!userId,
     queryFn: async (): Promise<GuildMembershipRow | null> => {
@@ -79,12 +83,32 @@ export function useGuildMembership(guildId: string | undefined) {
     },
   });
 
+  // Latest application (used to gate paid membership behind approval)
+  const { data: application = null } = useQuery({
+    queryKey: ["guild-application", guildId, userId],
+    enabled: !!guildId && !!userId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guild_applications" as any)
+        .select("id, status, created_at")
+        .eq("guild_id", guildId!)
+        .eq("applicant_user_id", userId!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any) ?? null;
+    },
+  });
+
   const isGuest = membership?.role === "guest";
   const isMember = membership?.role === "member";
 
   const refresh = useCallback(() => {
     qc.invalidateQueries({ queryKey });
-  }, [qc, queryKey]);
+    qc.invalidateQueries({ queryKey: ["guild-application", guildId, userId] });
+    qc.invalidateQueries({ queryKey: ["profile"] });
+    qc.invalidateQueries({ queryKey: ["xp-credits"] });
+  }, [qc, queryKey, guildId, userId]);
 
   const joinAsGuest = useCallback(async () => {
     if (!userId || !guildId) return;
@@ -94,7 +118,7 @@ export function useGuildMembership(guildId: string | undefined) {
     }
     const { error } = await supabase
       .from("user_guild_memberships" as any)
-      .insert({ user_id: userId, guild_id: guildId, role: "guest" });
+      .insert({ user_id: userId, guild_id: guildId, role: "guest", status: "active" });
     if (error) {
       toast({ title: "Failed to join", variant: "destructive" });
       return;
@@ -103,77 +127,63 @@ export function useGuildMembership(guildId: string | undefined) {
     refresh();
   }, [userId, guildId, membership, toast, refresh]);
 
-  const becomeMember = useCallback(
-    async (guild: {
-      enable_membership?: boolean;
-      entry_fee_credits?: number | null;
-      membership_duration_months?: number | null;
-    }) => {
-      if (!userId || !guildId) return false;
+  const becomeMember = useCallback(async () => {
+    if (!userId || !guildId) return false;
 
-      if (!guild.enable_membership || !guild.entry_fee_credits) {
-        toast({
-          title: "Membership not configured",
-          description: "This guild has not set up membership yet.",
-          variant: "destructive",
-        });
-        return false;
-      }
+    const { data, error } = await supabase.functions.invoke("guild-membership-pay", {
+      body: { guild_id: guildId },
+    });
 
-      const fee = guild.entry_fee_credits;
-
-      // Spend credits via the secure RPC
-      const ok = await spendCredits(userId, {
-        amount: fee,
-        type: "GUILD_MEMBERSHIP" as any,
-        source: `Guild membership fee`,
-        relatedEntityType: "guild",
-        relatedEntityId: guildId,
+    const errMsg = (data as any)?.error || (error as any)?.message;
+    if (error || (data as any)?.error) {
+      toast({
+        title: "Payment could not be completed",
+        description: errMsg ?? "Please try again.",
+        variant: "destructive",
       });
+      return false;
+    }
 
-      if (!ok) return false; // spendCredits already shows toast
+    const amount = (data as any)?.amount ?? 0;
+    toast({
+      title: "Membership activated",
+      description: `${amount} credits were transferred to the guild. Your remaining balance: ${(data as any)?.new_balance ?? "—"} credits.`,
+    });
+    refresh();
+    return true;
+  }, [userId, guildId, toast, refresh]);
 
-      // Calculate expiry
-      let expiresAt: string | null = null;
-      if (guild.membership_duration_months) {
-        const d = new Date();
-        d.setMonth(d.getMonth() + guild.membership_duration_months);
-        expiresAt = d.toISOString();
-      }
-
-      // Upsert membership
+  const cancelRenewal = useCallback(
+    async (cancel: boolean) => {
+      if (!membership) return;
       const { error } = await supabase
         .from("user_guild_memberships" as any)
-        .upsert(
-          {
-            user_id: userId,
-            guild_id: guildId,
-            role: "member",
-            joined_at: new Date().toISOString(),
-            membership_expires_at: expiresAt,
-          },
-          { onConflict: "user_id,guild_id" }
-        );
-
+        .update({ cancel_at_period_end: cancel })
+        .eq("id", membership.id);
       if (error) {
-        toast({ title: "Failed to activate membership", variant: "destructive" });
-        return false;
+        toast({ title: "Could not update renewal", variant: "destructive" });
+        return;
       }
-
-      toast({ title: "You are now a member of this guild." });
+      toast({
+        title: cancel ? "Renewal stopped" : "Renewal reactivated",
+        description: cancel
+          ? "Your membership stays active until the end of the current period."
+          : "Your membership will renew automatically again.",
+      });
       refresh();
-      return true;
     },
-    [userId, guildId, spendCredits, toast, refresh]
+    [membership, toast, refresh]
   );
 
   return {
     membership: membership as GuildMembershipRow | null,
+    application,
     isGuest,
     isMember,
     isLoading,
     refresh,
     joinAsGuest,
     becomeMember,
+    cancelRenewal,
   };
 }
