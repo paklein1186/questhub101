@@ -47,6 +47,7 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
 import { GuildGiveBackReceived } from "@/components/giveback/GiveBackHistory";
+import { GuildMembershipIncome } from "@/components/guild/GuildMembershipIncome";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
@@ -1132,6 +1133,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     unitName={guild.name}
                     creditsBalance={(guild as any).credits_balance ?? 0}
                   />
+                  <GuildMembershipIncome guildId={guildId} />
                   <GuildGiveBackReceived guildId={guildId} />
                 </div>
               )}

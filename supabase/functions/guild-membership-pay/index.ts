@@ -85,20 +85,20 @@ serve(async (req) => {
 
     if (!amount || amount <= 0) return fail("No membership fee is configured for this guild.");
 
-    // Debit the user
+    // Debit the user (membership fees are paid in Coins)
     const { data: profile } = await admin
       .from("profiles")
-      .select("credits_balance, name")
+      .select("coins_balance, name")
       .eq("user_id", userId)
       .maybeSingle();
     if (!profile) return fail("Profile not found", 404);
 
-    const balance = Number(profile.credits_balance ?? 0);
-    if (balance < amount) return fail(`Not enough credits. You need ${amount} credits.`, 402);
+    const balance = Number(profile.coins_balance ?? 0);
+    if (balance < amount) return fail(`Not enough Coins. You need ${amount} Coins.`, 402);
 
-    await admin.from("profiles").update({ credits_balance: balance - amount }).eq("user_id", userId);
+    await admin.from("profiles").update({ coins_balance: balance - amount }).eq("user_id", userId);
 
-    await admin.from("credit_transactions").insert({
+    await admin.from("coin_transactions").insert({
       user_id: userId,
       type: "GUILD_MEMBERSHIP",
       amount: -amount,
@@ -109,28 +109,29 @@ serve(async (req) => {
       related_entity_id: guildId,
     });
 
-    // Credit the guild wallet
+    // Credit the guild wallet (Coins)
     const { data: wallet } = await admin
       .from("guild_wallets")
-      .select("id, credits_balance")
+      .select("id, coins_balance")
       .eq("guild_id", guildId)
       .maybeSingle();
 
     if (wallet) {
       await admin
         .from("guild_wallets")
-        .update({ credits_balance: Number(wallet.credits_balance ?? 0) + amount })
+        .update({ coins_balance: Number(wallet.coins_balance ?? 0) + amount })
         .eq("id", wallet.id);
     } else {
-      await admin.from("guild_wallets").insert({ guild_id: guildId, credits_balance: amount });
+      await admin.from("guild_wallets").insert({ guild_id: guildId, coins_balance: amount });
     }
 
     await admin.from("guild_credit_transactions").insert({
       guild_id: guildId,
       user_id: userId,
       amount,
+      currency: "coins",
       type: monthly ? "MEMBERSHIP_MONTHLY" : "MEMBERSHIP_ENTRY",
-      source: `${profile.name ?? "A member"} paid ${amount} credits`,
+      source: `${profile.name ?? "A member"} paid ${amount} Coins`,
     });
 
     // Membership period
@@ -184,7 +185,7 @@ serve(async (req) => {
           user_id: aid,
           type: "GUILD_MEMBERSHIP_PAYMENT",
           title: "New paid membership",
-          body: `${profile.name ?? "Someone"} paid ${amount} credits to join ${guild.name}.`,
+          body: `${profile.name ?? "Someone"} paid ${amount} Coins to join ${guild.name}.`,
           related_entity_type: "guild",
           related_entity_id: guildId,
           deep_link_url: `/guilds/${guildId}`,

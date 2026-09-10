@@ -4372,6 +4372,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency: string
           guild_id: string
           id: string
           source: string | null
@@ -4381,6 +4382,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          currency?: string
           guild_id: string
           id?: string
           source?: string | null
@@ -4390,6 +4392,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          currency?: string
           guild_id?: string
           id?: string
           source?: string | null
