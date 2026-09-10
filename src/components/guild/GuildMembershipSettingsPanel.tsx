@@ -185,7 +185,7 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
           {billingModel === "monthly" && (
             <>
               <div>
-                <Label className="text-sm font-medium mb-1 block">Monthly fee (credits)</Label>
+                <Label className="text-sm font-medium mb-1 block">Monthly fee (🟩 Coins)</Label>
                 <p className="text-xs text-muted-foreground mb-2">Charged every month to keep the member role.</p>
                 <Input
                   type="number"
@@ -195,7 +195,7 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium mb-1 block">Joining fee (credits, optional)</Label>
+                <Label className="text-sm font-medium mb-1 block">Joining fee (🟩 Coins, optional)</Label>
                 <p className="text-xs text-muted-foreground mb-2">Charged once, on top of the first monthly payment.</p>
                 <Input
                   type="number"
@@ -218,8 +218,8 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
 
           {/* Entry fee */}
           <div className={billingModel === "monthly" ? "hidden" : ""}>
-            <Label className="text-sm font-medium mb-1 block">Entry fee (credits)</Label>
-            <p className="text-xs text-muted-foreground mb-2">One-time entry fee in credits to become a member.</p>
+            <Label className="text-sm font-medium mb-1 block">Entry fee (🟩 Coins)</Label>
+            <p className="text-xs text-muted-foreground mb-2">One-time fee in Coins to become a member.</p>
             <Input
               type="number"
               min={0}

@@ -51,8 +51,8 @@ export function GuildMembershipCard({ guild }: Props) {
   };
 
   const payLabel = monthly
-    ? `Become Member (${dueNow} credits / month${firstPayment && joiningFee ? ", incl. joining fee" : ""})`
-    : `Become Member (${dueNow} credits)`;
+    ? `Become Member (${dueNow} Coins / month${firstPayment && joiningFee ? ", incl. joining fee" : ""})`
+    : `Become Member (${dueNow} Coins)`;
 
   const PayButton = ({ label }: { label: string }) => (
     <Button size="sm" onClick={handleBecomeMember} disabled={processing || blockedByApproval} className="w-full">
@@ -95,13 +95,13 @@ export function GuildMembershipCard({ guild }: Props) {
               <span>
                 {monthly ? (
                   <>
-                    Monthly fee: <strong className="text-foreground">{recurringFee} credits / month</strong>
+                    Monthly fee: <strong className="text-foreground">{recurringFee} Coins / month</strong>
                     {joiningFee > 0 && (
-                      <> · one-time joining fee <strong className="text-foreground">{joiningFee} credits</strong></>
+                      <> · one-time joining fee <strong className="text-foreground">{joiningFee} Coins</strong></>
                     )}
                   </>
                 ) : (
-                  <>One-time entry fee: <strong className="text-foreground">{oneTimeFee} credits</strong></>
+                  <>One-time entry fee: <strong className="text-foreground">{oneTimeFee} Coins</strong></>
                 )}
               </span>
             </div>
@@ -185,7 +185,7 @@ export function GuildMembershipCard({ guild }: Props) {
           {isMember && !active && (
             <div className="space-y-2">
               <Badge variant="destructive" className="text-xs">Membership expired</Badge>
-              {dueNow > 0 && <PayButton label={`Renew membership (${dueNow} credits)`} />}
+              {dueNow > 0 && <PayButton label={`Renew membership (${dueNow} Coins)`} />}
             </div>
           )}
         </>

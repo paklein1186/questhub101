@@ -108,6 +108,7 @@ export function useGuildMembership(guildId: string | undefined) {
     qc.invalidateQueries({ queryKey: ["guild-application", guildId, userId] });
     qc.invalidateQueries({ queryKey: ["profile"] });
     qc.invalidateQueries({ queryKey: ["xp-credits"] });
+    qc.invalidateQueries({ queryKey: ["guild-income", guildId] });
   }, [qc, queryKey, guildId, userId]);
 
   const joinAsGuest = useCallback(async () => {
@@ -147,7 +148,7 @@ export function useGuildMembership(guildId: string | undefined) {
     const amount = (data as any)?.amount ?? 0;
     toast({
       title: "Membership activated",
-      description: `${amount} credits were transferred to the guild. Your remaining balance: ${(data as any)?.new_balance ?? "—"} credits.`,
+      description: `${amount} Coins were transferred to the guild. Your remaining balance: ${(data as any)?.new_balance ?? "—"} Coins.`,
     });
     refresh();
     return true;
