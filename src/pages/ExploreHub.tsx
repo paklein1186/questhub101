@@ -1,6 +1,7 @@
 import { useState, useMemo, createContext, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target, HandHeart } from "lucide-react";
 import { useGridDensity, type GridDensity } from "@/hooks/useGridDensity";
 import { GridDensityToggle } from "@/components/explore/GridDensityToggle";
@@ -49,6 +50,7 @@ export const useExploreGridDensity = () => useContext(GridDensityContext);
 
 export default function ExploreHub() {
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.explore"));
   const currentUser = useCurrentUser();
   const isGuest = !currentUser.id;
   const { persona, label } = usePersona();

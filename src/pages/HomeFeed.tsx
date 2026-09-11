@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { BauhausShape } from "@/components/home/BauhausShape";
 import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
@@ -296,6 +297,7 @@ function TerritoryFlow({
 
 export default function HomeFeed() {
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.home"));
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const { persona } = usePersona();

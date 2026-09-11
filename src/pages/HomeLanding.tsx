@@ -17,6 +17,7 @@ import { LandingStatBar } from "@/components/landing/LandingStatBar";
 import { LandingLivingMapSection } from "@/components/landing/LandingLivingMapSection";
 
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
@@ -58,6 +59,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default function HomeLanding() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.landing"));
   const k = (s: string) => t(`landing.home.${s}`);
 
   const failures = [

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSearchParams } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { DestinationPostComposer } from "@/components/feed/DestinationPostComposer";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 
 export default function FeedHub() {
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.feed"));
   const { session } = useAuth();
   const currentUser = useCurrentUser();
   const { label } = usePersona();

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { usePersona } from "@/hooks/usePersona";
 import { clearAllHints } from "@/components/onboarding/ContextualHint";
 import { useEconomyModal } from "@/components/onboarding/EconomyOnboarding";
@@ -162,6 +163,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
+  useDocumentTitle(t("pageTitles.myHub"));
   const { setOpen: setEconomyOpen } = useEconomyModal();
   const currentUser = useCurrentUser();
   const { persona, updatePersona, lexiconOverride, setLexiconOverride } = usePersona();

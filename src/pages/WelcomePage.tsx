@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { LandingLanguageSwitcher } from "@/components/LandingLanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -21,6 +22,7 @@ const fadeUp = {
 export default function WelcomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.welcome"));
 
   const personas = [
     {

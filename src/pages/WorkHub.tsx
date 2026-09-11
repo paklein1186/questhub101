@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSearchParams, Link } from "react-router-dom";
 import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb, Scale } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,6 +50,7 @@ function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; 
 
 export default function WorkHub() {
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.work"));
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "tasks";
   const setTab = (t: string) => setSearchParams({ tab: t });

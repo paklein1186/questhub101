@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserPlus, Loader2, Gift } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.signup"));
   const refCode = searchParams.get("ref") || "";
   const redirectTo = searchParams.get("redirect") || "";
 
