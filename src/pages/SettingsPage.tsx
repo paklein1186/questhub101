@@ -6,7 +6,7 @@ import { clearAllHints } from "@/components/onboarding/ContextualHint";
 import { useEconomyModal } from "@/components/onboarding/EconomyOnboarding";
 import type { PersonaType } from "@/lib/personaLabels";
 import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, EyeOff, Plug,
@@ -179,7 +179,16 @@ export default function SettingsPage() {
 
 
 
-  const activeTab = searchParams.get("tab") || "profile";
+  // A few routes (/settings/wallet, /me/services) link straight to a specific
+  // tab by path rather than a ?tab= param — this page only reads state from
+  // the query string, so without this map those links silently fell back to
+  // "profile" instead of the tab they promised.
+  const location = useLocation();
+  const PATH_TO_TAB: Record<string, string> = {
+    "/settings/wallet": "wallet",
+    "/me/services": "services",
+  };
+  const activeTab = searchParams.get("tab") || PATH_TO_TAB[location.pathname] || "profile";
   const setActiveTab = (tab: string) => setSearchParams({ tab }, { replace: true });
 
   // ── Profile state (sourced from Supabase auth profile, NOT mock) ──

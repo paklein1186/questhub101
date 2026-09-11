@@ -10,6 +10,7 @@ import {
 } from "@/lib/questTypes";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
+import { translateTopicName } from "@/lib/entityLabels";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -1200,11 +1201,11 @@ export default function QuestCreate() {
               </div>
               <SearchableTagPicker
                 label=""
-                items={(topics ?? []).filter((t: any) => {
-                  if (topicFilter === "houses") return t.name?.startsWith("House of");
-                  if (topicFilter === "topics") return !t.name?.startsWith("House of");
+                items={(topics ?? []).filter((topic: any) => {
+                  if (topicFilter === "houses") return topic.name?.startsWith("House of");
+                  if (topicFilter === "topics") return !topic.name?.startsWith("House of");
                   return true;
-                }).map(t => ({ id: t.id, name: t.name }))}
+                }).map(topic => ({ id: topic.id, name: translateTopicName(topic.name, t) }))}
                 selectedIds={selectedTopics}
                 onToggle={toggleTopic}
                 onSelectAll={() => setSelectedTopics((topics ?? []).filter((t: any) => {
