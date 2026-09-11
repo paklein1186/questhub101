@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { translateTopicName } from "@/lib/entityLabels";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
@@ -171,6 +173,7 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
 // ─── Main ────────────────────────────────────────────────────
 export default function NetworkHub() {
   const { t } = useTranslation();
+  useDocumentTitle(t("pageTitles.network"));
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "activity";
   const setTab = (t: string) => setSearchParams({ tab: t });
@@ -290,6 +293,7 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
 }
 
 function OverviewTerritories({ territories, topics, activity }: { territories: any[]; topics: any[]; activity: any }) {
+  const { t } = useTranslation();
   return (
     <div>
       <SectionHeader icon={MapPin} title="Territories around you" seeMoreTo="/network?tab=territories" />
@@ -312,9 +316,9 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
           )}
            {topics.length > 0 && (
              <div className="flex flex-wrap gap-1.5">
-               {topics.map((t: any) => (
-                  <Link key={t.id} to={`/topics/${t.slug || t.id}`}>
-                    <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
+               {topics.map((topic: any) => (
+                  <Link key={topic.id} to={`/topics/${topic.slug || topic.id}`}>
+                    <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>
                  </Link>
                ))}
              </div>
@@ -563,6 +567,7 @@ function PersonCard({ person, index, isFollowed = false }: { person: any; index:
 }
 
 function GuildCard({ membership, index }: { membership: any; index: number }) {
+  const { t } = useTranslation();
   const g = membership.guild;
   const topics = (g?.guild_topics ?? []).map((gt: any) => gt.topics).filter(Boolean);
   const territories = (g?.guild_territories ?? []).map((gt: any) => gt.territories).filter(Boolean);
@@ -581,7 +586,7 @@ function GuildCard({ membership, index }: { membership: any; index: number }) {
         {g.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{g.description}</p>}
         <div className="flex flex-wrap gap-1">
           {territories.slice(0, 2).map((t: any) => <Badge key={t.id} variant="outline" className="text-[9px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-          {topics.slice(0, 3).map((t: any) => <Badge key={t.id} variant="outline" className="text-[9px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+          {topics.slice(0, 3).map((topic: any) => <Badge key={topic.id} variant="outline" className="text-[9px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>)}
         </div>
       </Link>
     </motion.div>

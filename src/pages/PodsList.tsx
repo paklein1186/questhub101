@@ -23,6 +23,8 @@ import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 import { useExploreGridDensity } from "@/pages/ExploreHub";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -30,6 +32,7 @@ const fadeUp = {
 };
 
 export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const { gridClassName } = useExploreGridDensity();
   const currentUser = useCurrentUser();
   const { session } = useAuth();
@@ -139,7 +142,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No topic</SelectItem>
-                  {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                  {(topics ?? []).map((topic) => <SelectItem key={topic.id} value={topic.id}>{translateTopicName(topic.name, t)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -235,7 +238,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
                   {isLoggedIn && (
                     <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground">
                       {quest && <Badge variant="outline" className="text-[10px]">{quest.title}</Badge>}
-                      {topic && <Badge variant="secondary" className="text-[10px]">{topic.name}</Badge>}
+                      {topic && <Badge variant="secondary" className="text-[10px]">{translateTopicName(topic.name, t)}</Badge>}
                       <span>· {formatDistanceToNow(new Date(pod.created_at), { addSuffix: true })}</span>
                     </div>
                   )}

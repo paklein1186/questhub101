@@ -7,6 +7,8 @@ import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { translateTaskStatus } from "@/lib/entityLabels";
 
 const COLUMNS = [
   { key: "BACKLOG", label: "Backlog", color: "border-muted-foreground/30 bg-muted/20" },
@@ -30,6 +32,7 @@ export function SubtasksKanbanView({
   onUndoDone,
   canEditSubtask,
 }: SubtasksKanbanViewProps) {
+  const { t } = useTranslation();
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -72,7 +75,7 @@ export function SubtasksKanbanView({
             onDrop={(e) => handleDrop(e, col.key)}
           >
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-display font-semibold text-xs">{col.label}</h4>
+              <h4 className="font-display font-semibold text-xs">{translateTaskStatus(col.key, t)}</h4>
               <Badge variant="secondary" className="text-[10px]">{colTasks.length}</Badge>
             </div>
             <div className="space-y-2">

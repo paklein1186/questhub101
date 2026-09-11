@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import { translateEntityType } from "@/lib/entityLabels";
 
 // ── My Quests (created + joined) ──
 export function MyQuestsTab({ userId }: { userId: string }) {
@@ -83,6 +85,7 @@ export function MyQuestsTab({ userId }: { userId: string }) {
 
 // ── My Guilds ──
 export function MyGuildsTab({ userId }: { userId: string }) {
+  const { t } = useTranslation();
   const { data: guilds = [], isLoading } = useQuery({
     queryKey: ["my-guilds", userId],
     queryFn: async () => {
@@ -105,7 +108,7 @@ export function MyGuildsTab({ userId }: { userId: string }) {
           <Link key={g.id} to={`/guilds/${g.id}`} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-muted/50 transition-colors">
             <div>
               <p className="text-sm font-medium">{g.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">{g.type?.toLowerCase()}</p>
+              <p className="text-xs text-muted-foreground capitalize">{translateEntityType(g.type, t)}</p>
             </div>
             <Badge variant="outline" className="text-[10px]">{g.memberRole}</Badge>
           </Link>

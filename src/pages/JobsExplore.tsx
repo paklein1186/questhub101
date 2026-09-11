@@ -16,6 +16,8 @@ import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues }
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { usePersona } from "@/hooks/usePersona";
 import { defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 const CONTRACT_OPTIONS = [
   { value: "all", label: "All types" },
@@ -39,6 +41,7 @@ interface Props {
 }
 
 export default function JobsExplore({ bare }: Props) {
+  const { t } = useTranslation();
   const { data: jobs = [], isLoading } = useAllJobPositions();
   const currentUser = useCurrentUser();
   const isGuest = !currentUser?.id;
@@ -218,7 +221,7 @@ export default function JobsExplore({ bare }: Props) {
               )}
 
               <div className="flex flex-wrap gap-1">
-                {topics.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]">{t.name}</Badge>)}
+                {topics.map((topic: any) => <Badge key={topic.id} variant="outline" className="text-[10px]">{translateTopicName(topic.name, t)}</Badge>)}
                 {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
               </div>
 

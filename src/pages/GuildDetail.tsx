@@ -90,6 +90,7 @@ import { GuildContributionMap } from "@/components/ocu/GuildContributionMap";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 import { GuildCTGStat } from "@/components/ctg/CTGIntegrationWidgets";
+import { translateTopicName, translateEntityType } from "@/lib/entityLabels";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
   allTabs: TabDefinition[]; defaultOrder: string[];
@@ -333,7 +334,7 @@ export default function GuildDetail() {
   const { data: guildAchievements } = useAchievementsForQuests(questIds);
 
   // ─── Auto-translation ───
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const guildTrFields = useMemo(() => [
     { fieldName: "name", originalText: guild?.name ?? null },
     { fieldName: "description", originalText: guild?.description ?? null },
@@ -470,7 +471,7 @@ export default function GuildDetail() {
               {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <Badge variant="secondary" className="capitalize">{(guild.type || "guild").toLowerCase()}</Badge>
+              <Badge variant="secondary" className="capitalize">{translateEntityType(guild.type || "guild", t)}</Badge>
               <span>Created by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
             <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}><p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{trDesc}</p></GuestContentGate>
@@ -500,7 +501,7 @@ export default function GuildDetail() {
             </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {topics.map((t: any) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
+          {topics.map((topic: any) => <Link key={topic.id} to={`/topics/${topic.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{translateTopicName(topic.name, t)}</Badge></Link>)}
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="mt-3">
@@ -589,7 +590,7 @@ export default function GuildDetail() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Type</span>
-                <Badge variant="outline" className="capitalize text-xs">{(guild.type || "guild").toLowerCase()}</Badge>
+                <Badge variant="outline" className="capitalize text-xs">{translateEntityType(guild.type || "guild", t)}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Founder</span>

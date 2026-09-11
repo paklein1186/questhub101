@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { translateTaskStatus } from "@/lib/entityLabels";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -1367,7 +1368,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                           {task.workState === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
                         </span>
                         <span className="hidden md:inline truncate">
-                          {task.workState === "BACKLOG" ? "Backlog" : task.workState === "TODO" ? "To do next" : task.workState === "IN_PROGRESS" ? "In progress" : "Done"}
+                          {translateTaskStatus(task.workState, t)}
                         </span>
                       </SelectTrigger>
                       <SelectContent>
@@ -1486,10 +1487,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
-                    <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> To do next</span></SelectItem>
-                    <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> In progress</span></SelectItem>
-                    <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Done</span></SelectItem>
+                    <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> {translateTaskStatus("BACKLOG", t)}</span></SelectItem>
+                    <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> {translateTaskStatus("TODO", t)}</span></SelectItem>
+                    <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> {translateTaskStatus("IN_PROGRESS", t)}</span></SelectItem>
+                    <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> {translateTaskStatus("DONE", t)}</span></SelectItem>
                   </SelectContent>
                 </Select>
               </div>

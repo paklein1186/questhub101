@@ -23,8 +23,11 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 
 import { useExploreGridDensity } from "@/pages/ExploreHub";
+import { useTranslation } from "react-i18next";
+import { translateTopicName, translateEntityType } from "@/lib/entityLabels";
 
 export default function GuildsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const { gridClassName } = useExploreGridDensity();
   const currentUser = useCurrentUser();
   const { session } = useAuth();
@@ -174,7 +177,7 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
                     <img src={guild.logo_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${guild.name}`} className="h-10 w-10 rounded-lg" alt="" />
                     <div>
                       <h3 className="font-display font-semibold group-hover:text-primary transition-colors">{guild.name}</h3>
-                      <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{translateEntityType(guild.type, t)}</span>
                     </div>
                   </div>
                   {/* Hide description for public mode */}
@@ -184,7 +187,7 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
                     <p className="text-sm text-muted-foreground mb-3 italic">Log in to see details</p>
                   )}
                   <div className="flex flex-wrap gap-1.5 mb-3">
-                    {gTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+                    {gTopics.slice(0, 5).map((topic: any) => <Badge key={topic.id} variant="secondary" className="text-xs">{translateTopicName(topic.name, t)}</Badge>)}
                     {gTopics.length > 5 && <Badge variant="secondary" className="text-xs text-muted-foreground">+{gTopics.length - 5}</Badge>}
                     {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                   </div>

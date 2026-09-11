@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import { translateEntityType } from "@/lib/entityLabels";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -12,6 +14,7 @@ const fadeUp = {
 };
 
 export function ThisWeekInEcosystem() {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["this-week-ecosystem"],
     queryFn: async () => {
@@ -111,7 +114,7 @@ export function ThisWeekInEcosystem() {
                     className="h-9 w-9 rounded-lg shrink-0" alt="" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{g.name}</p>
-                    <span className="text-[10px] text-muted-foreground capitalize">{g.type.toLowerCase()}</span>
+                    <span className="text-[10px] text-muted-foreground capitalize">{translateEntityType(g.type, t)}</span>
                   </div>
                 </Link>
               </motion.div>

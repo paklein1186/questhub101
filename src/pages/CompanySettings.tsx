@@ -53,6 +53,8 @@ import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
+import { useTranslation } from "react-i18next";
+import { translateCompanySize } from "@/lib/entityLabels";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -93,6 +95,7 @@ export default function CompanySettings() {
 }
 
 function CompanySettingsInner({ companyId, company }: { companyId: string; company: any }) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -302,14 +305,14 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                       <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="resize-none min-h-[120px]" /></div>
                       <div className="grid grid-cols-2 gap-3">
                         <div><label className="text-sm font-medium mb-1 block">Sector</label><Input value={sector} onChange={(e) => setSector(e.target.value)} maxLength={50} /></div>
-                        <div><label className="text-sm font-medium mb-1 block">Size</label>
+                        <div><label className="text-sm font-medium mb-1 block">{t("companySize.sizeLabel")}</label>
                           <Select value={size} onValueChange={setSize}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="MICRO">Micro</SelectItem>
-                              <SelectItem value="SME">SME</SelectItem>
-                              <SelectItem value="LARGE">Large</SelectItem>
-                              <SelectItem value="OTHER">Other</SelectItem>
+                              <SelectItem value="MICRO">{translateCompanySize("MICRO", t)}</SelectItem>
+                              <SelectItem value="SME">{translateCompanySize("SME", t)}</SelectItem>
+                              <SelectItem value="LARGE">{translateCompanySize("LARGE", t)}</SelectItem>
+                              <SelectItem value="OTHER">{translateCompanySize("OTHER", t)}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -572,7 +573,7 @@ Respond ONLY in this exact JSON format, no markdown:
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No topic</SelectItem>
-                        {topics.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                        {topics.map(topic => <SelectItem key={topic.id} value={topic.id}>{translateTopicName(topic.name, t)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

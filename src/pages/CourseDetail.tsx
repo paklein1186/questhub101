@@ -17,8 +17,11 @@ import { autoFollowEntity } from "@/hooks/useFollow";
 import { useQueryClient } from "@tanstack/react-query";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 export default function CourseDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { data: course, isLoading } = useCourseById(id);
   const { data: lessons } = useLessonsForCourse(id);
@@ -133,7 +136,7 @@ export default function CourseDetail() {
         </div>
 
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {courseTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {courseTopics.map((topic: any) => <Badge key={topic.id} variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>)}
           {courseTerritories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
       </motion.div>

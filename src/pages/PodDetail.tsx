@@ -39,7 +39,10 @@ import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { EntityFollowersCount } from "@/components/FollowersDialog";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 export default function PodDetail() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: pod, isLoading } = usePodById(id);
@@ -200,7 +203,7 @@ export default function PodDetail() {
               <Badge variant="outline">{quest.title}</Badge>
             </Link>
           )}
-          {topic && <Badge variant="secondary">{topic.name}</Badge>}
+          {topic && <Badge variant="secondary">{translateTopicName(topic.name, t)}</Badge>}
           {pod.start_date && (
             <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {format(new Date(pod.start_date), "MMM d, yyyy")}</span>
           )}

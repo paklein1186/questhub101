@@ -13,8 +13,11 @@ import { useFollow } from "@/hooks/useFollow";
 import { usePersona } from "@/hooks/usePersona";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 export default function TopicHouse() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,7 +84,7 @@ export default function TopicHouse() {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-display font-bold text-foreground">{topic.name}</h1>
+                <h1 className="text-2xl font-display font-bold text-foreground">{translateTopicName(topic.name, t)}</h1>
                 <Badge variant="secondary" className="text-xs">{typeLabel}</Badge>
               </div>
               <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">

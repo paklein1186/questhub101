@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow, format } from "date-fns";
 import { motion } from "framer-motion";
 import { ConfettiSpark } from "@/components/home/ConfettiSpark";
+import { useTranslation } from "react-i18next";
+import { translateTaskStatus } from "@/lib/entityLabels";
 
 const STATUS_COLORS: Record<string, string> = {
   BACKLOG: "bg-muted/60 text-muted-foreground/70",
@@ -73,6 +75,7 @@ type UnitOption = {
 };
 
 export function WorkTasksTab() {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const userId = currentUser.id;
   const { toast } = useToast();
@@ -961,14 +964,14 @@ export function WorkTasksTab() {
                               {task.status === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
                             </span>
                             <span className="hidden md:inline truncate">
-                              {task.status === "BACKLOG" ? "Backlog" : task.status === "TODO" ? "To do next" : task.status === "IN_PROGRESS" ? "In progress" : "Done"}
+                              {translateTaskStatus(task.status, t)}
                             </span>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
-                            <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> To do next</span></SelectItem>
-                            <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> In progress</span></SelectItem>
-                            <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Done</span></SelectItem>
+                            <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> {translateTaskStatus("BACKLOG", t)}</span></SelectItem>
+                            <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> {translateTaskStatus("TODO", t)}</span></SelectItem>
+                            <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> {translateTaskStatus("IN_PROGRESS", t)}</span></SelectItem>
+                            <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> {translateTaskStatus("DONE", t)}</span></SelectItem>
                           </SelectContent>
                         </Select>
                       </td>

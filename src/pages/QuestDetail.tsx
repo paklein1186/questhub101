@@ -1,5 +1,6 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 import { useContentTranslations } from "@/hooks/useContentTranslation";
 import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
 import { useState, useEffect } from "react";
@@ -870,7 +871,7 @@ export default function QuestDetail() {
           </a>
         )}
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {topics.map((t: any) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
+          {topics.map((topic: any) => <Badge key={topic.id} variant="secondary">{translateTopicName(topic.name, t)}</Badge>)}
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useContentTranslations } from "@/hooks/useContentTranslation";
 import { useAutoTranslateEntity } from "@/hooks/useAutoTranslateEntity";
 import { useTranslation } from "react-i18next";
+import { translateTopicName, translateCompanySize } from "@/lib/entityLabels";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
@@ -104,7 +105,7 @@ export default function CompanyDetail() {
   const [authPromptAction, setAuthPromptAction] = useState("");
 
   // ─── Auto-translation ───
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const companyTrFields = useMemo(() => [
     { fieldName: "name", originalText: company?.name ?? null },
     { fieldName: "description", originalText: company?.description ?? null },
@@ -192,7 +193,7 @@ export default function CompanyDetail() {
             <h1 className="font-display text-3xl font-bold">{trName}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {company.sector && <span>{company.sector}</span>}
-              {company.size && <><span>·</span><Badge variant="outline">{company.size}</Badge></>}
+              {company.size && <><span>·</span><Badge variant="outline">{translateCompanySize(company.size, t)}</Badge></>}
               <span>·</span>
               <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {members.length} members</span>
             </div>
@@ -225,7 +226,7 @@ export default function CompanyDetail() {
         {trDesc && <GuestContentGate blur previewText={trDesc} previewSentences={3}><p className="text-muted-foreground max-w-2xl mb-3">{trDesc}</p></GuestContentGate>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
-          {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {topics.map((topic: any) => <Badge key={topic.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>)}
         </div>
         <SocialLinksDisplay data={{ websiteUrl: company.website_url, twitterUrl: company.twitter_url, linkedinUrl: company.linkedin_url, instagramUrl: company.instagram_url }} />
 
@@ -282,14 +283,14 @@ export default function CompanyDetail() {
               </div>
               {company.sector && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Sector</span>
+                  <span className="text-sm text-muted-foreground">{t("companySize.sectorLabel")}</span>
                   <span className="text-sm">{company.sector}</span>
                 </div>
               )}
               {company.size && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Size</span>
-                  <Badge variant="outline" className="text-xs">{company.size}</Badge>
+                  <span className="text-sm text-muted-foreground">{t("companySize.sizeLabel")}</span>
+                  <Badge variant="outline" className="text-xs">{translateCompanySize(company.size, t)}</Badge>
                 </div>
               )}
               {contact && (

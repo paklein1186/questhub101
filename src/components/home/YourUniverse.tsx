@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import { translateTopicName, translateEntityType } from "@/lib/entityLabels";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -19,6 +21,7 @@ interface Props {
 }
 
 export function YourUniverse({ userId, userTopicIds, userTerritoryIds }: Props) {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["your-universe", userId, userTopicIds, userTerritoryIds],
     queryFn: async () => {
@@ -140,11 +143,11 @@ export function YourUniverse({ userId, userTopicIds, userTerritoryIds }: Props) 
                         className="h-9 w-9 rounded-lg" alt="" />
                       <div className="min-w-0">
                         <h4 className="font-display font-semibold text-sm truncate">{guild.name}</h4>
-                        <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{translateEntityType(guild.type, t)}</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {topics.slice(0, 2).map((t: any) => <Badge key={t.name} variant="secondary" className="text-[10px]">{t.name}</Badge>)}
+                      {topics.slice(0, 2).map((topic: any) => <Badge key={topic.name} variant="secondary" className="text-[10px]">{translateTopicName(topic.name, t)}</Badge>)}
                     </div>
                   </Link>
                 </motion.div>

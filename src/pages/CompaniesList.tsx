@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 import { useExploreGridDensity } from "@/pages/ExploreHub";
+import { useTranslation } from "react-i18next";
+import { translateCompanySize } from "@/lib/entityLabels";
 
 function useCompaniesExplore() {
   return useQuery({
@@ -29,6 +31,7 @@ function useCompaniesExplore() {
 }
 
 export default function CompaniesList({ bare, hideFilters, externalFilters }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues }) {
+  const { t } = useTranslation();
   const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const activeFilters = externalFilters ?? filters;
@@ -91,7 +94,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
                       <h3 className="font-display font-semibold truncate">{company.name}</h3>
                       {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
                     </div>
-                    {company.size && <Badge variant="outline" className="ml-auto text-xs shrink-0">{company.size}</Badge>}
+                    {company.size && <Badge variant="outline" className="ml-auto text-xs shrink-0">{translateCompanySize(company.size, t)}</Badge>}
                   </div>
                   {isLoggedIn ? (
                     company.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{company.description}</p>

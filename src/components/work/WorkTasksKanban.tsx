@@ -9,6 +9,8 @@ import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { translateTaskStatus } from "@/lib/entityLabels";
 
 type UnifiedTask = {
   id: string;
@@ -50,6 +52,7 @@ interface WorkTasksKanbanProps {
 }
 
 export function WorkTasksKanban({ tasks, onStatusChange, pendingDone, undoDone }: WorkTasksKanbanProps) {
+  const { t } = useTranslation();
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
@@ -94,7 +97,7 @@ export function WorkTasksKanban({ tasks, onStatusChange, pendingDone, undoDone }
             onDrop={(e) => handleDrop(e, col.key)}
           >
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-display font-semibold text-sm">{col.label}</h4>
+              <h4 className="font-display font-semibold text-sm">{translateTaskStatus(col.key, t)}</h4>
               <Badge variant="secondary" className="text-xs">{colTasks.length}</Badge>
             </div>
             <div className="space-y-2">

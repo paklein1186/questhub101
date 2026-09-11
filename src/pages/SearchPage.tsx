@@ -15,6 +15,8 @@ import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/se
 import { useQuery } from "@tanstack/react-query";
 import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
 import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 const TYPE_META: Record<SearchResultType, { label: string; icon: typeof Users; color: string }> = {
   USER: { label: "Users", icon: Users, color: "text-blue-600" },
@@ -27,6 +29,7 @@ const TYPE_META: Record<SearchResultType, { label: string; icon: typeof Users; c
 };
 
 export default function SearchPage() {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const currentUser = useCurrentUser();
   const [query, setQuery] = useState(params.get("q") ?? "");
@@ -120,7 +123,7 @@ export default function SearchPage() {
             <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Topic" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All topics</SelectItem>
-              {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {(topics ?? []).map((topic) => <SelectItem key={topic.id} value={topic.id}>{translateTopicName(topic.name, t)}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={territoryId} onValueChange={setTerritoryId}>

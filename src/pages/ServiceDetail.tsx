@@ -74,8 +74,11 @@ import { canManageServiceSync } from "@/lib/serviceOwnership";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { useTrustSummary } from "@/hooks/useTrustSummary";
 import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 export default function ServiceDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: svc, isLoading } = useServiceById(id);
@@ -409,7 +412,7 @@ export default function ServiceDetail() {
           </div>
         )}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {svcTopics.map((topic: any) => <Badge key={topic.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>)}
           {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="flex flex-wrap gap-2 mb-6">

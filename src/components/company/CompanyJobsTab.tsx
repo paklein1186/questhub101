@@ -13,6 +13,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 const CONTRACT_TYPES = [
   { value: "full-time", label: "Full-time" },
@@ -35,6 +37,7 @@ interface Props {
 }
 
 export function CompanyJobsTab({ companyId, isAdmin }: Props) {
+  const { t } = useTranslation();
   const { data: jobs = [], isLoading } = useJobPositionsForCompany(companyId);
   const { data: allTopics = [] } = useTopics();
   const { data: allTerritories = [] } = useTerritories();
@@ -336,7 +339,7 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
               )}
 
               <div className="flex flex-wrap gap-1">
-                {topics.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]">{t.name}</Badge>)}
+                {topics.map((topic: any) => <Badge key={topic.id} variant="outline" className="text-[10px]">{translateTopicName(topic.name, t)}</Badge>)}
                 {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
               </div>
 

@@ -16,6 +16,8 @@ import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 import { useExploreGridDensity } from "@/pages/ExploreHub";
+import { useTranslation } from "react-i18next";
+import { translateTopicName } from "@/lib/entityLabels";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -23,6 +25,7 @@ const fadeUp = {
 };
 
 export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
+  const { t } = useTranslation();
   const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hostFilter, setHostFilter] = useState<string>("all"); // "all" | "user" | "unit"
@@ -158,7 +161,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                         {(svc as any).service_type === "online_call" && <Badge variant="outline" className="text-[10px]"><Video className="h-2.5 w-2.5 mr-0.5" />Call</Badge>}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-2">
-                        {svcTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                        {svcTopics.slice(0, 5).map((topic: any) => <Badge key={topic.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{translateTopicName(topic.name, t)}</Badge>)}
                         {svcTopics.length > 5 && <Badge variant="secondary" className="text-[10px] text-muted-foreground">+{svcTopics.length - 5}</Badge>}
                         {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                       </div>
