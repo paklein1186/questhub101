@@ -170,7 +170,7 @@ export default function ImpactLanding() {
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild><Link to="/login">{t("nav.login")}</Link></Button>
-                <Button size="sm" asChild><Link to="/welcome">{t("nav.signup")}</Link></Button>
+                <Button size="sm" asChild><Link to="/signup">{t("nav.signup")}</Link></Button>
               </>
             )}
           </nav>
@@ -525,7 +525,7 @@ export default function ImpactLanding() {
           <p className="text-muted-foreground mb-6">{t("landing.impact.cta.sub")}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/welcome">{t("landing.impact.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/signup">{t("landing.impact.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/explore">{t("landing.impact.cta.btn2")}</Link>

@@ -175,7 +175,7 @@ export default function CreativeLanding() {
                   <Link to="/login">Log in</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/welcome">Sign up</Link>
+                  <Link to="/signup">Sign up</Link>
                 </Button>
               </>
             )}
@@ -581,7 +581,7 @@ export default function CreativeLanding() {
           <p className="text-muted-foreground mb-6">{t("landing.creative.cta.sub")}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/welcome">{t("landing.creative.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/signup">{t("landing.creative.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/explore">{t("landing.creative.cta.btn2")}</Link>

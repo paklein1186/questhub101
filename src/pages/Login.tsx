@@ -107,7 +107,7 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           {t("auth.noAccountYet")}{" "}
-          <Link to={`/welcome${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-primary font-medium hover:underline">{t("nav.signup")}</Link>
+          <Link to={`/signup${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-primary font-medium hover:underline">{t("nav.signup")}</Link>
         </p>
       </motion.div>
     </div>
