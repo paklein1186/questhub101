@@ -86,8 +86,30 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const isCronCall = !!cronSecret && req.headers.get("x-cron-secret") === cronSecret;
+
+  if (!isCronCall) {
+    // Interactive call from the app: require a valid logged-in user (blocks anonymous/scripted abuse
+    // of CTG-emitting rules) while still allowing the frontend's per-quest "re-evaluate" button.
+    const authHeader = req.headers.get("Authorization");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const callerClient = authHeader
+      ? createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } })
+      : null;
+    const { data: { user: caller } = { user: null } } = callerClient
+      ? await callerClient.auth.getUser()
+      : { data: { user: null } };
+    if (!caller) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
