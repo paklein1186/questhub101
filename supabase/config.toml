@@ -121,10 +121,16 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.retroactive-ctg]
-verify_jwt = false
+verify_jwt = true
 
 [functions.guild-mcp]
 verify_jwt = false
 
 [functions.guild-agent]
+verify_jwt = false
+
+[functions.weekly-usage-reset]
+verify_jwt = false
+
+[functions.trust-renewal-cron]
 verify_jwt = false
