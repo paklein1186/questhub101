@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { buildRoute } from "@/lib/routeHelpers";
 import type { PersonaType } from "@/lib/personaLabels";
-import { ACTION_PATHS } from "@/components/assistant/PiActionPaths";
+import { getActionPaths } from "@/components/assistant/PiActionPaths";
 
 /* ────────── Reward hint labels per action label keyword ────────── */
 
@@ -237,6 +237,7 @@ interface Props {
 
 export function GuidedPathways({ persona, userName, userId, isOrgRep, onActionSelected }: Props) {
   const { t } = useTranslation();
+  const ACTION_PATHS = getActionPaths(t);
   const navigate = useNavigate();
   const [openPathway, setOpenPathway] = useState<string | null>(null);
   const [promptStep, setPromptStep] = useState<SubAction | null>(null);
@@ -364,7 +365,7 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep, onActionSe
               })()}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Choose an action below
+              {t("piActions.chooseAction")}
             </DialogDescription>
           </DialogHeader>
 

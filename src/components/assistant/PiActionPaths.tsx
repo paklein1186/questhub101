@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, type TFunction } from "react-i18next";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { UserEntities } from "@/hooks/useUserEntities";
@@ -21,71 +22,73 @@ interface ActionPath {
   actions: ActionItem[];
 }
 
-const ACTION_PATHS: ActionPath[] = [
-  {
-    id: "contribute",
-    icon: "🎯",
-    label: "Contribute",
-    actions: [
-      { label: "Browse open quests", type: "navigate", route: "/explore?tab=quests" },
-      { label: "AI Matchmaker", type: "prompt", prompt: "I want to be useful right now. Use my profile, skills and territory to match me with quests that need contributors immediately." },
-      { label: "My active tasks", type: "navigate", route: "/work" },
-      { label: "Submit a proposal", type: "prompt", prompt: "I want to respond to an open quest need or submit a proposal. Which opportunities match my skills?" },
-      { label: "Browse jobs", type: "navigate", route: "/jobs" },
-      { label: "Post an update", type: "prompt", prompt: "I want to post an update on one of my active quests — a milestone, a call for help, or a reflection. Which quest should I update?" },
-    ],
-  },
-  {
-    id: "explore",
-    icon: "🌍",
-    label: "Explore",
-    actions: [
-      { label: "Discover guilds", type: "navigate", route: "/explore?tab=entities" },
-      { label: "My territory", type: "navigate", route: "/territories" },
-      { label: "Meet people", type: "navigate", route: "/explore/users" },
-      { label: "Events & rituals", type: "prompt", prompt: "I want to find upcoming events, rituals, or workshops in my territory or guilds. What's happening soon?" },
-      { label: "Courses & learning", type: "navigate", route: "/explore?tab=courses" },
-      { label: "Global search", type: "navigate", route: "/search" },
-    ],
-  },
-  {
-    id: "network",
-    icon: "🤝",
-    label: "Network",
-    actions: [
-      { label: "My guilds", type: "navigate", route: "/me/guilds" },
-      { label: "Direct message", type: "navigate", route: "/inbox" },
-      { label: "Trust Graph", type: "navigate", route: "/network" },
-      { label: "My follows", type: "navigate", route: "/me/following" },
-      { label: "Propose partnership", type: "prompt", prompt: "I want to propose a collaboration or partnership between two guilds or entities on the platform. Which entities should be connected?" },
-    ],
-  },
-  {
-    id: "create",
-    icon: "🛠",
-    label: "Create",
-    actions: [
-      { label: "Launch a quest", type: "navigate", route: "/quests/new" },
-      { label: "Publish a service", type: "navigate", route: "/services/new" },
-      { label: "Organize event", type: "prompt", prompt: "I want to create an event — public or private, online or in-person. Which guild should host it?" },
-      { label: "Create a Guild", type: "navigate", route: "/explore?tab=entities&create=guild" },
-      { label: "Get my quest funded", type: "prompt", prompt: "I want to open my quest to collective funding — credits or fiat. Help me configure the budget and funding settings." },
-      { label: "My Wallet", type: "navigate", route: "/settings/wallet" },
-    ],
-  },
-  {
-    id: "impact",
-    icon: "📊",
-    label: "Impact",
-    actions: [
-      { label: "My contributions", type: "navigate", route: "/me?tab=contributions" },
-      { label: "Value Pie & rewards", type: "navigate", route: "/work?tab=quests" },
-      { label: "Territory indicators", type: "prompt", prompt: "I want to view and update the natural system indicators for my territory. Which living system should I open?" },
-      { label: "XP & level", type: "navigate", route: "/me/xp" },
-      { label: "Milestones", type: "navigate", route: "/me/milestones" },
-    ],
-  },
-];
+function getActionPaths(t: TFunction): ActionPath[] {
+  return [
+    {
+      id: "contribute",
+      icon: "🎯",
+      label: t("piActions.contribute.label"),
+      actions: [
+        { label: t("piActions.contribute.browseQuests"), type: "navigate", route: "/explore?tab=quests" },
+        { label: t("piActions.contribute.aiMatchmaker"), type: "prompt", prompt: t("piActions.contribute.aiMatchmakerPrompt") },
+        { label: t("piActions.contribute.myActiveTasks"), type: "navigate", route: "/work" },
+        { label: t("piActions.contribute.submitProposal"), type: "prompt", prompt: t("piActions.contribute.submitProposalPrompt") },
+        { label: t("piActions.contribute.browseJobs"), type: "navigate", route: "/jobs" },
+        { label: t("piActions.contribute.postUpdate"), type: "prompt", prompt: t("piActions.contribute.postUpdatePrompt") },
+      ],
+    },
+    {
+      id: "explore",
+      icon: "🌍",
+      label: t("piActions.explore.label"),
+      actions: [
+        { label: t("piActions.explore.discoverGuilds"), type: "navigate", route: "/explore?tab=entities" },
+        { label: t("piActions.explore.myTerritory"), type: "navigate", route: "/territories" },
+        { label: t("piActions.explore.meetPeople"), type: "navigate", route: "/explore/users" },
+        { label: t("piActions.explore.eventsRituals"), type: "prompt", prompt: t("piActions.explore.eventsRitualsPrompt") },
+        { label: t("piActions.explore.coursesLearning"), type: "navigate", route: "/explore?tab=courses" },
+        { label: t("piActions.explore.globalSearch"), type: "navigate", route: "/search" },
+      ],
+    },
+    {
+      id: "network",
+      icon: "🤝",
+      label: t("piActions.network.label"),
+      actions: [
+        { label: t("piActions.network.myGuilds"), type: "navigate", route: "/me/guilds" },
+        { label: t("piActions.network.directMessage"), type: "navigate", route: "/inbox" },
+        { label: t("piActions.network.trustGraph"), type: "navigate", route: "/network" },
+        { label: t("piActions.network.myFollows"), type: "navigate", route: "/me/following" },
+        { label: t("piActions.network.proposePartnership"), type: "prompt", prompt: t("piActions.network.proposePartnershipPrompt") },
+      ],
+    },
+    {
+      id: "create",
+      icon: "🛠",
+      label: t("piActions.create.label"),
+      actions: [
+        { label: t("piActions.create.launchQuest"), type: "navigate", route: "/quests/new" },
+        { label: t("piActions.create.publishService"), type: "navigate", route: "/services/new" },
+        { label: t("piActions.create.organizeEvent"), type: "prompt", prompt: t("piActions.create.organizeEventPrompt") },
+        { label: t("piActions.create.createGuild"), type: "navigate", route: "/explore?tab=entities&create=guild" },
+        { label: t("piActions.create.getQuestFunded"), type: "prompt", prompt: t("piActions.create.getQuestFundedPrompt") },
+        { label: t("piActions.create.myWallet"), type: "navigate", route: "/settings/wallet" },
+      ],
+    },
+    {
+      id: "impact",
+      icon: "📊",
+      label: t("piActions.impact.label"),
+      actions: [
+        { label: t("piActions.impact.myContributions"), type: "navigate", route: "/me?tab=contributions" },
+        { label: t("piActions.impact.valuePieRewards"), type: "navigate", route: "/work?tab=quests" },
+        { label: t("piActions.impact.territoryIndicators"), type: "prompt", prompt: t("piActions.impact.territoryIndicatorsPrompt") },
+        { label: t("piActions.impact.xpLevel"), type: "navigate", route: "/me/xp" },
+        { label: t("piActions.impact.milestones"), type: "navigate", route: "/me/milestones" },
+      ],
+    },
+  ];
+}
 
 interface PiActionPathsProps {
   onPromptSelect: (prompt: string, displayPrompt?: string) => void;
@@ -94,6 +97,8 @@ interface PiActionPathsProps {
 }
 
 export function PiActionPaths({ onPromptSelect, onClose, userEntities }: PiActionPathsProps) {
+  const { t } = useTranslation();
+  const ACTION_PATHS = getActionPaths(t);
   const [openId, setOpenId] = useState<string | null>(null);
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -187,4 +192,4 @@ export function PiActionPaths({ onPromptSelect, onClose, userEntities }: PiActio
   );
 }
 
-export { ACTION_PATHS };
+export { getActionPaths };

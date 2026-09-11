@@ -44,6 +44,7 @@ const ACTION_LABELS: Record<string, { label: string; icon: React.ReactNode }> = 
   post_upvoted: { label: "upvoted a post", icon: <ThumbsUp className="h-3 w-3 text-pink-500" /> },
   post_created: { label: "posted", icon: <MessageSquare className="h-3 w-3 text-primary" /> },
   quest_funded: { label: "funded quest", icon: <Zap className="h-3 w-3 text-emerald-600" /> },
+  welcome_email_sent: { label: "joined the platform", icon: <UserPlus className="h-3 w-3 text-green-500" /> },
 };
 
 const TARGET_ROUTES: Record<string, string> = {

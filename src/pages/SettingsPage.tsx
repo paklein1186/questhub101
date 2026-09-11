@@ -73,79 +73,79 @@ type SettingsGroup = { groupLabel: string; groupIcon: React.ComponentType<{ clas
 
 const SETTINGS_GROUPS: SettingsGroup[] = [
   {
-    groupLabel: "Profile & Identity",
+    groupLabel: "settings.groupProfile",
     groupIcon: UserCircle,
     tabs: [
-      { key: "profile", label: "Profile", icon: UserCircle },
-      { key: "persona", label: "Persona & Preferences", icon: Compass },
-      { key: "language", label: "Language", icon: Languages },
+      { key: "profile", label: "settings.profile", icon: UserCircle },
+      { key: "persona", label: "settings.personaPrefs", icon: Compass },
+      { key: "language", label: "settings.language", icon: Languages },
     ],
   },
   {
-    groupLabel: "My Activity",
+    groupLabel: "settings.groupActivity",
     groupIcon: Swords,
     tabs: [
-      { key: "quests", label: "Quests", icon: Swords },
-      { key: "guilds", label: "Guilds", icon: Users },
-      { key: "pods", label: "Pods", icon: Users },
-      { key: "courses", label: "Courses", icon: GraduationCap },
-      { key: "services", label: "Services", icon: Briefcase },
+      { key: "quests", label: "settings.quests", icon: Swords },
+      { key: "guilds", label: "settings.guilds", icon: Users },
+      { key: "pods", label: "settings.pods", icon: Users },
+      { key: "courses", label: "settings.courses", icon: GraduationCap },
+      { key: "services", label: "settings.services", icon: Briefcase },
     ],
   },
   {
-    groupLabel: "Calendar & Bookings",
+    groupLabel: "settings.groupCalendar",
     groupIcon: CalendarSync,
     tabs: [
-      { key: "calendar", label: "Calendar Sync", icon: CalendarSync },
-      { key: "bookings", label: "Bookings", icon: CalendarCheck },
+      { key: "calendar", label: "settings.calendar", icon: CalendarSync },
+      { key: "bookings", label: "settings.bookings", icon: CalendarCheck },
     ],
   },
   {
-    groupLabel: "Wallet & Economy",
+    groupLabel: "settings.groupWallet",
     groupIcon: Coins,
     tabs: [
-      { key: "wallet", label: "Wallet", icon: Coins },
-      { key: "ovn", label: "My Contributions", icon: Scale },
-      { key: "giveback", label: "Give-back", icon: Heart },
+      { key: "wallet", label: "settings.wallet", icon: Coins },
+      { key: "ovn", label: "settings.myContributions", icon: Scale },
+      { key: "giveback", label: "settings.giveback", icon: Heart },
     ],
   },
   {
-    groupLabel: "My Network",
+    groupLabel: "settings.groupNetwork",
     groupIcon: Hash,
     tabs: [
-      { key: "houses", label: "Topics & Territories", icon: Hash },
-      { key: "starred", label: "Starred", icon: Star },
+      { key: "houses", label: "settings.houses", icon: Hash },
+      { key: "starred", label: "settings.starred", icon: Star },
     ],
   },
   {
-    groupLabel: "Notifications",
+    groupLabel: "settings.groupNotifications",
     groupIcon: Bell,
     tabs: [
-      { key: "notifications", label: "Notifications", icon: Bell },
+      { key: "notifications", label: "settings.notifications", icon: Bell },
     ],
   },
   {
-    groupLabel: "Account & Privacy",
+    groupLabel: "settings.groupAccount",
     groupIcon: Shield,
     tabs: [
-      { key: "account", label: "Account & Security", icon: Shield },
-      { key: "privacy", label: "Privacy", icon: Eye },
-      { key: "referrals", label: "Referrals", icon: UserCircle },
-      { key: "apps", label: "Connected Apps", icon: Plug },
+      { key: "account", label: "settings.account", icon: Shield },
+      { key: "privacy", label: "settings.privacy", icon: Eye },
+      { key: "referrals", label: "settings.referrals", icon: UserCircle },
+      { key: "apps", label: "settings.apps", icon: Plug },
     ],
   },
   {
-    groupLabel: "Website",
+    groupLabel: "settings.groupWebsite",
     groupIcon: Globe,
     tabs: [
-      { key: "website", label: "Website", icon: Globe },
+      { key: "website", label: "settings.website", icon: Globe },
     ],
   },
   {
-    groupLabel: "History",
+    groupLabel: "settings.groupHistory",
     groupIcon: History,
     tabs: [
-      { key: "history", label: "Activity History", icon: History },
+      { key: "history", label: "settings.activityHistory", icon: History },
     ],
   },
 ];
@@ -381,7 +381,7 @@ export default function SettingsPage() {
               return (
                 <div key={group.groupLabel}>
                   <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {group.groupLabel}
+                    {t(group.groupLabel)}
                   </p>
                   <div className="space-y-0.5">
                     {group.tabs.map((tab) => (
@@ -395,7 +395,7 @@ export default function SettingsPage() {
                         }`}
                       >
                         <tab.icon className="h-4 w-4 shrink-0" />
-                        {tab.label}
+                        {t(tab.label)}
                       </button>
                     ))}
                   </div>
