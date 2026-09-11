@@ -4,7 +4,7 @@ import {
   BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag, Sprout,
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
-  Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot,
+  Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -95,9 +95,20 @@ const clusters: NavCluster[] = [
 
 export default function AdminLayout() {
   const currentUser = useCurrentUser();
-  const { isAdmin, isSuperAdmin } = useUserRoles(currentUser.id);
+  const { isAdmin, isSuperAdmin, isLoading: rolesLoading } = useUserRoles(currentUser.id);
   const { pathname } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Wait for the roles query before deciding to redirect — otherwise every
+  // hard navigation/refresh briefly sees isAdmin:false (query hasn't resolved
+  // yet) and bounces a real admin straight back to "/".
+  if (rolesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return <Navigate to="/" replace />;

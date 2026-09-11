@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 
 /** Hook that returns { isAdmin, isSuperAdmin } for the given user ID */
 export function useUserRoles(userId: string | undefined) {
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [], isLoading } = useQuery({
     queryKey: ["user-roles", userId],
     enabled: !!userId,
     queryFn: async () => {
@@ -25,6 +25,10 @@ export function useUserRoles(userId: string | undefined) {
     isAdmin: roles.includes("admin") || roles.includes("superadmin"),
     isSuperAdmin: roles.includes("superadmin"),
     roles,
+    // True while the roles query hasn't resolved yet (or has no userId yet) —
+    // callers that gate access on isAdmin must wait for this before redirecting,
+    // otherwise every hard navigation/refresh briefly sees isAdmin:false.
+    isLoading: isLoading || !userId,
   };
 }
 
