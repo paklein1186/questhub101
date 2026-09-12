@@ -3585,5 +3585,22 @@
       "failed": "Échec de l'enregistrement de la contribution",
       "submitted": "Contribution soumise pour validation"
     }
+  },
+  "contributionCard": {
+    "status": {
+      "pending": "En attente de validation",
+      "verified": "Approuvée",
+      "disputed": "Contestée",
+      "compensated": "Compensée",
+      "logged": "Enregistrée"
+    },
+    "unknown": "Inconnu",
+    "evidence": "Preuve",
+    "deliverable": "Livrable",
+    "compensatedBadge": "🟢 Compensée",
+    "partialBadge": "🟩 Partielle ({{paid}} € / {{total}} €)",
+    "uncompensatedBadge": "🔴 Non compensée",
+    "paidExternally": "€ payé en externe",
+    "review": "Examiner"
   }
 }

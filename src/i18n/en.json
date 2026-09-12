@@ -3599,5 +3599,22 @@
       "failed": "Failed to log contribution",
       "submitted": "Contribution submitted for review"
     }
+  },
+  "contributionCard": {
+    "status": {
+      "pending": "Pending Review",
+      "verified": "Approved",
+      "disputed": "Disputed",
+      "compensated": "Compensated",
+      "logged": "Logged"
+    },
+    "unknown": "Unknown",
+    "evidence": "Evidence",
+    "deliverable": "Deliverable",
+    "compensatedBadge": "🟢 Compensated",
+    "partialBadge": "🟩 Partial (€{{paid}} / €{{total}})",
+    "uncompensatedBadge": "🔴 Uncompensated",
+    "paidExternally": "€ paid externally",
+    "review": "Review"
   }
 }
