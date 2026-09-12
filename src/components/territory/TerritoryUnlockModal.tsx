@@ -17,6 +17,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,24 +37,15 @@ import {
 } from "lucide-react";
 
 /* ── XP requirements per level ── */
-const UNLOCK_REQUIREMENTS: Record<string, { minXpLevel: number; label: string }> = {
-  TOWN:      { minXpLevel: 1,  label: "Any level" },
-  LOCALITY:  { minXpLevel: 1,  label: "Any level" },
-  PROVINCE:  { minXpLevel: 1,  label: "Any level" },
-  REGION:    { minXpLevel: 1,  label: "Any level" },
-  NATIONAL:  { minXpLevel: 1,  label: "Any level" },
-  CONTINENT: { minXpLevel: 1,  label: "Any level" },
-  GLOBAL:    { minXpLevel: 1,  label: "Any level" },
+const UNLOCK_REQUIREMENTS: Record<string, { minXpLevel: number }> = {
+  TOWN:      { minXpLevel: 1 },
+  LOCALITY:  { minXpLevel: 1 },
+  PROVINCE:  { minXpLevel: 1 },
+  REGION:    { minXpLevel: 1 },
+  NATIONAL:  { minXpLevel: 1 },
+  CONTINENT: { minXpLevel: 1 },
+  GLOBAL:    { minXpLevel: 1 },
 };
-
-/* ── Steward pledge lines ── */
-const STEWARD_PLEDGE = [
-  "I will contribute to quests and activities in this territory",
-  "I will help onboard new members with care and openness",
-  "I will act as a guardian of local natural systems",
-  "I will uphold the CTG community guidelines",
-  "I understand that stewardship can be passed on if I become inactive",
-];
 
 /* ── Types ── */
 interface TerritoryUnlockModalProps {
@@ -71,6 +63,7 @@ interface TerritoryUnlockModalProps {
 
 /* ── Mutation ── */
 function useUnlockTerritory() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -95,7 +88,7 @@ function useUnlockTerritory() {
         .eq("to_node_id", territoryId)
         .eq("edge_type", "stewardship")
         .maybeSingle();
-      if (existing) throw new Error("You are already a steward of this territory.");
+      if (existing) throw new Error(t("unlockModal.toast.alreadySteward"));
 
       // 1. Update territory with summary and meta
       const { error: terrErr } = await supabase
@@ -144,10 +137,10 @@ function useUnlockTerritory() {
       qc.invalidateQueries({ queryKey: ["territory-portal-grid"] });
       qc.invalidateQueries({ queryKey: ["territory-is-admin"] });
       qc.invalidateQueries({ queryKey: ["territory-stewards"] });
-      toast({ title: "Territory unlocked! 🌱", description: "You are now the founding steward." });
+      toast({ title: t("unlockModal.toast.unlocked"), description: t("unlockModal.toast.unlockedDesc") });
     },
     onError: (e: any) => {
-      toast({ title: "Failed to unlock", description: e.message, variant: "destructive" });
+      toast({ title: t("unlockModal.toast.failed"), description: e.message, variant: "destructive" });
     },
   });
 }
@@ -178,6 +171,7 @@ export function TerritoryUnlockModal({
   currentUserXpLevel,
   currentUserId,
 }: TerritoryUnlockModalProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [summary, setSummary] = useState("");
@@ -215,7 +209,7 @@ export function TerritoryUnlockModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TreePine className="h-5 w-5 text-amber-500" />
-            Pioneer {territory.name}
+            {t("unlockModal.dialogTitle", { name: territory.name })}
           </DialogTitle>
         </DialogHeader>
 
@@ -228,7 +222,7 @@ export function TerritoryUnlockModal({
                 {n < 3 && <div className={cn("h-0.5 w-8 rounded-full", step > n ? "bg-primary" : "bg-border")} />}
               </div>
             ))}
-            <span className="ml-2 text-xs text-muted-foreground">Step {step} of 3</span>
+            <span className="ml-2 text-xs text-muted-foreground">{t("unlockModal.stepOf", { step })}</span>
           </div>
         )}
 
@@ -238,19 +232,13 @@ export function TerritoryUnlockModal({
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-amber-500" />
-                <p className="text-sm font-semibold text-foreground">What is pioneering?</p>
+                <p className="text-sm font-semibold text-foreground">{t("unlockModal.step1.whatIsPioneering")}</p>
               </div>
               <p className="text-sm text-muted-foreground">
-                As a pioneer, you become the founding steward of <strong>{territory.name}</strong>. You'll
-                set the tone, welcome new members, and help this territory thrive within the CTG network.
+                {t("unlockModal.step1.introPart1")}<strong>{territory.name}</strong>{t("unlockModal.step1.introPart2")}
               </p>
               <ul className="space-y-1.5">
-                {[
-                  "Earn the Pioneer badge (+50 XP)",
-                  "Appear as founding steward in the portal",
-                  "Access territory admin tools",
-                  "Customize the territory's portal",
-                ].map(item => (
+                {(t("unlockModal.step1.benefits", { returnObjects: true }) as string[]).map(item => (
                   <li key={item} className="flex items-center gap-2 text-xs text-muted-foreground">
                     <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                     {item}
@@ -274,27 +262,27 @@ export function TerritoryUnlockModal({
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">
-                  {canUnlock ? "You meet the requirements" : "Level requirement not met"}
+                  {canUnlock ? t("unlockModal.step1.meetsRequirements") : t("unlockModal.step1.levelNotMet")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Requires {req.label} · You are level {currentUserXpLevel}
+                  {t("unlockModal.step1.requiresLevel", { req: t("unlockModal.requirementAny"), level: currentUserXpLevel })}
                 </p>
               </div>
               {canUnlock && (
                 <Badge className="ml-auto bg-primary/15 text-primary border-primary/30">
-                  ✓ Eligible
+                  {t("unlockModal.step1.eligible")}
                 </Badge>
               )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button variant="outline" onClick={onClose}>{t("unlockModal.step1.cancel")}</Button>
               <Button
                 onClick={() => setStep(2)}
                 disabled={!canUnlock}
                 className="gap-1.5"
               >
-                Continue <ArrowRight className="h-3.5 w-3.5" />
+                {t("unlockModal.step1.continue")} <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
@@ -304,16 +292,16 @@ export function TerritoryUnlockModal({
         {step === 2 && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Give {territory.name} a voice. These details will appear on the public portal.
+              {t("unlockModal.step2.giveVoice", { name: territory.name })}
             </p>
 
             <div className="space-y-1.5">
               <Label htmlFor="ter-summary" className="text-xs font-medium">
-                Territory description <span className="text-muted-foreground">(optional)</span>
+                {t("unlockModal.step2.descriptionLabel")} <span className="text-muted-foreground">{t("unlockModal.step2.optional")}</span>
               </Label>
               <Textarea
                 id="ter-summary"
-                placeholder={`What makes ${territory.name} special? Describe its ecosystem, community, and regenerative projects...`}
+                placeholder={t("unlockModal.step2.descPlaceholder", { name: territory.name })}
                 value={summary}
                 onChange={e => setSummary(e.target.value)}
                 rows={4}
@@ -323,17 +311,17 @@ export function TerritoryUnlockModal({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">
-                Cover image URLs <span className="text-muted-foreground">(one per line or add via button)</span>
+                {t("unlockModal.step2.coverImagesLabel")} <span className="text-muted-foreground">{t("unlockModal.step2.coverImagesHint")}</span>
               </Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="https://example.com/photo.jpg"
+                  placeholder={t("unlockModal.step2.urlPlaceholder")}
                   value={imageUrl}
                   onChange={e => setImageUrl(e.target.value)}
                   className="text-sm"
                   onKeyDown={e => e.key === "Enter" && handleAddImage()}
                 />
-                <Button size="sm" variant="outline" onClick={handleAddImage}>Add</Button>
+                <Button size="sm" variant="outline" onClick={handleAddImage}>{t("unlockModal.step2.add")}</Button>
               </div>
               {imageUrls.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -355,11 +343,11 @@ export function TerritoryUnlockModal({
 
             <div className="space-y-1.5">
               <Label htmlFor="ter-tags" className="text-xs font-medium">
-                Tags <span className="text-muted-foreground">(comma-separated)</span>
+                {t("unlockModal.step2.tagsLabel")} <span className="text-muted-foreground">{t("unlockModal.step2.tagsHint")}</span>
               </Label>
               <Input
                 id="ter-tags"
-                placeholder="regenerative, permaculture, urban farming..."
+                placeholder={t("unlockModal.step2.tagsPlaceholder")}
                 value={tags}
                 onChange={e => setTags(e.target.value)}
                 className="text-sm"
@@ -368,10 +356,10 @@ export function TerritoryUnlockModal({
 
             <div className="flex justify-between pt-2">
               <Button variant="ghost" onClick={() => setStep(1)} className="gap-1.5">
-                <ChevronLeft className="h-3.5 w-3.5" /> Back
+                <ChevronLeft className="h-3.5 w-3.5" /> {t("unlockModal.step2.back")}
               </Button>
               <Button onClick={() => setStep(3)} className="gap-1.5">
-                Continue <ArrowRight className="h-3.5 w-3.5" />
+                {t("unlockModal.step2.continue")} <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
@@ -383,10 +371,10 @@ export function TerritoryUnlockModal({
             <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                <p className="text-sm font-semibold">Steward's Pledge</p>
+                <p className="text-sm font-semibold">{t("unlockModal.step3.pledgeTitle")}</p>
               </div>
               <ul className="space-y-2">
-                {STEWARD_PLEDGE.map(line => (
+                {(t("unlockModal.pledgeLines", { returnObjects: true }) as string[]).map(line => (
                   <li key={line} className="flex items-start gap-2 text-xs text-muted-foreground">
                     <Sprout className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                     {line}
@@ -403,13 +391,13 @@ export function TerritoryUnlockModal({
                 className="h-4 w-4 rounded border-border accent-primary"
               />
               <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                I accept the steward's pledge for <strong>{territory.name}</strong>
+                {t("unlockModal.step3.acceptPledgePart1")}<strong>{territory.name}</strong>{t("unlockModal.step3.acceptPledgePart2")}
               </span>
             </label>
 
             <div className="flex justify-between pt-2">
               <Button variant="ghost" onClick={() => setStep(2)} className="gap-1.5">
-                <ChevronLeft className="h-3.5 w-3.5" /> Back
+                <ChevronLeft className="h-3.5 w-3.5" /> {t("unlockModal.step3.back")}
               </Button>
               <Button
                 onClick={handleUnlock}
@@ -417,10 +405,10 @@ export function TerritoryUnlockModal({
                 className="gap-1.5 bg-amber-500 hover:bg-amber-600 text-white"
               >
                 {unlockMutation.isPending ? (
-                  "Unlocking..."
+                  t("unlockModal.step3.unlocking")
                 ) : (
                   <>
-                    <Star className="h-3.5 w-3.5 fill-white" /> Pioneer this Territory
+                    <Star className="h-3.5 w-3.5 fill-white" /> {t("unlockModal.step3.pioneerThisTerritory")}
                   </>
                 )}
               </Button>
@@ -436,16 +424,16 @@ export function TerritoryUnlockModal({
             </div>
             <div>
               <h3 className="text-lg font-display font-bold text-foreground">
-                {territory.name} is now alive! 🌱
+                {t("unlockModal.step4.alive", { name: territory.name })}
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
-                You are the founding steward. The portal is now active and visible to the world.
+                {t("unlockModal.step4.foundingSteward")}
               </p>
             </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <Zap className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">+50 XP earned</span>
-              <Badge className="bg-amber-500 text-white text-[10px] border-0">Pioneer</Badge>
+              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{t("unlockModal.step4.xpEarned")}</span>
+              <Badge className="bg-amber-500 text-white text-[10px] border-0">{t("unlockModal.step4.pioneerBadge")}</Badge>
             </div>
             <div className="flex justify-center gap-3 pt-2">
               <Button
@@ -455,7 +443,7 @@ export function TerritoryUnlockModal({
                 }}
                 className="gap-1.5"
               >
-                <Shield className="h-3.5 w-3.5" /> Open Admin Panel
+                <Shield className="h-3.5 w-3.5" /> {t("unlockModal.step4.openAdminPanel")}
               </Button>
               <Button
                 variant="outline"
@@ -464,7 +452,7 @@ export function TerritoryUnlockModal({
                   setStep(1);
                 }}
               >
-                Back to Portal
+                {t("unlockModal.step4.backToPortal")}
               </Button>
             </div>
           </div>

@@ -3423,5 +3423,71 @@
     "searchPlaceholder": "Search...",
     "noCommunityEntities": "No guilds, pods or organizations yet.",
     "naturalSystems": "Natural Systems"
+  },
+  "unlockModal": {
+    "requirementAny": "Any level",
+    "pledgeLines": [
+      "I will contribute to quests and activities in this territory",
+      "I will help onboard new members with care and openness",
+      "I will act as a guardian of local natural systems",
+      "I will uphold the CTG community guidelines",
+      "I understand that stewardship can be passed on if I become inactive"
+    ],
+    "toast": {
+      "alreadySteward": "You are already a steward of this territory.",
+      "unlocked": "Territory unlocked! 🌱",
+      "unlockedDesc": "You are now the founding steward.",
+      "failed": "Failed to unlock"
+    },
+    "dialogTitle": "Pioneer {{name}}",
+    "stepOf": "Step {{step}} of 3",
+    "step1": {
+      "whatIsPioneering": "What is pioneering?",
+      "introPart1": "As a pioneer, you become the founding steward of ",
+      "introPart2": ". You'll set the tone, welcome new members, and help this territory thrive within the CTG network.",
+      "benefits": [
+        "Earn the Pioneer badge (+50 XP)",
+        "Appear as founding steward in the portal",
+        "Access territory admin tools",
+        "Customize the territory's portal"
+      ],
+      "meetsRequirements": "You meet the requirements",
+      "levelNotMet": "Level requirement not met",
+      "requiresLevel": "Requires {{req}} · You are level {{level}}",
+      "eligible": "✓ Eligible",
+      "cancel": "Cancel",
+      "continue": "Continue"
+    },
+    "step2": {
+      "giveVoice": "Give {{name}} a voice. These details will appear on the public portal.",
+      "descriptionLabel": "Territory description",
+      "optional": "(optional)",
+      "descPlaceholder": "What makes {{name}} special? Describe its ecosystem, community, and regenerative projects...",
+      "coverImagesLabel": "Cover image URLs",
+      "coverImagesHint": "(one per line or add via button)",
+      "urlPlaceholder": "https://example.com/photo.jpg",
+      "add": "Add",
+      "tagsLabel": "Tags",
+      "tagsHint": "(comma-separated)",
+      "tagsPlaceholder": "regenerative, permaculture, urban farming...",
+      "back": "Back",
+      "continue": "Continue"
+    },
+    "step3": {
+      "pledgeTitle": "Steward's Pledge",
+      "acceptPledgePart1": "I accept the steward's pledge for ",
+      "acceptPledgePart2": "",
+      "unlocking": "Unlocking...",
+      "pioneerThisTerritory": "Pioneer this Territory",
+      "back": "Back"
+    },
+    "step4": {
+      "alive": "{{name}} is now alive! 🌱",
+      "foundingSteward": "You are the founding steward. The portal is now active and visible to the world.",
+      "xpEarned": "+50 XP earned",
+      "pioneerBadge": "Pioneer",
+      "openAdminPanel": "Open Admin Panel",
+      "backToPortal": "Back to Portal"
+    }
   }
 }

@@ -3409,5 +3409,71 @@
     "searchPlaceholder": "Rechercher...",
     "noCommunityEntities": "Pas encore de guildes, pods ou organisations.",
     "naturalSystems": "Systèmes naturels"
+  },
+  "unlockModal": {
+    "requirementAny": "Tout niveau",
+    "pledgeLines": [
+      "Je contribuerai aux quêtes et activités de ce territoire",
+      "J'aiderai à accueillir les nouveaux membres avec attention et ouverture",
+      "J'agirai comme gardien des systèmes naturels locaux",
+      "Je respecterai les règles de la communauté CTG",
+      "Je comprends que le stewardship peut être transmis si je deviens inactif"
+    ],
+    "toast": {
+      "alreadySteward": "Vous êtes déjà steward de ce territoire.",
+      "unlocked": "Territoire débloqué ! 🌱",
+      "unlockedDesc": "Vous êtes maintenant le steward fondateur.",
+      "failed": "Échec du déblocage"
+    },
+    "dialogTitle": "Devenir pionnier de {{name}}",
+    "stepOf": "Étape {{step}} sur 3",
+    "step1": {
+      "whatIsPioneering": "Qu'est-ce que devenir pionnier ?",
+      "introPart1": "En tant que pionnier, vous devenez le steward fondateur de ",
+      "introPart2": ". Vous donnerez le ton, accueillerez les nouveaux membres et aiderez ce territoire à s'épanouir au sein du réseau CTG.",
+      "benefits": [
+        "Gagnez le badge Pionnier (+50 XP)",
+        "Apparaissez comme steward fondateur dans le portail",
+        "Accédez aux outils d'administration du territoire",
+        "Personnalisez le portail du territoire"
+      ],
+      "meetsRequirements": "Vous remplissez les conditions",
+      "levelNotMet": "Condition de niveau non remplie",
+      "requiresLevel": "Nécessite {{req}} · Vous êtes niveau {{level}}",
+      "eligible": "✓ Éligible",
+      "cancel": "Annuler",
+      "continue": "Continuer"
+    },
+    "step2": {
+      "giveVoice": "Donnez une voix à {{name}}. Ces informations apparaîtront sur le portail public.",
+      "descriptionLabel": "Description du territoire",
+      "optional": "(facultatif)",
+      "descPlaceholder": "Qu'est-ce qui rend {{name}} spécial ? Décrivez son écosystème, sa communauté et ses projets régénératifs...",
+      "coverImagesLabel": "URLs des images de couverture",
+      "coverImagesHint": "(une par ligne ou ajoutez via le bouton)",
+      "urlPlaceholder": "https://exemple.com/photo.jpg",
+      "add": "Ajouter",
+      "tagsLabel": "Tags",
+      "tagsHint": "(séparés par des virgules)",
+      "tagsPlaceholder": "régénératif, permaculture, agriculture urbaine...",
+      "back": "Précédent",
+      "continue": "Continuer"
+    },
+    "step3": {
+      "pledgeTitle": "Serment du steward",
+      "acceptPledgePart1": "J'accepte le serment de steward pour ",
+      "acceptPledgePart2": "",
+      "unlocking": "Déblocage...",
+      "pioneerThisTerritory": "Devenir pionnier de ce territoire",
+      "back": "Précédent"
+    },
+    "step4": {
+      "alive": "{{name}} est maintenant vivant ! 🌱",
+      "foundingSteward": "Vous êtes le steward fondateur. Le portail est maintenant actif et visible pour le monde.",
+      "xpEarned": "+50 XP gagné",
+      "pioneerBadge": "Pionnier",
+      "openAdminPanel": "Ouvrir le panneau d'administration",
+      "backToPortal": "Retour au portail"
+    }
   }
 }
