@@ -3260,5 +3260,30 @@
       "approveFailed": "Failed to approve",
       "rejected": "Request rejected"
     }
+  },
+  "guestPortal": {
+    "welcomeTo": "Welcome to {{name}}",
+    "defaultSummary": "This territory is part of the CTG regenerative network. Members here collaborate on quests, share resources, and care for local ecosystems.",
+    "atAGlance": "Territory at a glance",
+    "pristineTitle": "This territory is waiting for its first pioneer",
+    "pristineHint": "No one has claimed stewardship yet. Be the first to activate it.",
+    "stats": {
+      "members": "Members",
+      "quests": "Quests",
+      "guilds": "Guilds",
+      "naturalSystems": "Natural Systems"
+    },
+    "location": "Location",
+    "openQuests": "Open Quests",
+    "viewAll": "View all",
+    "peopleIn": "People in {{name}}",
+    "activeGuilds": "Active Guilds",
+    "membersCount": "{{count}} members",
+    "exploreWithin": "Explore within {{name}}",
+    "joinCommunity": "Join the {{name}} community",
+    "joinHint": "Connect with regenerative pioneers, contribute to quests, and help steward this territory's transition.",
+    "setAsMyTerritory": "Set as my territory",
+    "joinCtg": "Join CTG",
+    "signIn": "Sign in"
   }
 }

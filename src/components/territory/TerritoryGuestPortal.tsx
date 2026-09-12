@@ -15,6 +15,7 @@
  */
 
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { GuestContentGate } from "@/components/GuestContentGate";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -161,6 +162,7 @@ export function TerritoryGuestPortal({
   isAuthenticated,
   isAlreadyMember,
 }: TerritoryGuestPortalProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data } = useGuestPortalData(territory.id);
 
@@ -176,14 +178,13 @@ export function TerritoryGuestPortal({
           </div>
           <div>
             <h2 className="text-lg font-display font-bold text-foreground mb-2">
-              Welcome to {territory.name}
+              {t("guestPortal.welcomeTo", { name: territory.name })}
             </h2>
             {territory.summary ? (
               <p className="text-sm text-muted-foreground leading-relaxed">{territory.summary}</p>
             ) : (
               <p className="text-sm text-muted-foreground leading-relaxed italic">
-                This territory is part of the CTG regenerative network. Members here collaborate on quests,
-                share resources, and care for local ecosystems.
+                {t("guestPortal.defaultSummary")}
               </p>
             )}
           </div>
@@ -193,24 +194,24 @@ export function TerritoryGuestPortal({
       {/* ── Section 2: Live vitals ── */}
       <section>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Territory at a glance
+          {t("guestPortal.atAGlance")}
         </h3>
         {isPristine ? (
           <div className="rounded-2xl border border-dashed border-amber-500/40 bg-amber-500/5 p-6 text-center">
             <Sprout className="h-10 w-10 text-amber-500/60 mx-auto mb-3" />
             <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-              This territory is waiting for its first pioneer
+              {t("guestPortal.pristineTitle")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              No one has claimed stewardship yet. Be the first to activate it.
+              {t("guestPortal.pristineHint")}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatBlock value={memberCount} label="Members" icon={Users} color="text-blue-500" />
-            <StatBlock value={questCount} label="Quests" icon={Compass} color="text-violet-500" />
-            <StatBlock value={guildCount} label="Guilds" icon={Shield} color="text-amber-500" />
-            <StatBlock value={naturalSystemCount} label="Natural Systems" icon={Leaf} color="text-green-500" />
+            <StatBlock value={memberCount} label={t("guestPortal.stats.members")} icon={Users} color="text-blue-500" />
+            <StatBlock value={questCount} label={t("guestPortal.stats.quests")} icon={Compass} color="text-violet-500" />
+            <StatBlock value={guildCount} label={t("guestPortal.stats.guilds")} icon={Shield} color="text-amber-500" />
+            <StatBlock value={naturalSystemCount} label={t("guestPortal.stats.naturalSystems")} icon={Leaf} color="text-green-500" />
           </div>
         )}
       </section>
@@ -219,7 +220,7 @@ export function TerritoryGuestPortal({
       {territory.latitude && territory.longitude && (
         <section>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Location
+            {t("guestPortal.location")}
           </h3>
           <div className="rounded-2xl border border-border/60 overflow-hidden" style={{ height: 260 }}>
             <MapContainer
@@ -254,13 +255,13 @@ export function TerritoryGuestPortal({
           <section>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Open Quests
+                {t("guestPortal.openQuests")}
               </h3>
               <Link
                 to={`/territories/${territory.id}?tab=ecosystem`}
                 className="text-xs text-primary hover:underline flex items-center gap-1"
               >
-                View all <ArrowRight className="h-3 w-3" />
+                {t("guestPortal.viewAll")} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             <div className="space-y-2">
@@ -275,7 +276,7 @@ export function TerritoryGuestPortal({
         <GuestContentGate blur>
           <section>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              People in {territory.name}
+              {t("guestPortal.peopleIn", { name: territory.name })}
             </h3>
             <div className="flex flex-wrap gap-2">
               {data!.people.map((p: any) => (
@@ -310,7 +311,7 @@ export function TerritoryGuestPortal({
         <GuestContentGate blur>
           <section>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Active Guilds
+              {t("guestPortal.activeGuilds")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {data!.guilds.map((g: any) => (
@@ -329,7 +330,7 @@ export function TerritoryGuestPortal({
                         </p>
                         {g.member_count && (
                           <p className="text-[10px] text-muted-foreground">
-                            {g.member_count} members
+                            {t("guestPortal.membersCount", { count: g.member_count })}
                           </p>
                         )}
                       </div>
@@ -347,7 +348,7 @@ export function TerritoryGuestPortal({
       {(data?.subTerritories ?? []).length > 0 && (
         <section>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Explore within {territory.name}
+            {t("guestPortal.exploreWithin", { name: territory.name })}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {data!.subTerritories.map((t: any) => (
@@ -373,10 +374,10 @@ export function TerritoryGuestPortal({
             <Heart className="h-6 w-6 text-primary" />
           </div>
           <h3 className="text-base font-display font-bold text-foreground mb-2">
-            Join the {territory.name} community
+            {t("guestPortal.joinCommunity", { name: territory.name })}
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-5">
-            Connect with regenerative pioneers, contribute to quests, and help steward this territory's transition.
+            {t("guestPortal.joinHint")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {isAuthenticated ? (
@@ -385,7 +386,7 @@ export function TerritoryGuestPortal({
                 onClick={() => navigate(`/settings?tab=territory&set=${territory.id}`)}
                 className="gap-1.5"
               >
-                <MapPin className="h-3.5 w-3.5" /> Set as my territory
+                <MapPin className="h-3.5 w-3.5" /> {t("guestPortal.setAsMyTerritory")}
               </Button>
             ) : (
               <>
@@ -394,14 +395,14 @@ export function TerritoryGuestPortal({
                   onClick={() => navigate(`/signup?territory=${territory.id}`)}
                   className="gap-1.5"
                 >
-                  <Sprout className="h-3.5 w-3.5" /> Join CTG
+                  <Sprout className="h-3.5 w-3.5" /> {t("guestPortal.joinCtg")}
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => navigate(`/login?redirect=/territories/${territory.id}`)}
                 >
-                  Sign in
+                  {t("guestPortal.signIn")}
                 </Button>
               </>
             )}

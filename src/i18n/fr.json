@@ -3246,5 +3246,30 @@
       "approveFailed": "Échec de l'approbation",
       "rejected": "Demande rejetée"
     }
+  },
+  "guestPortal": {
+    "welcomeTo": "Bienvenue sur {{name}}",
+    "defaultSummary": "Ce territoire fait partie du réseau régénératif CTG. Les membres y collaborent sur des quêtes, partagent des ressources et prennent soin des écosystèmes locaux.",
+    "atAGlance": "Le territoire en un coup d'œil",
+    "pristineTitle": "Ce territoire attend son premier pionnier",
+    "pristineHint": "Personne n'a encore revendiqué le stewardship. Soyez le premier à l'activer.",
+    "stats": {
+      "members": "Membres",
+      "quests": "Quêtes",
+      "guilds": "Guildes",
+      "naturalSystems": "Systèmes naturels"
+    },
+    "location": "Localisation",
+    "openQuests": "Quêtes ouvertes",
+    "viewAll": "Tout voir",
+    "peopleIn": "Personnes sur {{name}}",
+    "activeGuilds": "Guildes actives",
+    "membersCount": "{{count}} membres",
+    "exploreWithin": "Explorer au sein de {{name}}",
+    "joinCommunity": "Rejoindre la communauté {{name}}",
+    "joinHint": "Connectez-vous avec des pionniers régénératifs, contribuez à des quêtes et aidez à piloter la transition de ce territoire.",
+    "setAsMyTerritory": "Définir comme mon territoire",
+    "joinCtg": "Rejoindre CTG",
+    "signIn": "Se connecter"
   }
 }
