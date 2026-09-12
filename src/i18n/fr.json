@@ -3307,5 +3307,15 @@
       "az": "A–Z"
     },
     "noneFound": "Aucun territoire trouvé."
+  },
+  "territoriesHousesPage": {
+    "whatAreTerritories": "Que sont les Territoires ?",
+    "territoriesDesc": "Les territoires sont des lieux réels où agissent quêtes, guildes et communautés.",
+    "whatAreTopics": "Que sont les Topics ?",
+    "topicsDesc": "Les topics sont des domaines thématiques (créativité, impact, artisanat, régénération, apprentissage…).",
+    "togetherShape": "Ensemble, ils façonnent",
+    "shapeItems": ["Votre identité", "Vos collaborateurs suggérés", "Vos filtres d'exploration", "Vos recommandations IA"],
+    "exploreTopics": "Explorer les topics",
+    "explorePeople": "Explorer les personnes"
   }
 }
