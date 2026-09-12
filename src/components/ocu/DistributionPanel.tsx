@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -60,7 +62,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
       if (isFrozen && pieSnapshot?.contributors) {
         return (pieSnapshot.contributors as any[]).map((c: any) => ({
           user_id: c.user_id,
-          name: c.name ?? "Unknown",
+          name: c.name ?? t("contract.unknown"),
           avatar_url: c.avatar_url ?? null,
           pie_pct: c.pct_share ?? 0,
           coins_amount: 0,
@@ -93,7 +95,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         const p = pMap.get(uid);
         return {
           user_id: uid,
-          name: p?.name ?? "Unknown",
+          name: p?.name ?? t("contract.unknown"),
           avatar_url: p?.avatar_url ?? null,
           pie_pct: totalFmv > 0 ? (fmv / totalFmv) * 100 : 0,
           coins_amount: 0,
@@ -282,14 +284,14 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         },
       });
 
-      toast({ title: "Distribution confirmed", description: `${recipientSnapshot.recipients.length} recipient(s) credited.` });
+      toast({ title: t("distribution.toast.distributionConfirmed"), description: t("distribution.toast.distributionConfirmedDesc", { count: recipientSnapshot.recipients.length }) });
       qc.invalidateQueries({ queryKey: ["quest-distributions", quest.id] });
       qc.invalidateQueries({ queryKey: ["quest", quest.id] });
       qc.invalidateQueries({ queryKey: ["distribution-contributors", quest.id] });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
       setConfirmOpen(false);
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("distribution.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -311,18 +313,18 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         {/* Header summary */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-2">
           <h3 className="font-display font-semibold text-sm flex items-center gap-1.5">
-            <Banknote className="h-4 w-4" /> Distribution Panel
+            <Banknote className="h-4 w-4" /> {t("distribution.panelTitle")}
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">🟩 Coins available</p>
+              <p className="text-xs text-muted-foreground">{t("distribution.coinsAvailable")}</p>
               <p className="text-lg font-bold">{coinsEscrow.toLocaleString()}</p>
               <p className="text-[10px] text-muted-foreground">≈ €{(coinsEscrow * coinsRate).toFixed(2)}</p>
             </div>
             <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">🌱 $CTG available</p>
+              <p className="text-xs text-muted-foreground">{t("distribution.ctgAvailable")}</p>
               <p className="text-lg font-bold">{ctgEscrow.toLocaleString()}</p>
-              <p className="text-[10px] text-muted-foreground">❄️ In escrow</p>
+              <p className="text-[10px] text-muted-foreground">{t("distribution.inEscrow")}</p>
             </div>
           </div>
         </div>
@@ -330,11 +332,11 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         {/* Admin distribution controls */}
         {isAdmin && contributors.length > 0 && (coinsEscrow > 0 || ctgEscrow > 0) && (
           <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-            <h4 className="text-sm font-semibold">New Distribution</h4>
+            <h4 className="text-sm font-semibold">{t("distribution.newDistribution")}</h4>
 
             {/* Mode selector */}
             <div className="space-y-2">
-              <Label className="text-xs">Distribution mode</Label>
+              <Label className="text-xs">{t("distribution.distributionMode")}</Label>
               <div className="flex flex-wrap gap-2">
                 {ocuEnabled && isFrozen && (
                   <Button
@@ -342,7 +344,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                     className="text-xs h-8"
                     onClick={() => setDistMode("ocu_pie")}
                   >
-                    🧮 OCU Pie
+                    {t("distribution.modeOcuPie")}
                   </Button>
                 )}
                 <Button
@@ -350,21 +352,21 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                   className="text-xs h-8"
                   onClick={() => setDistMode("equal")}
                 >
-                  👥 Equal Split
+                  {t("distribution.modeEqualSplit")}
                 </Button>
                 <Button
                   size="sm" variant={distMode === "manual" ? "default" : "outline"}
                   className="text-xs h-8"
                   onClick={() => setDistMode("manual")}
                 >
-                  ✍️ Manual
+                  {t("distribution.modeManual")}
                 </Button>
               </div>
             </div>
 
             {/* Currency selector */}
             <div className="space-y-2">
-              <Label className="text-xs">Currency</Label>
+              <Label className="text-xs">{t("distribution.currency")}</Label>
               <div className="flex flex-wrap gap-2">
                 {coinsEscrow > 0 && (
                   <Button size="sm" variant={currencyMode === "coins" ? "default" : "outline"} className="text-xs h-8" onClick={() => setCurrencyMode("coins")}>
@@ -378,7 +380,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                 )}
                 {coinsEscrow > 0 && ctgEscrow > 0 && (
                   <Button size="sm" variant={currencyMode === "both" ? "default" : "outline"} className="text-xs h-8" onClick={() => setCurrencyMode("both")}>
-                    Both
+                    {t("distribution.both")}
                   </Button>
                 )}
               </div>
@@ -389,8 +391,8 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left p-2 font-medium">Contributor</th>
-                    {distMode !== "manual" && <th className="text-right p-2 font-medium">% Share</th>}
+                    <th className="text-left p-2 font-medium">{t("distribution.contributor")}</th>
+                    {distMode !== "manual" && <th className="text-right p-2 font-medium">{t("distribution.percentShare")}</th>}
                     {showCoins && <th className="text-right p-2 font-medium">🟩 Coins</th>}
                     {showCtg && <th className="text-right p-2 font-medium">🌱 $CTG</th>}
                   </tr>
@@ -447,12 +449,12 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <div className="flex gap-4">
                 {showCoins && (
                   <span className={overCoins ? "text-destructive font-medium" : ""}>
-                    Total 🟩: {totalCoins.toLocaleString()} / {coinsEscrow.toLocaleString()}
+                    {t("distribution.totalCoinsLine", { total: totalCoins.toLocaleString(), escrow: coinsEscrow.toLocaleString() })}
                   </span>
                 )}
                 {showCtg && (
                   <span className={overCtg ? "text-destructive font-medium" : ""}>
-                    Total 🌱: {totalCtg.toLocaleString()} / {ctgEscrow.toLocaleString()}
+                    {t("distribution.totalCtgLine", { total: totalCtg.toLocaleString(), escrow: ctgEscrow.toLocaleString() })}
                   </span>
                 )}
               </div>
@@ -464,7 +466,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                 }
                 onClick={() => setConfirmOpen(true)}
               >
-                <Send className="h-3.5 w-3.5 mr-1" /> Preview & Confirm
+                <Send className="h-3.5 w-3.5 mr-1" /> {t("distribution.previewAndConfirm")}
               </Button>
             </div>
           </div>
@@ -473,7 +475,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         {/* Past distributions (visible to all participants) */}
         {distributions.length > 0 && (
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold">Distribution History</h4>
+            <h4 className="text-sm font-semibold">{t("distribution.distributionHistory")}</h4>
             {distributions.map((d: any) => (
               <DistributionCard
                 key={d.id}
@@ -490,16 +492,16 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Confirm Distribution</DialogTitle>
+              <DialogTitle>{t("distribution.confirmDistributionTitle")}</DialogTitle>
               <DialogDescription>
-                This will credit the following amounts to contributor wallets and deduct from quest escrow.
+                {t("distribution.confirmDistributionDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="rounded-lg border border-border overflow-x-auto max-h-60">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left p-2 font-medium">Contributor</th>
+                    <th className="text-left p-2 font-medium">{t("distribution.contributor")}</th>
                     {showCoins && <th className="text-right p-2 font-medium">🟩 Coins</th>}
                     {showCtg && <th className="text-right p-2 font-medium">🌱 $CTG</th>}
                   </tr>
@@ -516,14 +518,14 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               </table>
             </div>
             <div className="text-xs text-muted-foreground space-y-1">
-              {showCoins && <p>Total Coins: <strong>{totalCoins.toLocaleString()}</strong> (≈ €{(totalCoins * coinsRate).toFixed(2)})</p>}
-              {showCtg && <p>Total $CTG: <strong>{totalCtg.toLocaleString()}</strong> — demurrage resumes in wallets</p>}
+              {showCoins && <p>{t("distribution.totalCoinsLabel")} <strong>{totalCoins.toLocaleString()}</strong> (≈ €{(totalCoins * coinsRate).toFixed(2)})</p>}
+              {showCtg && <p>{t("distribution.totalCtgLabel")} <strong>{totalCtg.toLocaleString()}</strong> {t("distribution.demurrageResumesNote")}</p>}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>{t("distribution.cancel")}</Button>
               <Button onClick={handleConfirm} disabled={submitting}>
                 {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                Confirm Distribution
+                {t("distribution.confirmDistribution")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -537,27 +539,29 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
 function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
   distribution: any; quest: any; currentUserId: string; isAdmin: boolean;
 }) {
+  const { t } = useTranslation();
   const snap = distribution.recipient_snapshot as any;
   const recipients = snap?.recipients ?? [];
   const myAlloc = recipients.find((r: any) => r.user_id === currentUserId);
   const [reportOpen, setReportOpen] = useState(false);
+  const modeLabel = t(`distribution.mode.${distribution.distribution_mode}`, { defaultValue: distribution.distribution_mode });
 
   return (
     <div className="rounded-lg border border-border bg-card p-3 space-y-2">
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px] capitalize">{distribution.distribution_mode}</Badge>
+          <Badge variant="outline" className="text-[10px] capitalize">{modeLabel}</Badge>
           <span className="text-muted-foreground">
             {new Date(distribution.distributed_at).toLocaleDateString()}
           </span>
           {distribution.flagged && isAdmin && (
-            <span className="text-muted-foreground flex items-center gap-1" title="A concern was raised on this distribution">
-              <Flag className="h-3 w-3" /> ⚑ Concern raised
+            <span className="text-muted-foreground flex items-center gap-1" title={t("distribution.concernTooltip")}>
+              <Flag className="h-3 w-3" /> {t("distribution.flaggedConcern")}
             </span>
           )}
         </div>
         <span className="text-muted-foreground">
-          {recipients.length} recipient{recipients.length !== 1 ? "s" : ""}
+          {t("distribution.recipientsCount", { count: recipients.length })}
         </span>
       </div>
 
@@ -572,7 +576,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
 
       {myAlloc && (
         <div className="rounded-md bg-primary/5 border border-primary/20 p-2 text-xs">
-          <span>You received: </span>
+          <span>{t("distribution.youReceived")}</span>
           {myAlloc.amount_coins > 0 && <span>🟩 {myAlloc.amount_coins.toLocaleString()} Coins </span>}
           {myAlloc.amount_ctg > 0 && <span>🌱 {myAlloc.amount_ctg.toLocaleString()} $CTG</span>}
         </div>
@@ -583,7 +587,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
           onClick={() => setReportOpen(true)}
           className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          <AlertTriangle className="h-3 w-3" /> Report a concern
+          <AlertTriangle className="h-3 w-3" /> {t("distribution.reportAConcern")}
         </button>
       )}
 

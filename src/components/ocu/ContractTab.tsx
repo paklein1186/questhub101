@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import DOMPurify from "dompurify";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,34 +29,34 @@ interface Props {
   onEnableOCU?: () => void;
 }
 
-const STATUS_STYLES: Record<string, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border" },
-  pending_signatures: { label: "Pending Signatures", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
-  active: { label: "Active", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-  amended: { label: "Amended", className: "bg-primary/10 text-primary border-primary/30" },
+const STATUS_KEYS: Record<string, { key: string; className: string }> = {
+  draft: { key: "contract.status.draft", className: "bg-muted text-muted-foreground border-border" },
+  pending_signatures: { key: "contract.status.pendingSignatures", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+  active: { key: "contract.status.active", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+  amended: { key: "contract.status.amended", className: "bg-primary/10 text-primary border-primary/30" },
 };
 
-function getDefaultTemplate(questName: string, guildName: string, fmvRate: number) {
-  return `<h2>Contract — ${questName}</h2>
-<p><strong>Guild:</strong> ${guildName || "—"} &nbsp;|&nbsp; <strong>Date:</strong> ${format(new Date(), "PPP")}</p>
+function getDefaultTemplate(t: TFunction, questName: string, guildName: string, fmvRate: number) {
+  return `<h2>${t("contract.template.heading", { questName })}</h2>
+<p><strong>${t("contract.template.guildLabel")}</strong> ${guildName || "—"} &nbsp;|&nbsp; <strong>${t("contract.template.dateLabel")}</strong> ${format(new Date(), "PPP")}</p>
 <hr/>
-<h3>1. Scope</h3>
-<p>[Define the scope of work covered by this quest contract.]</p>
+<h3>${t("contract.template.scopeTitle")}</h3>
+<p>${t("contract.template.scopeBody")}</p>
 
-<h3>2. Contribution Valuation</h3>
-<p>Contributions are valued at <strong>€${fmvRate} per half-day</strong>, multiplied by the applicable difficulty level (Standard ×1, Enhanced ×1.5, Complex ×2, Critical ×3). Distribution follows the live pie percentage at time of freeze.</p>
+<h3>${t("contract.template.valuationTitle")}</h3>
+<p>${t("contract.template.valuationBody", { fmvRate })}</p>
 
-<h3>3. External Spending</h3>
-<p>External spending is deducted from the quest envelope before distribution to contributors.</p>
+<h3>${t("contract.template.externalSpendingTitle")}</h3>
+<p>${t("contract.template.externalSpendingBody")}</p>
 
-<h3>4. Deliverables</h3>
-<p>[List key deliverables expected from contributors.]</p>
+<h3>${t("contract.template.deliverablesTitle")}</h3>
+<p>${t("contract.template.deliverablesBody")}</p>
 
-<h3>5. Dispute Resolution</h3>
-<p>Disputes are resolved through the guild's conflict resolution ritual. Any contributor may raise a dispute via the Discussions panel.</p>
+<h3>${t("contract.template.disputeTitle")}</h3>
+<p>${t("contract.template.disputeBody")}</p>
 
-<h3>6. Exit Conditions</h3>
-<p>[Define conditions under which a contributor may exit and what happens to their share.]</p>`;
+<h3>${t("contract.template.exitTitle")}</h3>
+<p>${t("contract.template.exitBody")}</p>`;
 }
 
 /** Contract bodies are stored either as { html } or as a raw HTML/text string. */
@@ -75,6 +77,7 @@ function getContractHtml(content: any): string {
 
 // ── Main Component ────────────────────────────────────────────
 export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -84,7 +87,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   const [aiOpen, setAiOpen] = useState(false);
 
 
-  const [contractTitle, setContractTitle] = useState("Quest Contract");
+  const [contractTitle, setContractTitle] = useState(t("contract.defaultTitle"));
   const [contractBody, setContractBody] = useState("");
   const [selectedSignatories, setSelectedSignatories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -190,8 +193,8 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   // ── Handlers ──
   const handleOpenEditor = () => {
     setIsEditing(false);
-    setContractTitle("Quest Contract");
-    setContractBody(getDefaultTemplate(quest.title, (guild as any)?.name ?? "", fmvRate));
+    setContractTitle(t("contract.defaultTitle"));
+    setContractBody(getDefaultTemplate(t, quest.title, (guild as any)?.name ?? "", fmvRate));
     setSelectedSignatories([]);
     setEditorOpen(true);
   };
@@ -199,7 +202,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   const handleOpenEditExisting = () => {
     if (!contract) return;
     setIsEditing(true);
-    setContractTitle(contract.title ?? "Quest Contract");
+    setContractTitle(contract.title ?? t("contract.defaultTitle"));
     setContractBody(getContractHtml(contract.content));
     setSelectedSignatories([]);
     setEditorOpen(true);
@@ -215,10 +218,10 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         user_id: currentUser.id,
       });
       if (error) throw error;
-      toast({ title: "You joined the contract", description: "Sign it to confirm your commitment." });
+      toast({ title: t("contract.toast.joinedContract"), description: t("contract.toast.joinedContractDesc") });
       qc.invalidateQueries({ queryKey: ["contract-signatories"] });
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -234,7 +237,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
           .update({ title: contractTitle, content: { html: contractBody } } as any)
           .eq("id", contract.id);
         if (error) throw error;
-        toast({ title: "Contract updated" });
+        toast({ title: t("contract.toast.contractUpdated") });
         qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
         setEditorOpen(false);
         return;
@@ -275,12 +278,12 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         }
       }
 
-      toast({ title: "Contract created" });
+      toast({ title: t("contract.toast.contractCreated") });
       qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
       qc.invalidateQueries({ queryKey: ["contract-signatories"] });
       setEditorOpen(false);
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -311,11 +314,11 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
           .eq("id", contract.id);
       }
 
-      toast({ title: "Contract signed" });
+      toast({ title: t("contract.toast.contractSigned") });
       qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
       qc.invalidateQueries({ queryKey: ["contract-signatories"] });
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -343,13 +346,13 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         });
       }
 
-      toast({ title: "Contract declined" });
+      toast({ title: t("contract.toast.contractDeclined") });
       qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
       qc.invalidateQueries({ queryKey: ["contract-signatories"] });
       setDeclineOpen(false);
       setDeclineNote("");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -382,12 +385,12 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         }
       }
 
-      toast({ title: `Amendment #${nextNum} proposed` });
+      toast({ title: t("contract.toast.amendmentProposed", { number: nextNum }) });
       qc.invalidateQueries({ queryKey: ["contract-amendments", contract.id] });
       setAmendOpen(false);
       setAmendBody("");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setAmendSubmitting(false);
     }
@@ -458,7 +461,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
           type: "discussion",
         });
 
-        toast({ title: "Amendment rejected", description: "A discussion thread has been created." });
+        toast({ title: t("contract.toast.amendmentRejected"), description: t("contract.toast.amendmentRejectedDesc") });
       } else if (isAccepted) {
         // All accepted
         await supabase
@@ -478,16 +481,16 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
             })
             .eq("id", contract.id);
         }
-        toast({ title: "Amendment accepted" });
+        toast({ title: t("contract.toast.amendmentAccepted") });
       } else {
-        toast({ title: "Vote recorded" });
+        toast({ title: t("contract.toast.voteRecorded") });
       }
 
       qc.invalidateQueries({ queryKey: ["contract-amendments", contract?.id] });
       qc.invalidateQueries({ queryKey: ["amendment-votes", contract?.id] });
       qc.invalidateQueries({ queryKey: ["quest-contract", quest.id] });
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("contract.toast.error"), description: e.message, variant: "destructive" });
     }
   };
 
@@ -497,25 +500,25 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
   // Late joiners: quest members who are not yet signatories can opt into the contract.
   const canJoinAsSignatory = !!contract && !mySig && (isQuestMember || isAdmin) && contract.status !== "draft";
   const canEditContract = !!contract && contract.created_by === currentUser?.id && (contract.status === "draft" || contract.status === "pending_signatures");
-  const contractStatus = STATUS_STYLES[contract?.status ?? "draft"] ?? STATUS_STYLES.draft;
+  const contractStatus = STATUS_KEYS[contract?.status ?? "draft"] ?? STATUS_KEYS.draft;
 
 
   return (
     <OCUFeatureGate quest={quest} isAdmin={isAdmin} onEnable={onEnableOCU}>
       <div className="space-y-6">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading contract…</p>
+          <p className="text-sm text-muted-foreground">{t("contract.loading")}</p>
         ) : !contract ? (
           /* ── Empty state ── */
           <div className="rounded-xl border border-dashed border-border p-10 text-center space-y-3">
             <FileText className="h-10 w-10 mx-auto text-muted-foreground" />
-            <h3 className="font-display font-semibold">No Contract Yet</h3>
+            <h3 className="font-display font-semibold">{t("contract.noContractTitle")}</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Create a contract to formalize contribution rules, distribution terms, and signatory commitments.
+              {t("contract.noContractDescription")}
             </p>
             {isAdmin && (
               <Button onClick={handleOpenEditor} className="gap-1.5">
-                <Plus className="h-4 w-4" /> Create Contract
+                <Plus className="h-4 w-4" /> {t("contract.createContract")}
               </Button>
             )}
           </div>
@@ -527,18 +530,18 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 <FileText className="h-4 w-4 text-primary" />
                 <h3 className="font-display font-semibold text-sm">{contract.title}</h3>
                 <Badge variant="outline" className={`text-[10px] ${contractStatus.className}`}>
-                  {contractStatus.label}
+                  {t(contractStatus.key)}
                 </Badge>
               </div>
               <div className="flex gap-1.5">
                 {canEditContract && (
                   <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleOpenEditExisting}>
-                    <Pencil className="h-3 w-3" /> Edit
+                    <Pencil className="h-3 w-3" /> {t("contract.edit")}
                   </Button>
                 )}
                 {contract.status !== "draft" && (
                   <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setAmendOpen(true)}>
-                    <Pencil className="h-3 w-3" /> Propose Amendment
+                    <Pencil className="h-3 w-3" /> {t("contract.proposeAmendmentButton")}
                   </Button>
                 )}
               </div>
@@ -554,7 +557,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
             {/* ── Signatories ── */}
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Signatories</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("contract.signatories")}</h4>
               <div className="space-y-1.5">
                 {signatories.map((sig: any) => (
                   <div key={sig.id} className="flex items-center gap-2 text-sm">
@@ -562,15 +565,15 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                       <AvatarImage src={sig.profile?.avatar_url} />
                       <AvatarFallback className="text-[10px]">{sig.profile?.name?.[0] ?? "?"}</AvatarFallback>
                     </Avatar>
-                    <span className="font-medium text-xs">{sig.profile?.name ?? "Unknown"}</span>
+                    <span className="font-medium text-xs">{sig.profile?.name ?? t("contract.unknown")}</span>
                     {sig.signed_at ? (
                       <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30 gap-0.5">
-                        <Check className="h-2.5 w-2.5" /> Signed {format(new Date(sig.signed_at), "MMM d")}
+                        <Check className="h-2.5 w-2.5" /> {t("contract.signedOn", { date: format(new Date(sig.signed_at), "MMM d") })}
                       </Badge>
                     ) : sig.rejected_at ? (
                       <div className="flex items-center gap-1">
                         <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-700 border-red-500/30 gap-0.5">
-                          <X className="h-2.5 w-2.5" /> Declined
+                          <X className="h-2.5 w-2.5" /> {t("contract.declined")}
                         </Badge>
                         {sig.rejection_note && (
                           <span className="text-[10px] text-muted-foreground italic">"{sig.rejection_note}"</span>
@@ -578,7 +581,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                       </div>
                     ) : (
                       <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30 gap-0.5">
-                        <Clock className="h-2.5 w-2.5" /> Pending
+                        <Clock className="h-2.5 w-2.5" /> {t("contract.pending")}
                       </Badge>
                     )}
                   </div>
@@ -589,10 +592,10 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               {canSign && (
                 <div className="flex gap-2 pt-2">
                   <Button size="sm" className="h-8 text-xs gap-1" onClick={handleSign} disabled={saving}>
-                    <Check className="h-3 w-3" /> Sign Contract
+                    <Check className="h-3 w-3" /> {t("contract.signContract")}
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setDeclineOpen(true)}>
-                    <X className="h-3 w-3" /> Decline
+                    <X className="h-3 w-3" /> {t("contract.decline")}
                   </Button>
                 </div>
               )}
@@ -601,10 +604,10 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               {canJoinAsSignatory && (
                 <div className="pt-2">
                   <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={handleJoinAsSignatory} disabled={saving}>
-                    <Plus className="h-3 w-3" /> Join this contract as signatory
+                    <Plus className="h-3 w-3" /> {t("contract.joinAsSignatory")}
                   </Button>
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    Joining later? Add yourself, then sign — you'll also be able to propose and vote on amendments.
+                    {t("contract.joinAsSignatoryHint")}
                   </p>
                 </div>
               )}
@@ -614,23 +617,23 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
             {/* ── Amendments ── */}
             {amendments.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Amendment History</h4>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("contract.amendmentHistory")}</h4>
                 {amendments.map((a: any) => {
                   const aVotes = amendmentVotes.filter((v) => v.amendment_id === a.id);
                   const myVote = aVotes.find((v) => v.user_id === currentUser?.id);
                   const isSignatory = signatories.some((s: any) => s.user_id === currentUser?.id);
                   const aStatus = a.status === "accepted"
-                    ? { label: "Accepted", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" }
+                    ? { key: "contract.status.accepted", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" }
                     : a.status === "rejected"
-                    ? { label: "Rejected", className: "bg-red-500/10 text-red-700 border-red-500/30" }
-                    : { label: "Proposed", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" };
+                    ? { key: "contract.status.rejected", className: "bg-red-500/10 text-red-700 border-red-500/30" }
+                    : { key: "contract.status.proposed", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" };
 
                   return (
                     <Collapsible key={a.id}>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-xs p-2 rounded-md hover:bg-muted/50 transition-colors">
                         <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                        <span className="font-medium">Amendment #{a.amendment_number}</span>
-                        <Badge variant="outline" className={`text-[10px] ${aStatus.className}`}>{aStatus.label}</Badge>
+                        <span className="font-medium">{t("contract.amendmentNumber", { number: a.amendment_number })}</span>
+                        <Badge variant="outline" className={`text-[10px] ${aStatus.className}`}>{t(aStatus.key)}</Badge>
                         <span className="text-muted-foreground ml-auto">{formatDistanceToNow(new Date(a.proposed_at), { addSuffix: true })}</span>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="px-2 pb-2">
@@ -639,15 +642,18 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((a.content as any)?.html ?? "") }}
                         />
                         <div className="text-[10px] text-muted-foreground mt-1">
-                          Votes: {aVotes.filter((v) => v.vote === "accept").length} accept / {aVotes.filter((v) => v.vote === "reject").length} reject
+                          {t("contract.votes", {
+                            accept: aVotes.filter((v) => v.vote === "accept").length,
+                            reject: aVotes.filter((v) => v.vote === "reject").length,
+                          })}
                         </div>
                         {a.status === "proposed" && isSignatory && !myVote && (
                           <div className="flex gap-2 mt-2">
                             <Button size="sm" className="h-7 text-xs gap-1" onClick={() => handleAmendmentVote(a.id, "accept")}>
-                              <Check className="h-3 w-3" /> Accept
+                              <Check className="h-3 w-3" /> {t("contract.accept")}
                             </Button>
                             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => handleAmendmentVote(a.id, "reject")}>
-                              <X className="h-3 w-3" /> Reject
+                              <X className="h-3 w-3" /> {t("contract.reject")}
                             </Button>
                           </div>
                         )}
@@ -664,11 +670,11 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-sm">{isEditing ? "Edit Contract" : "Create Contract"}</DialogTitle>
+              <DialogTitle className="text-sm">{isEditing ? t("contract.editDialogTitle") : t("contract.createDialogTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium">Title</label>
+                <label className="text-xs font-medium">{t("contract.titleLabel")}</label>
                 <Input
                   value={contractTitle}
                   onChange={(e) => setContractTitle(e.target.value)}
@@ -677,7 +683,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-xs font-medium">Contract Body (HTML)</label>
+                  <label className="text-xs font-medium">{t("contract.bodyLabel")}</label>
                   <Button
                     type="button"
                     variant="outline"
@@ -685,7 +691,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                     className="h-7 text-xs gap-1"
                     onClick={() => setAiOpen(true)}
                   >
-                    <Sparkles className="h-3 w-3" /> Ask AI to complete
+                    <Sparkles className="h-3 w-3" /> {t("contract.askAiToComplete")}
                   </Button>
                 </div>
                 <Textarea
@@ -694,8 +700,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                   className="text-xs mt-1 font-mono min-h-[300px]"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  The assistant asks targeted questions (objectives, roles, financials, deadlines, deliverables,
-                  termination, legal obligations) and rewrites the draft from your answers.
+                  {t("contract.aiAssistantHint")}
                 </p>
               </div>
 
@@ -703,8 +708,8 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
               {/* Signatory selection */}
               {!isEditing && (
               <div>
-                <label className="text-xs font-medium">Signatories</label>
-                <p className="text-[10px] text-muted-foreground mb-2">Select quest members who must sign this contract.</p>
+                <label className="text-xs font-medium">{t("contract.signatoriesSelectLabel")}</label>
+                <p className="text-[10px] text-muted-foreground mb-2">{t("contract.signatoriesSelectHint")}</p>
                 <div className="space-y-1.5 max-h-40 overflow-y-auto">
                   {questMembers.map((m: any) => (
                     <label key={m.user_id} className="flex items-center gap-2 text-xs cursor-pointer">
@@ -724,16 +729,16 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                     </label>
                   ))}
                   {questMembers.length === 0 && (
-                    <p className="text-[10px] text-muted-foreground">No quest members found.</p>
+                    <p className="text-[10px] text-muted-foreground">{t("contract.noQuestMembers")}</p>
                   )}
                 </div>
               </div>
               )}
 
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => setEditorOpen(false)}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={() => setEditorOpen(false)}>{t("contract.cancel")}</Button>
                 <Button size="sm" onClick={handleSaveContract} disabled={saving}>
-                  {saving ? "Saving…" : isEditing ? "Save changes" : selectedSignatories.length > 0 ? "Save & Send for Signatures" : "Save as Draft"}
+                  {saving ? t("contract.saving") : isEditing ? t("contract.saveChanges") : selectedSignatories.length > 0 ? t("contract.saveAndSendForSignatures") : t("contract.saveAsDraft")}
                 </Button>
               </div>
 
@@ -767,21 +772,21 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="text-sm">Decline Contract</DialogTitle>
+              <DialogTitle className="text-sm">{t("contract.declineDialogTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <p className="text-xs text-muted-foreground">Optionally explain why you're declining.</p>
+              <p className="text-xs text-muted-foreground">{t("contract.declineOptionalHint")}</p>
               <Textarea
                 value={declineNote}
                 onChange={(e) => setDeclineNote(e.target.value)}
-                placeholder="Reason (optional)"
+                placeholder={t("contract.declineReasonPlaceholder")}
                 className="text-xs"
                 rows={3}
               />
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => setDeclineOpen(false)}>Cancel</Button>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => setDeclineOpen(false)}>{t("contract.cancel")}</Button>
                 <Button variant="destructive" size="sm" className="flex-1" onClick={handleDecline} disabled={saving}>
-                  {saving ? "Declining…" : "Decline"}
+                  {saving ? t("contract.declining") : t("contract.decline")}
                 </Button>
               </div>
             </div>
@@ -792,22 +797,22 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={amendOpen} onOpenChange={setAmendOpen}>
           <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-sm">Propose Amendment</DialogTitle>
+              <DialogTitle className="text-sm">{t("contract.proposeAmendmentTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                Describe the proposed changes. All original signatories must accept for the amendment to pass.
+                {t("contract.proposeAmendmentHint")}
               </p>
               <Textarea
                 value={amendBody}
                 onChange={(e) => setAmendBody(e.target.value)}
-                placeholder="Amendment text (HTML supported)"
+                placeholder={t("contract.amendmentPlaceholder")}
                 className="text-xs font-mono min-h-[200px]"
               />
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => setAmendOpen(false)}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={() => setAmendOpen(false)}>{t("contract.cancel")}</Button>
                 <Button size="sm" onClick={handleProposeAmendment} disabled={amendSubmitting || !amendBody.trim()}>
-                  {amendSubmitting ? "Submitting…" : "Propose Amendment"}
+                  {amendSubmitting ? t("contract.submitting") : t("contract.proposeAmendmentButton")}
                 </Button>
               </div>
             </div>
