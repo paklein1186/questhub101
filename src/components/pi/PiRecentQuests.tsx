@@ -21,8 +21,9 @@ export function PiRecentQuests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_participants")
-        .select("quest_id, quests(id, title, status, updated_at)")
+        .select("quest_id, quests!inner(id, title, status, updated_at)")
         .eq("user_id", userId!)
+        .eq("quests.is_deleted", false)
         .in("status", ["ACTIVE", "ACCEPTED"])
         .order("created_at", { ascending: false })
         .limit(5);
