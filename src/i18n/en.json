@@ -2923,5 +2923,49 @@
       "unknown": "Unknown",
       "pending": "pending"
     }
+  },
+  "questWork": {
+    "contractCTA": {
+      "contributorsLine": "You have {{count}} contributors logging work.",
+      "hint": "Set up a collaboration agreement to define how contributions are valued, validated, and distributed. This protects everyone.",
+      "startWizard": "Start Agreement Wizard"
+    },
+    "valueOverview": "Value Overview",
+    "ocuActive": "OCU Active",
+    "totalFmv": "Total FMV",
+    "compensated": "Compensated",
+    "remaining": "Remaining",
+    "compensationProgress": "Compensation progress",
+    "tasks": "Tasks",
+    "contributions": "Contributions",
+    "fmvSuffix": "{{amount}} FMV",
+    "validation": "Validation",
+    "basic": "Basic",
+    "contract": "Contract",
+    "contractStatus": {
+      "active": "Active",
+      "pendingSignatures": "Pending signatures",
+      "noContract": "No contract"
+    },
+    "noAgreementYet": "No collaboration agreement yet. Create one to define how contributions are valued and distributed.",
+    "valuePieTitle": "Value Pie",
+    "frozen": "Frozen",
+    "live": "Live",
+    "preview": "Preview",
+    "contributionPieTitle": "Contribution Pie",
+    "contributionPieHint": "Shows how contributions are distributed among participants. Enable OCU to activate live tracking.",
+    "equalSharePreview": "Equal share preview:",
+    "participantFallback": "Participant",
+    "enableOcu": "Enable OCU",
+    "rewardsEarned": "Rewards Earned",
+    "distributed": "Distributed",
+    "availablePool": "Available Pool",
+    "coinsInEscrow": "Coins in escrow",
+    "ctgInEscrow": "$CTG in escrow",
+    "fundraisingProgress": "Fundraising progress",
+    "rewardsDistributedToAll": "Rewards distributed to all participants.",
+    "perParticipant": "{{amount}} $CTG per participant",
+    "xpEarned": "+{{xp}} XP earned",
+    "rewardsOnCompletion": "Rewards distributed on quest completion."
   }
 }

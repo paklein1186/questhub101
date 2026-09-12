@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ListChecks, FileText, PieChart, Trophy, CheckCircle, ScrollText, Handshake, DoorOpen, AlertCircle, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function QuestWorkTab({
   isCollaborator,
   isGuildAdmin,
 }: QuestWorkTabProps) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [wizardOpen, setWizardOpen] = useState(false);
 
@@ -127,13 +129,13 @@ export function QuestWorkTab({
           <Handshake className="h-6 w-6 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-medium">
-              You have {activeParticipants.length} contributors logging work.
+              {t("questWork.contractCTA.contributorsLine", { count: activeParticipants.length })}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Set up a collaboration agreement to define how contributions are valued, validated, and distributed. This protects everyone.
+              {t("questWork.contractCTA.hint")}
             </p>
             <Button size="sm" className="mt-3" onClick={() => setWizardOpen(true)}>
-              <FileText className="h-4 w-4 mr-1" /> Start Agreement Wizard
+              <FileText className="h-4 w-4 mr-1" /> {t("questWork.contractCTA.startWizard")}
             </Button>
           </div>
         </div>
@@ -144,23 +146,23 @@ export function QuestWorkTab({
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" /> Value Overview
+              <TrendingUp className="h-4 w-4 text-primary" /> {t("questWork.valueOverview")}
             </span>
             {ocuEnabled && (
-              <Badge variant="default" className="text-xs">OCU Active</Badge>
+              <Badge variant="default" className="text-xs">{t("questWork.ocuActive")}</Badge>
             )}
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <p className="text-xs text-muted-foreground">Total FMV</p>
+              <p className="text-xs text-muted-foreground">{t("questWork.totalFmv")}</p>
               <p className="text-lg font-bold">€{totalFmv.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Compensated</p>
+              <p className="text-xs text-muted-foreground">{t("questWork.compensated")}</p>
               <p className="text-lg font-bold text-green-600">€{compensated.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Remaining</p>
+              <p className="text-xs text-muted-foreground">{t("questWork.remaining")}</p>
               <p className={`text-lg font-bold ${remaining > 0 ? "text-amber-600" : "text-green-600"}`}>
                 €{remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
@@ -169,7 +171,7 @@ export function QuestWorkTab({
           {totalFmv > 0 && (
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Compensation progress</span>
+                <span>{t("questWork.compensationProgress")}</span>
                 <span>{compensationPct.toFixed(0)}%</span>
               </div>
               <Progress value={compensationPct} className="h-2" />
@@ -184,7 +186,7 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <ListChecks className="h-5 w-5 text-primary" />
-              <span className="font-display font-semibold">Tasks</span>
+              <span className="font-display font-semibold">{t("questWork.tasks")}</span>
               {subtaskCounts && subtaskCounts.total > 0 && (
                 <Badge variant="secondary" className="text-xs">
                   {subtaskCounts.done}/{subtaskCounts.total}
@@ -207,13 +209,13 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <ScrollText className="h-5 w-5 text-primary" />
-              <span className="font-display font-semibold">Contributions</span>
+              <span className="font-display font-semibold">{t("questWork.contributions")}</span>
               {(contributionStats?.count ?? 0) > 0 && (
                 <Badge variant="secondary" className="text-xs">{contributionStats?.count}</Badge>
               )}
               {totalFmv > 0 && (
                 <span className="text-xs text-muted-foreground ml-1">
-                  €{totalFmv.toLocaleString(undefined, { maximumFractionDigits: 0 })} FMV
+                  {t("questWork.fmvSuffix", { amount: `€${totalFmv.toLocaleString(undefined, { maximumFractionDigits: 0 })}` })}
                 </span>
               )}
             </div>
@@ -235,12 +237,12 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <CheckCircle className="h-5 w-5 text-primary" />
-              <span className="font-display font-semibold">Validation</span>
+              <span className="font-display font-semibold">{t("questWork.validation")}</span>
               {!ocuEnabled && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">Basic</Badge>
+                <Badge variant="outline" className="text-xs text-muted-foreground">{t("questWork.basic")}</Badge>
               )}
               {ocuEnabled && (
-                <Badge variant="default" className="text-xs">OCU Active</Badge>
+                <Badge variant="default" className="text-xs">{t("questWork.ocuActive")}</Badge>
               )}
             </div>
           </AccordionTrigger>
@@ -275,7 +277,7 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <FileText className="h-5 w-5 text-primary" />
-              <span className="font-display font-semibold">Contract</span>
+              <span className="font-display font-semibold">{t("questWork.contract")}</span>
               {contractData ? (
                 <Badge
                   variant={
@@ -285,12 +287,12 @@ export function QuestWorkTab({
                   }
                   className={`text-xs ${(contractData as any).status === "pending_signatures" ? "border-amber-500 text-amber-600" : ""}`}
                 >
-                  {(contractData as any).status === "active" ? "Active" :
-                   (contractData as any).status === "pending_signatures" ? "Pending signatures" :
+                  {(contractData as any).status === "active" ? t("questWork.contractStatus.active") :
+                   (contractData as any).status === "pending_signatures" ? t("questWork.contractStatus.pendingSignatures") :
                    (contractData as any).status}
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-xs text-muted-foreground">No contract</Badge>
+                <Badge variant="outline" className="text-xs text-muted-foreground">{t("questWork.contractStatus.noContract")}</Badge>
               )}
             </div>
           </AccordionTrigger>
@@ -299,10 +301,10 @@ export function QuestWorkTab({
               <div className="rounded-lg border border-dashed border-border p-6 text-center space-y-3">
                 <Handshake className="h-10 w-10 mx-auto text-muted-foreground/50" />
                 <p className="text-sm text-muted-foreground">
-                  No collaboration agreement yet. Create one to define how contributions are valued and distributed.
+                  {t("questWork.noAgreementYet")}
                 </p>
                 <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)}>
-                  <FileText className="h-4 w-4 mr-1" /> Start Agreement Wizard
+                  <FileText className="h-4 w-4 mr-1" /> {t("questWork.contractCTA.startWizard")}
                 </Button>
               </div>
             ) : (
@@ -320,15 +322,15 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <PieChart className="h-5 w-5 text-primary" />
-              <span className="font-display font-semibold">Value Pie</span>
+              <span className="font-display font-semibold">{t("questWork.valuePieTitle")}</span>
               {ocuEnabled ? (
                 (quest as any).pie_frozen_at ? (
-                  <Badge className="bg-blue-600 text-white text-xs">Frozen</Badge>
+                  <Badge className="bg-blue-600 text-white text-xs">{t("questWork.frozen")}</Badge>
                 ) : (
-                  <Badge variant="default" className="text-xs">Live</Badge>
+                  <Badge variant="default" className="text-xs">{t("questWork.live")}</Badge>
                 )
               ) : (
-                <Badge variant="outline" className="text-xs text-muted-foreground">Preview</Badge>
+                <Badge variant="outline" className="text-xs text-muted-foreground">{t("questWork.preview")}</Badge>
               )}
             </div>
           </AccordionTrigger>
@@ -343,19 +345,18 @@ export function QuestWorkTab({
               <div className="rounded-lg border border-dashed border-border p-6 text-center space-y-3">
                 <PieChart className="h-10 w-10 mx-auto text-muted-foreground/50" />
                 <div>
-                  <p className="text-sm font-medium">Contribution Pie</p>
+                  <p className="text-sm font-medium">{t("questWork.contributionPieTitle")}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Shows how contributions are distributed among participants.
-                    Enable OCU to activate live tracking.
+                    {t("questWork.contributionPieHint")}
                   </p>
                 </div>
                 {activeParticipants.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Equal share preview:</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t("questWork.equalSharePreview")}</p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {activeParticipants.map((p: any) => (
                         <Badge key={p.id} variant="secondary" className="text-xs">
-                          {p.user?.name || "Participant"} — {(100 / activeParticipants.length).toFixed(0)}%
+                          {p.user?.name || t("questWork.participantFallback")} — {(100 / activeParticipants.length).toFixed(0)}%
                         </Badge>
                       ))}
                     </div>
@@ -363,7 +364,7 @@ export function QuestWorkTab({
                 )}
                 {isAdmin && (
                   <Button size="sm" variant="outline" onClick={enableOCU} className="mt-2">
-                    Enable OCU
+                    {t("questWork.enableOcu")}
                   </Button>
                 )}
               </div>
@@ -376,9 +377,9 @@ export function QuestWorkTab({
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3">
               <Trophy className="h-5 w-5 text-amber-500" />
-              <span className="font-display font-semibold">Rewards Earned</span>
+              <span className="font-display font-semibold">{t("questWork.rewardsEarned")}</span>
               {quest.status === "COMPLETED" && (
-                <Badge className="bg-green-600 text-white text-xs">Distributed</Badge>
+                <Badge className="bg-green-600 text-white text-xs">{t("questWork.distributed")}</Badge>
               )}
             </div>
           </AccordionTrigger>
@@ -388,18 +389,18 @@ export function QuestWorkTab({
               {hasEscrow && (
                 <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                   <p className="text-xs font-medium flex items-center gap-1.5">
-                    <CurrencyIcon currency="coins" className="h-3.5 w-3.5" /> Available Pool
+                    <CurrencyIcon currency="coins" className="h-3.5 w-3.5" /> {t("questWork.availablePool")}
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {(coinsEscrow > 0 || coinsBudget > 0) && (
                       <div>
-                        <p className="text-xs text-muted-foreground">Coins in escrow</p>
+                        <p className="text-xs text-muted-foreground">{t("questWork.coinsInEscrow")}</p>
                         <p className="text-sm font-bold">{(coinsEscrow || coinsBudget).toLocaleString()} Coins</p>
                       </div>
                     )}
                     {(ctgEscrow > 0 || ctgBudget > 0) && (
                       <div>
-                        <p className="text-xs text-muted-foreground">$CTG in escrow</p>
+                        <p className="text-xs text-muted-foreground">{t("questWork.ctgInEscrow")}</p>
                         <p className="text-sm font-bold">{(ctgEscrow || ctgBudget).toLocaleString()} $CTG</p>
                       </div>
                     )}
@@ -407,7 +408,7 @@ export function QuestWorkTab({
                   {(quest as any).allow_fundraising && (quest as any).funding_goal_credits && (
                     <div className="space-y-1 pt-1">
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Fundraising progress</span>
+                        <span>{t("questWork.fundraisingProgress")}</span>
                         <span>{Math.round(((coinsEscrow + ctgEscrow) / Number((quest as any).funding_goal_credits)) * 100)}%</span>
                       </div>
                       <Progress
@@ -422,16 +423,16 @@ export function QuestWorkTab({
               {/* Rewards Status */}
               {quest.status === "COMPLETED" ? (
                 <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-4 space-y-2">
-                  <p className="text-sm font-medium text-green-700 dark:text-green-400">Rewards distributed to all participants.</p>
+                  <p className="text-sm font-medium text-green-700 dark:text-green-400">{t("questWork.rewardsDistributedToAll")}</p>
                   {quest.credit_reward > 0 && (
-                    <p className="text-xs text-muted-foreground">{quest.credit_reward} $CTG per participant</p>
+                    <p className="text-xs text-muted-foreground">{t("questWork.perParticipant", { amount: quest.credit_reward })}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">+{quest.reward_xp} XP earned</p>
+                  <p className="text-xs text-muted-foreground">{t("questWork.xpEarned", { xp: quest.reward_xp })}</p>
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-border p-4 text-center">
                   <p className="text-sm text-muted-foreground">
-                    Rewards distributed on quest completion.
+                    {t("questWork.rewardsOnCompletion")}
                   </p>
                   <div className="flex items-center justify-center gap-4 mt-3">
                     {quest.credit_reward > 0 && (

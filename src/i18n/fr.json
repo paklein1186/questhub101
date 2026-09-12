@@ -2909,5 +2909,49 @@
       "unknown": "Inconnu",
       "pending": "en attente"
     }
+  },
+  "questWork": {
+    "contractCTA": {
+      "contributorsLine": "{{count}} contributeurs enregistrent du travail.",
+      "hint": "Mettez en place un accord de collaboration pour définir comment les contributions sont valorisées, validées et réparties. Cela protège tout le monde.",
+      "startWizard": "Démarrer l'assistant d'accord"
+    },
+    "valueOverview": "Aperçu de la valeur",
+    "ocuActive": "OCU actif",
+    "totalFmv": "FMV totale",
+    "compensated": "Compensé",
+    "remaining": "Restant",
+    "compensationProgress": "Progression de la compensation",
+    "tasks": "Tâches",
+    "contributions": "Contributions",
+    "fmvSuffix": "{{amount}} FMV",
+    "validation": "Validation",
+    "basic": "Basique",
+    "contract": "Contrat",
+    "contractStatus": {
+      "active": "Actif",
+      "pendingSignatures": "En attente de signatures",
+      "noContract": "Pas de contrat"
+    },
+    "noAgreementYet": "Pas encore d'accord de collaboration. Créez-en un pour définir comment les contributions sont valorisées et réparties.",
+    "valuePieTitle": "Value Pie",
+    "frozen": "Gelé",
+    "live": "En direct",
+    "preview": "Aperçu",
+    "contributionPieTitle": "Pie de contribution",
+    "contributionPieHint": "Montre comment les contributions sont réparties entre les participants. Activez l'OCU pour le suivi en direct.",
+    "equalSharePreview": "Aperçu du partage égal :",
+    "participantFallback": "Participant",
+    "enableOcu": "Activer l'OCU",
+    "rewardsEarned": "Récompenses gagnées",
+    "distributed": "Distribué",
+    "availablePool": "Pool disponible",
+    "coinsInEscrow": "Coins en séquestre",
+    "ctgInEscrow": "$CTG en séquestre",
+    "fundraisingProgress": "Progression de la collecte",
+    "rewardsDistributedToAll": "Récompenses distribuées à tous les participants.",
+    "perParticipant": "{{amount}} $CTG par participant",
+    "xpEarned": "+{{xp}} XP gagné",
+    "rewardsOnCompletion": "Récompenses distribuées à la fin de la quête."
   }
 }
