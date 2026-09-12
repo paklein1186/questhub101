@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -19,7 +20,7 @@ interface Props {
 
 type EntitySection = {
   key: string;
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
   linkPrefix: string;
   items: { id: string; name: string; description?: string | null; territoryId?: string }[];
@@ -49,10 +50,10 @@ type TopicInfo = {
 };
 
 const PERSONA_OPTIONS = [
-  { value: "all", label: "All" },
-  { value: "creative", label: "Creative" },
-  { value: "impact", label: "Impact" },
-  { value: "hybrid", label: "Hybrid" },
+  { value: "all", key: "all" },
+  { value: "creative", key: "creative" },
+  { value: "impact", key: "impact" },
+  { value: "hybrid", key: "hybrid" },
 ];
 
 // ─── LEVEL HIERARCHY for grouping ───
@@ -334,6 +335,7 @@ function TerritoryDistribution({
   childTerritories: TerritoryChild[];
   childMap: Map<string, string>;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const distribution = useMemo(() => {
@@ -369,7 +371,7 @@ function TerritoryDistribution({
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
         <MapPin className="h-3 w-3" />
-        Territory distribution
+        {t("ecosystemTab.territoryDistribution")}
         {distribution.buckets.length > 6 && (
           expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
         )}
@@ -392,7 +394,7 @@ function TerritoryDistribution({
         })}
         {distribution.unmapped > 0 && (
           <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground">
-            Direct · {distribution.unmapped}
+            {t("ecosystemTab.direct")} · {distribution.unmapped}
           </Badge>
         )}
       </div>
@@ -414,6 +416,7 @@ function TopicFilterBar({
   onToggle: (id: string) => void;
   onClear: () => void;
 }) {
+  const { t } = useTranslation();
   const [topicSearch, setTopicSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
 
@@ -426,10 +429,10 @@ function TopicFilterBar({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs font-medium text-muted-foreground">Filter by Topics</span>
+        <span className="text-xs font-medium text-muted-foreground">{t("ecosystemTab.filterByTopics")}</span>
         {selectedTopicIds.size > 0 && (
           <button onClick={onClear} className="text-[10px] text-primary hover:underline">
-            Clear
+            {t("ecosystemTab.clear")}
           </button>
         )}
       </div>
@@ -438,7 +441,7 @@ function TopicFilterBar({
         <Input
           value={topicSearch}
           onChange={(e) => setTopicSearch(e.target.value)}
-          placeholder="Search topics…"
+          placeholder={t("ecosystemTab.searchTopicsPlaceholder")}
           className="pl-7 h-7 text-xs"
         />
       </div>
@@ -461,7 +464,7 @@ function TopicFilterBar({
             onClick={() => setShowAll(!showAll)}
             className="text-[10px] text-primary hover:underline px-1"
           >
-            {showAll ? "Show less" : `+${filtered.length - 12} more`}
+            {showAll ? t("ecosystemTab.showLess") : t("ecosystemTab.moreCount", { count: filtered.length - 12 })}
           </button>
         )}
       </div>
@@ -485,6 +488,7 @@ function PeopleSection({
   childTerritories: TerritoryChild[];
   childMap: Map<string, string>;
 }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [personaFilter, setPersonaFilter] = useState("all");
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set());
@@ -554,10 +558,10 @@ function PeopleSection({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Users className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">People</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("ecosystemTab.people")}</h3>
         <Badge variant="secondary" className="text-xs">{people.length}</Badge>
         {filtered.length !== people.length && (
-          <span className="text-[10px] text-muted-foreground">({filtered.length} shown)</span>
+          <span className="text-[10px] text-muted-foreground">{t("ecosystemTab.shownCount", { count: filtered.length })}</span>
         )}
       </div>
 
@@ -578,7 +582,7 @@ function PeopleSection({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, headline, location…"
+              placeholder={t("ecosystemTab.searchPeoplePlaceholder")}
               className="pl-8 h-8 text-xs"
             />
           </div>
@@ -593,7 +597,7 @@ function PeopleSection({
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
-                {opt.label}
+                {t(`ecosystemTab.personaOptions.${opt.key}`)}
               </button>
             ))}
           </div>
@@ -617,7 +621,7 @@ function PeopleSection({
               onCheckedChange={setClusterByTopic}
               className="h-4 w-7"
             />
-            <span className="text-[10px] text-muted-foreground">Cluster by topic</span>
+            <span className="text-[10px] text-muted-foreground">{t("ecosystemTab.clusterByTopic")}</span>
           </div>
         )}
       </div>
@@ -625,7 +629,7 @@ function PeopleSection({
       {/* Results */}
       {filtered.length === 0 ? (
         <p className="text-xs text-muted-foreground text-center py-6">
-          {people.length === 0 ? "No individuals connected to this territory yet." : "No matches found."}
+          {people.length === 0 ? t("ecosystemTab.noIndividuals") : t("ecosystemTab.noMatches")}
         </p>
       ) : topicClusters ? (
         <div className="space-y-5">
@@ -689,6 +693,7 @@ function PersonCard({ person, isFollowed = false }: { person: TerritoryPerson; i
 //  Main Ecosystem Tab
 // ═══════════════════════════════════════════════
 export function TerritoryEcosystemTab({ territoryId }: Props) {
+  const { t } = useTranslation();
   const [includeNested, setIncludeNested] = useState(true);
 
   const { data: descendantIds, isLoading: loadingDesc } = useDescendantIds(territoryId, includeNested);
@@ -704,42 +709,42 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
     return [
       {
         key: "quests",
-        label: "Quests",
+        labelKey: "ecosystemTab.sections.quests",
         icon: Compass,
         linkPrefix: "/quests",
         items: ecosystemData.quests.map((q: any) => ({ id: q.id, name: q.title, description: q.description, territoryId: q.territoryId })),
       },
       {
         key: "guilds",
-        label: "Guilds",
+        labelKey: "ecosystemTab.sections.guilds",
         icon: Shield,
         linkPrefix: "/guilds",
         items: ecosystemData.guilds.map((g: any) => ({ id: g.id, name: g.name, description: g.description, territoryId: g.territoryId })),
       },
       {
         key: "pods",
-        label: "Pods",
+        labelKey: "ecosystemTab.sections.pods",
         icon: CircleDot,
         linkPrefix: "/pods",
         items: ecosystemData.pods.map((p: any) => ({ id: p.id, name: p.name, description: p.description, territoryId: p.territoryId })),
       },
       {
         key: "companies",
-        label: "Companies",
+        labelKey: "ecosystemTab.sections.companies",
         icon: Building2,
         linkPrefix: "/companies",
         items: ecosystemData.companies.map((c: any) => ({ id: c.id, name: c.name, description: c.description, territoryId: c.territoryId })),
       },
       {
         key: "courses",
-        label: "Courses",
+        labelKey: "ecosystemTab.sections.courses",
         icon: GraduationCap,
         linkPrefix: "/courses",
         items: ecosystemData.courses.map((c: any) => ({ id: c.id, name: c.title, description: c.description, territoryId: c.territoryId })),
       },
       {
         key: "services",
-        label: "Services",
+        labelKey: "ecosystemTab.sections.services",
         icon: Briefcase,
         linkPrefix: "/services",
         items: ecosystemData.services.map((s: any) => ({ id: s.id, name: s.title, description: s.description, territoryId: s.territoryId })),
@@ -761,10 +766,10 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
       <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
         <div className="flex items-center gap-2">
           <Network className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-medium text-foreground">Include nested territories</span>
+          <span className="text-xs font-medium text-foreground">{t("ecosystemTab.includeNested")}</span>
           {includeNested && descendantIds && descendantIds.length > 1 && (
             <Badge variant="secondary" className="text-[10px]">
-              {descendantIds.length - 1} sub-territories
+              {t("ecosystemTab.subTerritoriesCount", { count: descendantIds.length - 1 })}
             </Badge>
           )}
         </div>
@@ -790,7 +795,7 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
           <div key={section.key} className="space-y-3">
             <div className="flex items-center gap-2">
               <Icon className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">{section.label}</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t(section.labelKey)}</h3>
               <Badge variant="secondary" className="text-xs">{section.items.length}</Badge>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -811,7 +816,7 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
 
       {sections.length === 0 && people.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          No entities connected to this territory yet.
+          {t("ecosystemTab.noEntities")}
         </div>
       )}
     </div>

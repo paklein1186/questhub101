@@ -3475,5 +3475,37 @@
       "openAdminPanel": "Ouvrir le panneau d'administration",
       "backToPortal": "Retour au portail"
     }
+  },
+  "ecosystemTab": {
+    "personaOptions": {
+      "all": "Tous",
+      "creative": "Créatif",
+      "impact": "Impact",
+      "hybrid": "Hybride"
+    },
+    "territoryDistribution": "Répartition territoriale",
+    "direct": "Direct",
+    "filterByTopics": "Filtrer par topics",
+    "clear": "Effacer",
+    "searchTopicsPlaceholder": "Rechercher des topics…",
+    "showLess": "Voir moins",
+    "moreCount": "+{{count}} de plus",
+    "people": "Personnes",
+    "shownCount": "({{count}} affiché(s))",
+    "searchPeoplePlaceholder": "Rechercher par nom, titre, lieu…",
+    "clusterByTopic": "Regrouper par topic",
+    "noIndividuals": "Personne n'est encore rattaché à ce territoire.",
+    "noMatches": "Aucun résultat trouvé.",
+    "sections": {
+      "quests": "Quêtes",
+      "guilds": "Guildes",
+      "pods": "Pods",
+      "companies": "Entreprises",
+      "courses": "Formations",
+      "services": "Services"
+    },
+    "includeNested": "Inclure les territoires imbriqués",
+    "subTerritoriesCount": "{{count}} sous-territoires",
+    "noEntities": "Aucune entité rattachée à ce territoire pour le moment."
   }
 }

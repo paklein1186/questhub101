@@ -3489,5 +3489,37 @@
       "openAdminPanel": "Open Admin Panel",
       "backToPortal": "Back to Portal"
     }
+  },
+  "ecosystemTab": {
+    "personaOptions": {
+      "all": "All",
+      "creative": "Creative",
+      "impact": "Impact",
+      "hybrid": "Hybrid"
+    },
+    "territoryDistribution": "Territory distribution",
+    "direct": "Direct",
+    "filterByTopics": "Filter by Topics",
+    "clear": "Clear",
+    "searchTopicsPlaceholder": "Search topics…",
+    "showLess": "Show less",
+    "moreCount": "+{{count}} more",
+    "people": "People",
+    "shownCount": "({{count}} shown)",
+    "searchPeoplePlaceholder": "Search by name, headline, location…",
+    "clusterByTopic": "Cluster by topic",
+    "noIndividuals": "No individuals connected to this territory yet.",
+    "noMatches": "No matches found.",
+    "sections": {
+      "quests": "Quests",
+      "guilds": "Guilds",
+      "pods": "Pods",
+      "companies": "Companies",
+      "courses": "Courses",
+      "services": "Services"
+    },
+    "includeNested": "Include nested territories",
+    "subTerritoriesCount": "{{count}} sub-territories",
+    "noEntities": "No entities connected to this territory yet."
   }
 }
