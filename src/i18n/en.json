@@ -3616,5 +3616,38 @@
     "uncompensatedBadge": "🔴 Uncompensated",
     "paidExternally": "€ paid externally",
     "review": "Review"
+  },
+  "peerReview": {
+    "difficultyLabels": {
+      "STANDARD": "Standard ×1",
+      "COMPLEX": "Complex ×1.5",
+      "EXPERT": "Expert ×2",
+      "EXCEPTIONAL": "Exceptional ×3",
+      "standard": "Standard ×1",
+      "enhanced": "Enhanced ×1.5",
+      "complex": "Complex ×2",
+      "critical": "Critical ×3"
+    },
+    "unknown": "Unknown",
+    "dialogTitle": "Review Contribution",
+    "byLabel": "By {{name}}",
+    "halfDaysLabel": "{{count}} half-days",
+    "fmvLabel": "FMV: €{{value}}",
+    "viewDeliverable": "View deliverable",
+    "viewEvidence": "View evidence",
+    "evidenceRequired": "This contribution requires a receipt or evidence file before it can be approved. Ask the contributor to upload one.",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "Add a note about your decision…",
+    "quorumLabel": "Quorum: {{count}} approval(s) needed for auto-approval.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "dispute": "Dispute",
+    "toast": {
+      "failed": "Failed to submit review",
+      "disputed": "Contribution disputed — discussion thread created",
+      "approved": "Contribution approved ✓",
+      "voteRecorded": "Vote recorded ({{count}}/{{quorum}} needed)",
+      "rejectionRecorded": "Rejection recorded"
+    }
   }
 }

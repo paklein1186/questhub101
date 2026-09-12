@@ -3602,5 +3602,38 @@
     "uncompensatedBadge": "🔴 Non compensée",
     "paidExternally": "€ payé en externe",
     "review": "Examiner"
+  },
+  "peerReview": {
+    "difficultyLabels": {
+      "STANDARD": "Standard ×1",
+      "COMPLEX": "Complexe ×1,5",
+      "EXPERT": "Expert ×2",
+      "EXCEPTIONAL": "Exceptionnel ×3",
+      "standard": "Standard ×1",
+      "enhanced": "Renforcé ×1,5",
+      "complex": "Complexe ×2",
+      "critical": "Critique ×3"
+    },
+    "unknown": "Inconnu",
+    "dialogTitle": "Examiner la contribution",
+    "byLabel": "Par {{name}}",
+    "halfDaysLabel": "{{count}} demi-journées",
+    "fmvLabel": "FMV : {{value}} €",
+    "viewDeliverable": "Voir le livrable",
+    "viewEvidence": "Voir la preuve",
+    "evidenceRequired": "Cette contribution nécessite un reçu ou un fichier de preuve avant de pouvoir être approuvée. Demandez au contributeur d'en téléverser un.",
+    "commentLabel": "Commentaire (facultatif)",
+    "commentPlaceholder": "Ajoutez une note sur votre décision…",
+    "quorumLabel": "Quorum : {{count}} approbation(s) nécessaire(s) pour l'auto-approbation.",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "dispute": "Contester",
+    "toast": {
+      "failed": "Échec de l'envoi de l'évaluation",
+      "disputed": "Contribution contestée — une discussion a été créée",
+      "approved": "Contribution approuvée ✓",
+      "voteRecorded": "Vote enregistré ({{count}}/{{quorum}} nécessaire(s))",
+      "rejectionRecorded": "Rejet enregistré"
+    }
   }
 }
