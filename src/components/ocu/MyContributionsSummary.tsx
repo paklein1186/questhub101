@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ interface QuestSummary {
 }
 
 export function MyContributionsSummary() {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
 
   const { data: summaries = [], isLoading } = useQuery<QuestSummary[]>({
@@ -65,7 +67,7 @@ export function MyContributionsSummary() {
         const quest = questMap.get(qid);
         return {
           quest_id: qid,
-          quest_title: quest?.title ?? "Unknown Quest",
+          quest_title: quest?.title ?? t("myContributions.unknownQuest"),
           ocu_enabled: quest?.ocu ?? false,
           total_fmv: v.total_fmv,
           total_coins: v.total_coins,
@@ -82,7 +84,7 @@ export function MyContributionsSummary() {
   if (!currentUser?.id) return null;
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading contributions…</p>;
+    return <p className="text-sm text-muted-foreground">{t("myContributions.loading")}</p>;
   }
 
   const totalFmv = summaries.reduce((s, q) => s + q.total_fmv, 0);
@@ -97,7 +99,7 @@ export function MyContributionsSummary() {
     return (
       <div className="rounded-lg border border-dashed border-border p-6 text-center">
         <CurrencyIcon currency="coins" className="h-8 w-8 mx-auto text-muted-foreground mb-2" colorClassName="text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">No verified contributions yet.</p>
+        <p className="text-sm text-muted-foreground">{t("myContributions.noneYet")}</p>
       </div>
     );
   }
@@ -106,31 +108,31 @@ export function MyContributionsSummary() {
     <div className="space-y-5">
       {/* ─── Stats banner ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="Quests" value={questCount} />
-        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Contributions" value={totalContributions} />
-        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="⭐ XP Earned" value={totalXp} />
-        <StatCard icon={<span className="text-sm">🟩</span>} label="Coins Received" value={totalCoins} accent="teal" />
-        <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
-        <StatCard icon={<span className="text-sm">🟩</span>} label="Outstanding FMV" value={totalOutstanding} accent="amber" />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label={t("myContributions.stats.quests")} value={questCount} />
+        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label={t("myContributions.stats.contributions")} value={totalContributions} />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label={t("myContributions.stats.xpEarned")} value={totalXp} />
+        <StatCard icon={<span className="text-sm">🟩</span>} label={t("myContributions.stats.coinsReceived")} value={totalCoins} accent="teal" />
+        <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label={t("myContributions.stats.ctgEarned")} value={totalCtg} accent="emerald" />
+        <StatCard icon={<span className="text-sm">🟩</span>} label={t("myContributions.stats.outstandingFmv")} value={totalOutstanding} accent="amber" />
       </div>
 
       {/* ─── Quest table ─── */}
       <div>
         <h3 className="font-display font-semibold text-sm flex items-center gap-1.5 mb-2">
-          <CurrencyIcon currency="coins" className="h-4 w-4" /> Contribution Ledger
+          <CurrencyIcon currency="coins" className="h-4 w-4" /> {t("myContributions.ledgerTitle")}
         </h3>
 
         <div className="rounded-lg border border-border overflow-hidden overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
-                <th className="text-left p-2 font-medium">Quest</th>
+                <th className="text-left p-2 font-medium">{t("myContributions.table.quest")}</th>
                 <th className="text-center p-2 font-medium w-12">#</th>
-                <th className="text-right p-2 font-medium">⭐ XP</th>
-                <th className="text-right p-2 font-medium">FMV 🟩</th>
-                <th className="text-right p-2 font-medium">🟩 Coins</th>
-                <th className="text-right p-2 font-medium">🌱 $CTG</th>
-                <th className="text-right p-2 font-medium">Outstanding</th>
+                <th className="text-right p-2 font-medium">{t("myContributions.table.xp")}</th>
+                <th className="text-right p-2 font-medium">{t("myContributions.table.fmv")}</th>
+                <th className="text-right p-2 font-medium">{t("myContributions.table.coins")}</th>
+                <th className="text-right p-2 font-medium">{t("myContributions.table.ctg")}</th>
+                <th className="text-right p-2 font-medium">{t("myContributions.table.outstanding")}</th>
               </tr>
             </thead>
             <tbody>
@@ -152,7 +154,7 @@ export function MyContributionsSummary() {
                       <Link
                         to={`/quests/${q.quest_id}?tab=proposals`}
                         className="text-muted-foreground hover:text-primary transition-colors shrink-0"
-                        title="View quest contributions"
+                        title={t("myContributions.viewContributions")}
                       >
                         <ExternalLink className="h-3 w-3" />
                       </Link>
@@ -168,7 +170,7 @@ export function MyContributionsSummary() {
                       <span className="text-amber-600 dark:text-amber-400 font-medium">{q.outstanding.toFixed(0)}</span>
                     ) : (
                       <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
-                        Paid
+                        {t("myContributions.paid")}
                       </Badge>
                     )}
                   </td>
@@ -177,7 +179,7 @@ export function MyContributionsSummary() {
             </tbody>
             <tfoot>
               <tr className="bg-muted/30 font-medium">
-                <td className="p-2">Total</td>
+                <td className="p-2">{t("myContributions.table.total")}</td>
                 <td className="p-2 text-center">{totalContributions}</td>
                 <td className="p-2 text-right text-yellow-600 dark:text-yellow-400">⭐ {totalXp.toFixed(0)}</td>
                 <td className="p-2 text-right text-primary">🟩 {totalFmv.toFixed(0)}</td>

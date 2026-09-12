@@ -3647,5 +3647,30 @@
     ],
     "enableButton": "Activer le mode OCU",
     "adminOnly": "Seuls les admins de la quête peuvent activer cette fonctionnalité."
+  },
+  "myContributions": {
+    "loading": "Chargement des contributions…",
+    "noneYet": "Aucune contribution vérifiée pour le moment.",
+    "stats": {
+      "quests": "Quêtes",
+      "contributions": "Contributions",
+      "xpEarned": "⭐ XP gagné",
+      "coinsReceived": "Coins reçus",
+      "ctgEarned": "🌱 $CTG gagné",
+      "outstandingFmv": "FMV restante"
+    },
+    "ledgerTitle": "Registre des contributions",
+    "table": {
+      "quest": "Quête",
+      "xp": "⭐ XP",
+      "fmv": "FMV 🟩",
+      "coins": "🟩 Coins",
+      "ctg": "🌱 $CTG",
+      "outstanding": "Restant",
+      "total": "Total"
+    },
+    "viewContributions": "Voir les contributions de la quête",
+    "unknownQuest": "Quête inconnue",
+    "paid": "Payé"
   }
 }

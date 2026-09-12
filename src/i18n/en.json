@@ -3661,5 +3661,30 @@
     ],
     "enableButton": "Enable OCU Mode",
     "adminOnly": "Only quest admins can enable this feature."
+  },
+  "myContributions": {
+    "loading": "Loading contributions…",
+    "noneYet": "No verified contributions yet.",
+    "stats": {
+      "quests": "Quests",
+      "contributions": "Contributions",
+      "xpEarned": "⭐ XP Earned",
+      "coinsReceived": "Coins Received",
+      "ctgEarned": "🌱 $CTG Earned",
+      "outstandingFmv": "Outstanding FMV"
+    },
+    "ledgerTitle": "Contribution Ledger",
+    "table": {
+      "quest": "Quest",
+      "xp": "⭐ XP",
+      "fmv": "FMV 🟩",
+      "coins": "🟩 Coins",
+      "ctg": "🌱 $CTG",
+      "outstanding": "Outstanding",
+      "total": "Total"
+    },
+    "viewContributions": "View quest contributions",
+    "unknownQuest": "Unknown Quest",
+    "paid": "Paid"
   }
 }
