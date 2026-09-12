@@ -3317,5 +3317,74 @@
     "shapeItems": ["Votre identité", "Vos collaborateurs suggérés", "Vos filtres d'exploration", "Vos recommandations IA"],
     "exploreTopics": "Explorer les topics",
     "explorePeople": "Explorer les personnes"
+  },
+  "livingDashboard": {
+    "header": "Systèmes vivants & écosystèmes",
+    "matchLevel": {
+      "strict": { "label": "Correspondance stricte", "fallback": "Granularité exacte uniquement" },
+      "perimeter": { "label": "Correspondance de périmètre", "fallback": "Repli sur des niveaux plus larges" },
+      "bioregional": { "label": "Correspondance bioregionale", "fallback": "Écorégion + repli territorial" }
+    },
+    "settingsButton": "⚙️ Réglages",
+    "refreshData": "Actualiser les données",
+    "livingSystems": "Systèmes vivants",
+    "addLink": "Ajouter / Lier",
+    "noNaturalSystems": "Aucun système naturel enregistré pour le moment.",
+    "registerFirst": "Enregistrer le premier",
+    "environmentalIndicators": "Indicateurs environnementaux",
+    "datasetsCount": "({{count}} jeux de données)",
+    "forestHealth": "Santé forestière",
+    "carbonClimate": "Carbone & Climat",
+    "otherDatasets": "Autres jeux de données",
+    "noDatasetsLinked": "Aucun jeu de données environnemental lié pour le moment.",
+    "noDatasetsHint": "Cliquez sur « Actualiser les données » pour faire correspondre des jeux de données selon la granularité du territoire.",
+    "matchDatasetsNow": "Faire correspondre maintenant",
+    "stewardshipGovernance": "Stewardship & gouvernance",
+    "ecosystemHealth": "Santé de l'écosystème",
+    "healthLabels": {
+      "critical": "Critique",
+      "stressed": "Sous tension",
+      "stable": "Stable",
+      "thriving": "Florissant"
+    },
+    "countedHealth": {
+      "critical": "Critique : {{count}}",
+      "stressed": "Sous tension : {{count}}",
+      "stable": "Stable : {{count}}",
+      "thriving": "Florissant : {{count}}"
+    },
+    "byEcosystemType": "Par type d'écosystème",
+    "stewardshipActivity": "Activité de stewardship",
+    "last30Days": "30 derniers jours",
+    "ecoQuests": "Éco-quêtes",
+    "completed": "Terminées",
+    "rateSuffix": "{{pct}}% de taux",
+    "uniqueStewards": "Stewards uniques",
+    "activeGuilds": "Guildes actives",
+    "fundingEnergy": "Financement & énergie",
+    "last90Days": "90 derniers jours",
+    "creditsBudgeted": "Crédits budgétés",
+    "creditsSpent": "Crédits dépensés",
+    "xpEarned": "XP gagné",
+    "biopoints": "Biopoints",
+    "trustGovernance": "Confiance & gouvernance",
+    "topStewards": "Meilleurs stewards",
+    "ecoQuestsCount": "{{count}} éco-quêtes",
+    "trustSuffix": "{{value}} confiance",
+    "topGuilds": "Meilleures guildes",
+    "noStewardshipEdges": "Pas encore de lien de confiance de stewardship.",
+    "couldNotLoad": "Impossible de charger les données du tableau de bord.",
+    "status": {
+      "live": "En direct",
+      "unavailable": "Indisponible",
+      "noData": "Pas de données"
+    },
+    "dataRange": "Données : {{from}} → {{to}}",
+    "indicators": {
+      "forestCover": "Couverture forestière",
+      "carbonStock": "Stock de carbone",
+      "changeRate": "Taux de changement",
+      "disturbances": "Perturbations"
+    }
   }
 }

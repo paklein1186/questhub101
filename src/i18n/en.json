@@ -3331,5 +3331,74 @@
     "shapeItems": ["Your identity", "Your suggested collaborators", "Your explore filters", "Your AI recommendations"],
     "exploreTopics": "Explore topics",
     "explorePeople": "Explore people"
+  },
+  "livingDashboard": {
+    "header": "Living Systems & Ecosystems",
+    "matchLevel": {
+      "strict": { "label": "Strict Match", "fallback": "Exact granularity only" },
+      "perimeter": { "label": "Perimeter Match", "fallback": "Fallback to broader levels" },
+      "bioregional": { "label": "Bioregional Match", "fallback": "Ecoregion + territorial fallback" }
+    },
+    "settingsButton": "⚙️ Settings",
+    "refreshData": "Refresh data",
+    "livingSystems": "Living Systems",
+    "addLink": "Add / Link",
+    "noNaturalSystems": "No natural systems registered yet.",
+    "registerFirst": "Register your first",
+    "environmentalIndicators": "Environmental Indicators",
+    "datasetsCount": "({{count}} datasets)",
+    "forestHealth": "Forest Health",
+    "carbonClimate": "Carbon & Climate",
+    "otherDatasets": "Other Datasets",
+    "noDatasetsLinked": "No environmental datasets linked yet.",
+    "noDatasetsHint": "Click \"Refresh data\" to match datasets based on territory granularity.",
+    "matchDatasetsNow": "Match Datasets Now",
+    "stewardshipGovernance": "Stewardship & Governance",
+    "ecosystemHealth": "Ecosystem Health",
+    "healthLabels": {
+      "critical": "Critical",
+      "stressed": "Stressed",
+      "stable": "Stable",
+      "thriving": "Thriving"
+    },
+    "countedHealth": {
+      "critical": "Critical: {{count}}",
+      "stressed": "Stressed: {{count}}",
+      "stable": "Stable: {{count}}",
+      "thriving": "Thriving: {{count}}"
+    },
+    "byEcosystemType": "By ecosystem type",
+    "stewardshipActivity": "Stewardship Activity",
+    "last30Days": "Last 30 days",
+    "ecoQuests": "Eco Quests",
+    "completed": "Completed",
+    "rateSuffix": "{{pct}}% rate",
+    "uniqueStewards": "Unique Stewards",
+    "activeGuilds": "Active Guilds",
+    "fundingEnergy": "Funding & Energy",
+    "last90Days": "Last 90 days",
+    "creditsBudgeted": "Credits Budgeted",
+    "creditsSpent": "Credits Spent",
+    "xpEarned": "XP Earned",
+    "biopoints": "Biopoints",
+    "trustGovernance": "Trust & Governance",
+    "topStewards": "Top Stewards",
+    "ecoQuestsCount": "{{count}} eco-quests",
+    "trustSuffix": "{{value}} trust",
+    "topGuilds": "Top Guilds",
+    "noStewardshipEdges": "No stewardship trust edges yet.",
+    "couldNotLoad": "Could not load dashboard data.",
+    "status": {
+      "live": "Live",
+      "unavailable": "Unavailable",
+      "noData": "No data"
+    },
+    "dataRange": "Data: {{from}} → {{to}}",
+    "indicators": {
+      "forestCover": "Forest Cover",
+      "carbonStock": "Carbon Stock",
+      "changeRate": "Change Rate",
+      "disturbances": "Disturbances"
+    }
   }
 }
