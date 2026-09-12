@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ interface ContractWizardProps {
 }
 
 export function ContractWizard({ open, onOpenChange, quest, participants }: ContractWizardProps) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -53,32 +55,43 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
     setSubmitting(true);
     try {
       // Build contract content
+      const validationLine = validationMode === "owner"
+        ? t("contractWizard.content.validationModeOwner")
+        : validationMode === "peer"
+        ? t("contractWizard.content.validationModePeer", { quorum })
+        : t("contractWizard.content.validationModeMixed");
+      const distributionLine = distributionMode === "proportional"
+        ? t("contractWizard.content.distributionProportional")
+        : distributionMode === "equal"
+        ? t("contractWizard.content.distributionEqual")
+        : t("contractWizard.content.distributionManual");
+
       const content = `
-<h2>Collaboration Agreement</h2>
-<h3>1. Scope</h3>
+<h2>${t("contractWizard.content.heading")}</h2>
+<h3>${t("contractWizard.content.scopeTitle")}</h3>
 <p>${scope}</p>
 
-<h3>2. Contribution Valuation</h3>
-<p>Base rate: €${baseRate}/half-day. Difficulty multipliers: Standard (×1), Complex (×1.5), Expert (×2), Exceptional (×3).</p>
-<p>External spending is deducted from the distribution envelope before pie calculation.</p>
+<h3>${t("contractWizard.content.valuationTitle")}</h3>
+<p>${t("contractWizard.content.baseRateLine", { rate: baseRate })}</p>
+<p>${t("contractWizard.content.externalSpendingLine")}</p>
 
-<h3>3. Validation Protocol</h3>
-<p>Mode: ${validationMode === "owner" ? "Quest owner validates all contributions." : validationMode === "peer" ? `Peer review with quorum of ${quorum} approval(s).` : "Owner validates contributions above €500 FMV. Peer review for smaller contributions."}</p>
-<p>Contributions auto-verify after 14 days if no action is taken.</p>
+<h3>${t("contractWizard.content.validationTitle")}</h3>
+<p>${validationLine}</p>
+<p>${t("contractWizard.content.autoVerifyLine")}</p>
 
-<h3>4. Distribution Method</h3>
-<p>${distributionMode === "proportional" ? "Proportional to Fair Market Value (pie share)." : distributionMode === "equal" ? "Equal split among all verified contributors." : "Manual allocation by quest admin."}</p>
+<h3>${t("contractWizard.content.distributionTitle")}</h3>
+<p>${distributionLine}</p>
 
-<h3>5. Exit Terms</h3>
+<h3>${t("contractWizard.content.exitTitle")}</h3>
 <ul>
-  <li>Voluntary exit (good leaver): ${goodLeaverPct}% of FMV at exit</li>
-  <li>Graceful withdrawal (with handover): ${gracefulPct}% of FMV at exit</li>
-  <li>Removal for cause (bad leaver): ${badLeaverPct}% of FMV at exit</li>
+  <li>${t("contractWizard.content.exitVoluntaryItem", { pct: goodLeaverPct })}</li>
+  <li>${t("contractWizard.content.exitGracefulItem", { pct: gracefulPct })}</li>
+  <li>${t("contractWizard.content.exitRemovalItem", { pct: badLeaverPct })}</li>
 </ul>
-<p>Remaining pie is redistributed proportionally to continuing contributors.</p>
+<p>${t("contractWizard.content.exitRedistributeLine")}</p>
 
-<h3>6. Dispute Resolution</h3>
-<p>Disputes are resolved through the quest discussion thread. If unresolved after 7 days, a governance vote is triggered.</p>
+<h3>${t("contractWizard.content.disputeTitle")}</h3>
+<p>${t("contractWizard.content.disputeLine")}</p>
       `.trim();
 
       // Create contract
@@ -86,7 +99,7 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         .from("quest_contracts" as any)
         .insert({
           quest_id: quest.id,
-          title: `Collaboration Agreement — ${quest.title}`,
+          title: t("contractWizard.content.title", { questName: quest.title }),
           content: { html: content },
           status: "pending_signatures",
           created_by: currentUser.id,
@@ -129,11 +142,11 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
 
       qc.invalidateQueries({ queryKey: ["quest", quest.id] });
       qc.invalidateQueries({ queryKey: ["quest-contracts", quest.id] });
-      toast({ title: "Agreement created!", description: "All participants have been invited to sign." });
+      toast({ title: t("contractWizard.toast.created"), description: t("contractWizard.toast.createdDesc") });
       onOpenChange(false);
       setStep(1);
     } catch (e: any) {
-      toast({ title: "Failed to create agreement", description: e.message, variant: "destructive" });
+      toast({ title: t("contractWizard.toast.failed"), description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -145,10 +158,21 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            Collaboration Agreement
+            {t("contractWizard.dialogTitle")}
           </DialogTitle>
           <DialogDescription>
-            Step {step} of {totalSteps} — {["Scope", "Valuation", "Validation", "Distribution", "Exit Terms", "Review & Sign"][step - 1]}
+            {t("contractWizard.stepLabel", {
+              step,
+              total: totalSteps,
+              name: [
+                t("contractWizard.stepNames.scope"),
+                t("contractWizard.stepNames.valuation"),
+                t("contractWizard.stepNames.validation"),
+                t("contractWizard.stepNames.distribution"),
+                t("contractWizard.stepNames.exitTerms"),
+                t("contractWizard.stepNames.reviewAndSign"),
+              ][step - 1],
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -166,20 +190,20 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-1 block">What is this quest about?</Label>
+              <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step1.question")}</Label>
               <p className="text-xs text-muted-foreground mb-2">
-                Describe the work being done. This becomes the scope of the agreement.
+                {t("contractWizard.step1.hint")}
               </p>
               <Textarea
                 value={scope}
                 onChange={(e) => setScope(e.target.value)}
-                placeholder="Describe the quest scope..."
+                placeholder={t("contractWizard.step1.placeholder")}
                 rows={4}
               />
             </div>
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
               <p className="text-xs text-muted-foreground">
-                <strong>{activeParticipants.length} participant(s)</strong> will be invited to sign this agreement.
+                <strong>{t("contractWizard.step1.participantsBold", { count: activeParticipants.length })}</strong> {t("contractWizard.step1.willBeInvited")}
               </p>
             </div>
           </div>
@@ -189,9 +213,9 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-1 block">Base rate per half-day: €{baseRate}</Label>
+              <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step2.baseRateLabel", { rate: baseRate })}</Label>
               <p className="text-xs text-muted-foreground mb-2">
-                This is the base value for a half-day of work. Difficulty multipliers adjust it.
+                {t("contractWizard.step2.hint")}
               </p>
               <Slider
                 value={[baseRate]}
@@ -203,16 +227,16 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
               />
             </div>
             <div className="rounded-lg border border-border p-3 space-y-2">
-              <p className="text-xs font-medium">Difficulty multipliers:</p>
+              <p className="text-xs font-medium">{t("contractWizard.step2.multipliersTitle")}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex justify-between"><span>Standard</span><span className="font-medium">×1 = €{baseRate}</span></div>
-                <div className="flex justify-between"><span>Complex</span><span className="font-medium">×1.5 = €{Math.round(baseRate * 1.5)}</span></div>
-                <div className="flex justify-between"><span>Expert</span><span className="font-medium">×2 = €{baseRate * 2}</span></div>
-                <div className="flex justify-between"><span>Exceptional</span><span className="font-medium">×3 = €{baseRate * 3}</span></div>
+                <div className="flex justify-between"><span>{t("contractWizard.step2.standard")}</span><span className="font-medium">×1 = €{baseRate}</span></div>
+                <div className="flex justify-between"><span>{t("contractWizard.step2.complex")}</span><span className="font-medium">×1.5 = €{Math.round(baseRate * 1.5)}</span></div>
+                <div className="flex justify-between"><span>{t("contractWizard.step2.expert")}</span><span className="font-medium">×2 = €{baseRate * 2}</span></div>
+                <div className="flex justify-between"><span>{t("contractWizard.step2.exceptional")}</span><span className="font-medium">×3 = €{baseRate * 3}</span></div>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Other contribution types (expenses, equipment, sales) are valued at their actual amount.
+              {t("contractWizard.step2.otherTypesNote")}
             </p>
           </div>
         )}
@@ -220,38 +244,38 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         {/* Step 3: Validation */}
         {step === 3 && (
           <div className="space-y-4">
-            <Label className="text-sm font-medium">Who validates contributions?</Label>
+            <Label className="text-sm font-medium">{t("contractWizard.step3.question")}</Label>
             <RadioGroup value={validationMode} onValueChange={setValidationMode} className="space-y-2">
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="owner" id="val-owner" className="mt-0.5" />
                 <label htmlFor="val-owner" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">Owner validates</span>
-                  <p className="text-xs text-muted-foreground">The quest owner (or co-hosts) approves each contribution. Simplest option.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step3.ownerTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step3.ownerDesc")}</p>
                 </label>
               </div>
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="peer" id="val-peer" className="mt-0.5" />
                 <label htmlFor="val-peer" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">Peer review</span>
-                  <p className="text-xs text-muted-foreground">Contributors review each other. More democratic but requires active participation.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step3.peerTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step3.peerDesc")}</p>
                 </label>
               </div>
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="mixed" id="val-mixed" className="mt-0.5" />
                 <label htmlFor="val-mixed" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">Mixed</span>
-                  <p className="text-xs text-muted-foreground">Owner for large contributions, peer review for smaller ones.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step3.mixedTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step3.mixedDesc")}</p>
                 </label>
               </div>
             </RadioGroup>
             {validationMode === "peer" && (
               <div>
-                <Label className="text-sm font-medium mb-1 block">Approvals needed: {quorum}</Label>
+                <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step3.approvalsNeeded", { quorum })}</Label>
                 <Slider value={[quorum]} min={1} max={Math.max(3, activeParticipants.length - 1)} step={1} onValueChange={([v]) => setQuorum(v)} className="max-w-xs" />
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              In all modes, contributions auto-verify after 14 days if no action is taken.
+              {t("contractWizard.step3.autoVerifyNote")}
             </p>
           </div>
         )}
@@ -259,27 +283,27 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         {/* Step 4: Distribution */}
         {step === 4 && (
           <div className="space-y-4">
-            <Label className="text-sm font-medium">How should resources be distributed?</Label>
+            <Label className="text-sm font-medium">{t("contractWizard.step4.question")}</Label>
             <RadioGroup value={distributionMode} onValueChange={setDistributionMode} className="space-y-2">
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="proportional" id="dist-prop" className="mt-0.5" />
                 <label htmlFor="dist-prop" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">By pie share (recommended)</span>
-                  <p className="text-xs text-muted-foreground">Each person receives a % proportional to their FMV contribution. Fairest for unequal work loads.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step4.proportionalTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step4.proportionalDesc")}</p>
                 </label>
               </div>
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="equal" id="dist-equal" className="mt-0.5" />
                 <label htmlFor="dist-equal" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">Equal split</span>
-                  <p className="text-xs text-muted-foreground">Everyone gets the same share regardless of contribution amount.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step4.equalTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step4.equalDesc")}</p>
                 </label>
               </div>
               <div className="flex items-start gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/30">
                 <RadioGroupItem value="manual" id="dist-manual" className="mt-0.5" />
                 <label htmlFor="dist-manual" className="cursor-pointer flex-1">
-                  <span className="text-sm font-medium">Manual</span>
-                  <p className="text-xs text-muted-foreground">Quest admin decides allocation manually when funds arrive.</p>
+                  <span className="text-sm font-medium">{t("contractWizard.step4.manualTitle")}</span>
+                  <p className="text-xs text-muted-foreground">{t("contractWizard.step4.manualDesc")}</p>
                 </label>
               </div>
             </RadioGroup>
@@ -290,32 +314,32 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         {step === 5 && (
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              Define what happens if someone leaves the quest. These percentages determine how much of their contribution value (FMV) they keep.
+              {t("contractWizard.step5.intro")}
             </p>
 
             <div>
-              <Label className="text-sm font-medium mb-1 block">Voluntary exit: {goodLeaverPct}%</Label>
-              <p className="text-xs text-muted-foreground mb-2">Someone who chooses to leave.</p>
+              <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step5.voluntaryLabel", { pct: goodLeaverPct })}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t("contractWizard.step5.voluntaryDesc")}</p>
               <Slider value={[goodLeaverPct]} min={0} max={100} step={5} onValueChange={([v]) => setGoodLeaverPct(v)} className="max-w-xs" />
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1 block">Graceful withdrawal: {gracefulPct}%</Label>
-              <p className="text-xs text-muted-foreground mb-2">Someone who leaves but hands over their work properly.</p>
+              <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step5.gracefulLabel", { pct: gracefulPct })}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t("contractWizard.step5.gracefulDesc")}</p>
               <Slider value={[gracefulPct]} min={0} max={100} step={5} onValueChange={([v]) => setGracefulPct(v)} className="max-w-xs" />
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1 block">Removal for cause: {badLeaverPct}%</Label>
-              <p className="text-xs text-muted-foreground mb-2">Someone removed for misconduct.</p>
+              <Label className="text-sm font-medium mb-1 block">{t("contractWizard.step5.removalLabel", { pct: badLeaverPct })}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t("contractWizard.step5.removalDesc")}</p>
               <Slider value={[badLeaverPct]} min={0} max={100} step={5} onValueChange={([v]) => setBadLeaverPct(v)} className="max-w-xs" />
             </div>
 
             <div className="rounded-lg border border-border p-3 text-xs space-y-1">
-              <p className="font-medium">Example: contributor with €3,000 FMV</p>
-              <p>Voluntary exit → keeps €{(3000 * goodLeaverPct / 100).toLocaleString()}</p>
-              <p>Graceful withdrawal → keeps €{(3000 * gracefulPct / 100).toLocaleString()}</p>
-              <p>Removal for cause → keeps €{(3000 * badLeaverPct / 100).toLocaleString()}</p>
+              <p className="font-medium">{t("contractWizard.step5.exampleTitle")}</p>
+              <p>{t("contractWizard.step5.exampleVoluntary", { amount: (3000 * goodLeaverPct / 100).toLocaleString() })}</p>
+              <p>{t("contractWizard.step5.exampleGraceful", { amount: (3000 * gracefulPct / 100).toLocaleString() })}</p>
+              <p>{t("contractWizard.step5.exampleRemoval", { amount: (3000 * badLeaverPct / 100).toLocaleString() })}</p>
             </div>
           </div>
         )}
@@ -326,48 +350,48 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
             <div className="rounded-lg border border-border p-4 space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
-                <span className="font-medium">Agreement Summary</span>
+                <span className="font-medium">{t("contractWizard.step6.summaryTitle")}</span>
               </div>
 
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between border-b border-border pb-1">
-                  <span className="text-muted-foreground">Base rate</span>
-                  <span className="font-medium">€{baseRate}/half-day</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.baseRate")}</span>
+                  <span className="font-medium">{t("contractWizard.step6.baseRateValue", { rate: baseRate })}</span>
                 </div>
                 <div className="flex justify-between border-b border-border pb-1">
-                  <span className="text-muted-foreground">Validation</span>
-                  <span className="font-medium capitalize">{validationMode === "peer" ? `Peer review (${quorum} approvals)` : validationMode}</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.validation")}</span>
+                  <span className="font-medium capitalize">{validationMode === "peer" ? t("contractWizard.step6.validationPeer", { quorum }) : validationMode}</span>
                 </div>
                 <div className="flex justify-between border-b border-border pb-1">
-                  <span className="text-muted-foreground">Distribution</span>
-                  <span className="font-medium capitalize">{distributionMode === "proportional" ? "By pie share" : distributionMode}</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.distribution")}</span>
+                  <span className="font-medium capitalize">{distributionMode === "proportional" ? t("contractWizard.step6.distributionProportional") : distributionMode}</span>
                 </div>
                 <div className="flex justify-between border-b border-border pb-1">
-                  <span className="text-muted-foreground">Exit: voluntary</span>
-                  <span className="font-medium">{goodLeaverPct}% of FMV</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.exitVoluntary")}</span>
+                  <span className="font-medium">{t("contractWizard.step6.ofFmv", { pct: goodLeaverPct })}</span>
                 </div>
                 <div className="flex justify-between border-b border-border pb-1">
-                  <span className="text-muted-foreground">Exit: graceful</span>
-                  <span className="font-medium">{gracefulPct}% of FMV</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.exitGraceful")}</span>
+                  <span className="font-medium">{t("contractWizard.step6.ofFmv", { pct: gracefulPct })}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Exit: removal</span>
-                  <span className="font-medium">{badLeaverPct}% of FMV</span>
+                  <span className="text-muted-foreground">{t("contractWizard.step6.exitRemoval")}</span>
+                  <span className="font-medium">{t("contractWizard.step6.ofFmv", { pct: badLeaverPct })}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs">
-              <p className="font-medium mb-1">Signatories ({activeParticipants.length}):</p>
+              <p className="font-medium mb-1">{t("contractWizard.step6.signatoriesTitle", { count: activeParticipants.length })}</p>
               <div className="flex flex-wrap gap-1">
                 {activeParticipants.map((p: any) => (
                   <Badge key={p.id} variant="secondary" className="text-[10px]">
-                    {p.user?.name || "Participant"}
+                    {p.user?.name || t("contractWizard.step6.participantFallback")}
                   </Badge>
                 ))}
               </div>
               <p className="text-muted-foreground mt-2">
-                All participants will be invited to sign. The agreement becomes active when everyone has signed.
+                {t("contractWizard.step6.allInvited")}
               </p>
             </div>
           </div>
@@ -377,7 +401,7 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
         <div className="flex items-center justify-between pt-2">
           {step > 1 ? (
             <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Back
+              <ChevronLeft className="h-4 w-4 mr-1" /> {t("contractWizard.back")}
             </Button>
           ) : (
             <div />
@@ -385,12 +409,12 @@ export function ContractWizard({ open, onOpenChange, quest, participants }: Cont
 
           {step < totalSteps ? (
             <Button size="sm" onClick={() => setStep(step + 1)}>
-              Next <ChevronRight className="h-4 w-4 ml-1" />
+              {t("contractWizard.next")} <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
             <Button size="sm" onClick={handleCreate} disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              Create & Invite to Sign
+              {t("contractWizard.createAndInvite")}
             </Button>
           )}
         </div>

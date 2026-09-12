@@ -2757,5 +2757,115 @@
       "distributionConfirmed": "Distribution confirmed",
       "distributionConfirmedDesc": "{{count}} recipient(s) credited."
     }
+  },
+  "contractWizard": {
+    "dialogTitle": "Collaboration Agreement",
+    "stepLabel": "Step {{step}} of {{total}} — {{name}}",
+    "stepNames": {
+      "scope": "Scope",
+      "valuation": "Valuation",
+      "validation": "Validation",
+      "distribution": "Distribution",
+      "exitTerms": "Exit Terms",
+      "reviewAndSign": "Review & Sign"
+    },
+    "step1": {
+      "question": "What is this quest about?",
+      "hint": "Describe the work being done. This becomes the scope of the agreement.",
+      "placeholder": "Describe the quest scope...",
+      "participantsBold": "{{count}} participant(s)",
+      "willBeInvited": "will be invited to sign this agreement."
+    },
+    "step2": {
+      "baseRateLabel": "Base rate per half-day: €{{rate}}",
+      "hint": "This is the base value for a half-day of work. Difficulty multipliers adjust it.",
+      "multipliersTitle": "Difficulty multipliers:",
+      "standard": "Standard",
+      "complex": "Complex",
+      "expert": "Expert",
+      "exceptional": "Exceptional",
+      "otherTypesNote": "Other contribution types (expenses, equipment, sales) are valued at their actual amount."
+    },
+    "step3": {
+      "question": "Who validates contributions?",
+      "ownerTitle": "Owner validates",
+      "ownerDesc": "The quest owner (or co-hosts) approves each contribution. Simplest option.",
+      "peerTitle": "Peer review",
+      "peerDesc": "Contributors review each other. More democratic but requires active participation.",
+      "mixedTitle": "Mixed",
+      "mixedDesc": "Owner for large contributions, peer review for smaller ones.",
+      "approvalsNeeded": "Approvals needed: {{quorum}}",
+      "autoVerifyNote": "In all modes, contributions auto-verify after 14 days if no action is taken."
+    },
+    "step4": {
+      "question": "How should resources be distributed?",
+      "proportionalTitle": "By pie share (recommended)",
+      "proportionalDesc": "Each person receives a % proportional to their FMV contribution. Fairest for unequal work loads.",
+      "equalTitle": "Equal split",
+      "equalDesc": "Everyone gets the same share regardless of contribution amount.",
+      "manualTitle": "Manual",
+      "manualDesc": "Quest admin decides allocation manually when funds arrive."
+    },
+    "step5": {
+      "intro": "Define what happens if someone leaves the quest. These percentages determine how much of their contribution value (FMV) they keep.",
+      "voluntaryLabel": "Voluntary exit: {{pct}}%",
+      "voluntaryDesc": "Someone who chooses to leave.",
+      "gracefulLabel": "Graceful withdrawal: {{pct}}%",
+      "gracefulDesc": "Someone who leaves but hands over their work properly.",
+      "removalLabel": "Removal for cause: {{pct}}%",
+      "removalDesc": "Someone removed for misconduct.",
+      "exampleTitle": "Example: contributor with €3,000 FMV",
+      "exampleVoluntary": "Voluntary exit → keeps €{{amount}}",
+      "exampleGraceful": "Graceful withdrawal → keeps €{{amount}}",
+      "exampleRemoval": "Removal for cause → keeps €{{amount}}"
+    },
+    "step6": {
+      "summaryTitle": "Agreement Summary",
+      "baseRate": "Base rate",
+      "baseRateValue": "€{{rate}}/half-day",
+      "validation": "Validation",
+      "validationPeer": "Peer review ({{quorum}} approvals)",
+      "distribution": "Distribution",
+      "distributionProportional": "By pie share",
+      "exitVoluntary": "Exit: voluntary",
+      "exitGraceful": "Exit: graceful",
+      "exitRemoval": "Exit: removal",
+      "ofFmv": "{{pct}}% of FMV",
+      "signatoriesTitle": "Signatories ({{count}}):",
+      "participantFallback": "Participant",
+      "allInvited": "All participants will be invited to sign. The agreement becomes active when everyone has signed."
+    },
+    "back": "Back",
+    "next": "Next",
+    "createAndInvite": "Create & Invite to Sign",
+    "toast": {
+      "created": "Agreement created!",
+      "createdDesc": "All participants have been invited to sign.",
+      "failed": "Failed to create agreement"
+    },
+    "content": {
+      "heading": "Collaboration Agreement",
+      "title": "Collaboration Agreement — {{questName}}",
+      "scopeTitle": "1. Scope",
+      "valuationTitle": "2. Contribution Valuation",
+      "baseRateLine": "Base rate: €{{rate}}/half-day. Difficulty multipliers: Standard (×1), Complex (×1.5), Expert (×2), Exceptional (×3).",
+      "externalSpendingLine": "External spending is deducted from the distribution envelope before pie calculation.",
+      "validationTitle": "3. Validation Protocol",
+      "validationModeOwner": "Quest owner validates all contributions.",
+      "validationModePeer": "Peer review with quorum of {{quorum}} approval(s).",
+      "validationModeMixed": "Owner validates contributions above €500 FMV. Peer review for smaller contributions.",
+      "autoVerifyLine": "Contributions auto-verify after 14 days if no action is taken.",
+      "distributionTitle": "4. Distribution Method",
+      "distributionProportional": "Proportional to Fair Market Value (pie share).",
+      "distributionEqual": "Equal split among all verified contributors.",
+      "distributionManual": "Manual allocation by quest admin.",
+      "exitTitle": "5. Exit Terms",
+      "exitVoluntaryItem": "Voluntary exit (good leaver): {{pct}}% of FMV at exit",
+      "exitGracefulItem": "Graceful withdrawal (with handover): {{pct}}% of FMV at exit",
+      "exitRemovalItem": "Removal for cause (bad leaver): {{pct}}% of FMV at exit",
+      "exitRedistributeLine": "Remaining pie is redistributed proportionally to continuing contributors.",
+      "disputeTitle": "6. Dispute Resolution",
+      "disputeLine": "Disputes are resolved through the quest discussion thread. If unresolved after 7 days, a governance vote is triggered."
+    }
   }
 }

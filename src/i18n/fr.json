@@ -2743,5 +2743,115 @@
       "distributionConfirmed": "Répartition confirmée",
       "distributionConfirmedDesc": "{{count}} destinataire(s) crédité(s)."
     }
+  },
+  "contractWizard": {
+    "dialogTitle": "Accord de collaboration",
+    "stepLabel": "Étape {{step}} sur {{total}} — {{name}}",
+    "stepNames": {
+      "scope": "Périmètre",
+      "valuation": "Valorisation",
+      "validation": "Validation",
+      "distribution": "Répartition",
+      "exitTerms": "Conditions de sortie",
+      "reviewAndSign": "Relecture et signature"
+    },
+    "step1": {
+      "question": "De quoi parle cette quête ?",
+      "hint": "Décrivez le travail à accomplir. Cela devient le périmètre de l'accord.",
+      "placeholder": "Décrivez le périmètre de la quête...",
+      "participantsBold": "{{count}} participant(s)",
+      "willBeInvited": "seront invités à signer cet accord."
+    },
+    "step2": {
+      "baseRateLabel": "Taux de base par demi-journée : {{rate}} €",
+      "hint": "C'est la valeur de base pour une demi-journée de travail. Les multiplicateurs de difficulté l'ajustent.",
+      "multipliersTitle": "Multiplicateurs de difficulté :",
+      "standard": "Standard",
+      "complex": "Complexe",
+      "expert": "Expert",
+      "exceptional": "Exceptionnel",
+      "otherTypesNote": "Les autres types de contribution (dépenses, équipement, ventes) sont valorisés à leur montant réel."
+    },
+    "step3": {
+      "question": "Qui valide les contributions ?",
+      "ownerTitle": "Le porteur valide",
+      "ownerDesc": "Le porteur de la quête (ou co-hôtes) approuve chaque contribution. Option la plus simple.",
+      "peerTitle": "Revue par les pairs",
+      "peerDesc": "Les contributeurs se relisent entre eux. Plus démocratique mais demande une participation active.",
+      "mixedTitle": "Mixte",
+      "mixedDesc": "Le porteur pour les grosses contributions, revue par les pairs pour les plus petites.",
+      "approvalsNeeded": "Approbations nécessaires : {{quorum}}",
+      "autoVerifyNote": "Dans tous les modes, les contributions sont auto-vérifiées après 14 jours sans action."
+    },
+    "step4": {
+      "question": "Comment les ressources doivent-elles être réparties ?",
+      "proportionalTitle": "Selon la part du pie (recommandé)",
+      "proportionalDesc": "Chaque personne reçoit un % proportionnel à sa contribution FMV. Le plus équitable en cas de charges de travail inégales.",
+      "equalTitle": "Partage égal",
+      "equalDesc": "Tout le monde reçoit la même part, quel que soit le montant contribué.",
+      "manualTitle": "Manuel",
+      "manualDesc": "L'admin de la quête décide de la répartition manuellement à l'arrivée des fonds."
+    },
+    "step5": {
+      "intro": "Définissez ce qui se passe si quelqu'un quitte la quête. Ces pourcentages déterminent la part de sa valeur de contribution (FMV) qu'il conserve.",
+      "voluntaryLabel": "Sortie volontaire : {{pct}}%",
+      "voluntaryDesc": "Quelqu'un qui choisit de partir.",
+      "gracefulLabel": "Retrait en douceur : {{pct}}%",
+      "gracefulDesc": "Quelqu'un qui part mais transmet correctement son travail.",
+      "removalLabel": "Exclusion pour motif : {{pct}}%",
+      "removalDesc": "Quelqu'un exclu pour faute.",
+      "exampleTitle": "Exemple : contributeur avec 3 000 € de FMV",
+      "exampleVoluntary": "Sortie volontaire → conserve {{amount}} €",
+      "exampleGraceful": "Retrait en douceur → conserve {{amount}} €",
+      "exampleRemoval": "Exclusion pour motif → conserve {{amount}} €"
+    },
+    "step6": {
+      "summaryTitle": "Résumé de l'accord",
+      "baseRate": "Taux de base",
+      "baseRateValue": "{{rate}} €/demi-journée",
+      "validation": "Validation",
+      "validationPeer": "Revue par les pairs ({{quorum}} approbations)",
+      "distribution": "Répartition",
+      "distributionProportional": "Selon la part du pie",
+      "exitVoluntary": "Sortie : volontaire",
+      "exitGraceful": "Sortie : en douceur",
+      "exitRemoval": "Sortie : exclusion",
+      "ofFmv": "{{pct}}% de la FMV",
+      "signatoriesTitle": "Signataires ({{count}}) :",
+      "participantFallback": "Participant",
+      "allInvited": "Tous les participants seront invités à signer. L'accord devient actif une fois que tout le monde a signé."
+    },
+    "back": "Précédent",
+    "next": "Suivant",
+    "createAndInvite": "Créer et inviter à signer",
+    "toast": {
+      "created": "Accord créé !",
+      "createdDesc": "Tous les participants ont été invités à signer.",
+      "failed": "Échec de la création de l'accord"
+    },
+    "content": {
+      "heading": "Accord de collaboration",
+      "title": "Accord de collaboration — {{questName}}",
+      "scopeTitle": "1. Périmètre",
+      "valuationTitle": "2. Valorisation des contributions",
+      "baseRateLine": "Taux de base : {{rate}} €/demi-journée. Multiplicateurs de difficulté : Standard (×1), Complexe (×1,5), Expert (×2), Exceptionnel (×3).",
+      "externalSpendingLine": "Les dépenses externes sont déduites de l'enveloppe de répartition avant le calcul du pie.",
+      "validationTitle": "3. Protocole de validation",
+      "validationModeOwner": "Le porteur de la quête valide toutes les contributions.",
+      "validationModePeer": "Revue par les pairs avec un quorum de {{quorum}} approbation(s).",
+      "validationModeMixed": "Le porteur valide les contributions au-delà de 500 € de FMV. Revue par les pairs pour les plus petites.",
+      "autoVerifyLine": "Les contributions sont auto-vérifiées après 14 jours sans action.",
+      "distributionTitle": "4. Méthode de répartition",
+      "distributionProportional": "Proportionnelle à la valeur de marché équitable (part du pie).",
+      "distributionEqual": "Partage égal entre tous les contributeurs vérifiés.",
+      "distributionManual": "Répartition manuelle par l'admin de la quête.",
+      "exitTitle": "5. Conditions de sortie",
+      "exitVoluntaryItem": "Sortie volontaire (good leaver) : {{pct}}% de la FMV à la sortie",
+      "exitGracefulItem": "Retrait en douceur (avec passation) : {{pct}}% de la FMV à la sortie",
+      "exitRemovalItem": "Exclusion pour motif (bad leaver) : {{pct}}% de la FMV à la sortie",
+      "exitRedistributeLine": "Le reste du pie est redistribué proportionnellement aux contributeurs restants.",
+      "disputeTitle": "6. Résolution des différends",
+      "disputeLine": "Les différends sont résolus via le fil de discussion de la quête. Si non résolu après 7 jours, un vote de gouvernance est déclenché."
+    }
   }
 }
