@@ -3035,5 +3035,58 @@
       "confirmAndDistribute": "Confirm and distribute"
     },
     "unknown": "Unknown"
+  },
+  "ocuContributionsList": {
+    "ledgerTitle": "OCU Contribution Ledger",
+    "logContribution": "Log Contribution",
+    "loading": "Loading contributions…",
+    "noneYet": "No contributions logged yet.",
+    "hint": "Use the button above to log your first OCU contribution."
+  },
+  "distributeCompensation": {
+    "title": "Distribute Compensation",
+    "outstanding": "🟩 {{amount}} outstanding",
+    "activeContract": "Active contract: {{title}}",
+    "contractHint": "Distributions should match the pie % defined in the contract. Deviations will be logged.",
+    "noContributions": "No verified contributions to compensate yet.",
+    "table": {
+      "contributor": "Contributor",
+      "fmv": "FMV 🟩",
+      "paid": "Paid",
+      "remaining": "Remaining",
+      "progress": "Progress"
+    },
+    "mode": "Mode:",
+    "proportional": "Proportional",
+    "individual": "Individual",
+    "totalAmount": "Total amount:",
+    "amountPlaceholder": "e.g. 1000",
+    "selectUser": "Select user",
+    "amountPlaceholderShort": "Amount",
+    "compMode": {
+      "coins": "🟩 Coins (platform)",
+      "fiat": "💶 Fiat (external)",
+      "mixed": "Mixed"
+    },
+    "notePlaceholder": "Note (e.g. Grant tranche 1)",
+    "preview": "Preview:",
+    "distribute": "Distribute",
+    "confirmDistributionTitle": "Confirm Distribution",
+    "noteLabel": "Note: {{note}}",
+    "cancel": "Cancel",
+    "processing": "Processing…",
+    "confirm": "Confirm",
+    "markAsPaidExternallyTitle": "Mark as Paid Externally",
+    "fiatAmountLabel": "Fiat amount (€)",
+    "externalNoteLabel": "Note (e.g. bank transfer ref)",
+    "saving": "Saving…",
+    "confirmExternalPayment": "Confirm External Payment",
+    "toast": {
+      "error": "Error",
+      "compensationDistributed": "Compensation distributed",
+      "compensationDistributedDesc": "{{count}} contributor(s) compensated.",
+      "markedPaidExternally": "Marked as paid externally"
+    },
+    "unknown": "Unknown"
   }
 }

@@ -3021,5 +3021,58 @@
       "confirmAndDistribute": "Confirmer et distribuer"
     },
     "unknown": "Inconnu"
+  },
+  "ocuContributionsList": {
+    "ledgerTitle": "Registre des contributions OCU",
+    "logContribution": "Enregistrer une contribution",
+    "loading": "Chargement des contributions…",
+    "noneYet": "Aucune contribution enregistrée pour le moment.",
+    "hint": "Utilisez le bouton ci-dessus pour enregistrer votre première contribution OCU."
+  },
+  "distributeCompensation": {
+    "title": "Distribuer la compensation",
+    "outstanding": "🟩 {{amount}} restant dû",
+    "activeContract": "Contrat actif : {{title}}",
+    "contractHint": "Les répartitions doivent correspondre au % de pie défini dans le contrat. Les écarts seront journalisés.",
+    "noContributions": "Aucune contribution vérifiée à compenser pour le moment.",
+    "table": {
+      "contributor": "Contributeur",
+      "fmv": "FMV 🟩",
+      "paid": "Payé",
+      "remaining": "Restant",
+      "progress": "Progression"
+    },
+    "mode": "Mode :",
+    "proportional": "Proportionnel",
+    "individual": "Individuel",
+    "totalAmount": "Montant total :",
+    "amountPlaceholder": "ex. 1000",
+    "selectUser": "Sélectionner un utilisateur",
+    "amountPlaceholderShort": "Montant",
+    "compMode": {
+      "coins": "🟩 Coins (plateforme)",
+      "fiat": "💶 Fiat (externe)",
+      "mixed": "Mixte"
+    },
+    "notePlaceholder": "Note (ex. tranche de subvention 1)",
+    "preview": "Aperçu :",
+    "distribute": "Distribuer",
+    "confirmDistributionTitle": "Confirmer la répartition",
+    "noteLabel": "Note : {{note}}",
+    "cancel": "Annuler",
+    "processing": "Traitement…",
+    "confirm": "Confirmer",
+    "markAsPaidExternallyTitle": "Marquer comme payé en externe",
+    "fiatAmountLabel": "Montant fiat (€)",
+    "externalNoteLabel": "Note (ex. référence de virement)",
+    "saving": "Enregistrement…",
+    "confirmExternalPayment": "Confirmer le paiement externe",
+    "toast": {
+      "error": "Erreur",
+      "compensationDistributed": "Compensation distribuée",
+      "compensationDistributedDesc": "{{count}} contributeur(s) compensé(s).",
+      "markedPaidExternally": "Marqué comme payé en externe"
+    },
+    "unknown": "Inconnu"
   }
 }

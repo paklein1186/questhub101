@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useQuestContributions } from "@/hooks/useContributionLog";
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function OCUContributionsList({ quest, isAdmin, onEnableOCU }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const [logOpen, setLogOpen] = useState(false);
   const [reviewingContribution, setReviewingContribution] = useState<any>(null);
@@ -51,19 +53,19 @@ export function OCUContributionsList({ quest, isAdmin, onEnableOCU }: Props) {
     <OCUFeatureGate quest={quest} isAdmin={isAdmin} onEnable={onEnableOCU}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-semibold text-sm">OCU Contribution Ledger</h3>
+          <h3 className="font-display font-semibold text-sm">{t("ocuContributionsList.ledgerTitle")}</h3>
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setLogOpen(true)}>
-            <Plus className="h-3 w-3" /> Log Contribution
+            <Plus className="h-3 w-3" /> {t("ocuContributionsList.logContribution")}
           </Button>
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading contributions…</p>
+          <p className="text-sm text-muted-foreground">{t("ocuContributionsList.loading")}</p>
         ) : contributions.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
-            <p className="text-sm text-muted-foreground">No contributions logged yet.</p>
+            <p className="text-sm text-muted-foreground">{t("ocuContributionsList.noneYet")}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Use the button above to log your first OCU contribution.
+              {t("ocuContributionsList.hint")}
             </p>
           </div>
         ) : (

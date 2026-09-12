@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -34,6 +35,7 @@ interface Props {
 }
 
 export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -82,7 +84,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           const totalCompensated = comp?.total_compensated ?? 0;
           return {
             user_id: c.user_id,
-            name: c.name ?? "Unknown",
+            name: c.name ?? t("distributeCompensation.unknown"),
             avatar_url: c.avatar_url ?? null,
             total_fmv: totalFmv,
             total_compensated: totalCompensated,
@@ -125,7 +127,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         const p = profileMap.get(uid);
         return {
           user_id: uid,
-          name: p?.name ?? "Unknown",
+          name: p?.name ?? t("distributeCompensation.unknown"),
           avatar_url: p?.avatar_url ?? null,
           total_fmv: v.total_fmv,
           total_compensated: v.total_compensated,
@@ -235,7 +237,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         });
       }
 
-      toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
+      toast({ title: t("distributeCompensation.toast.compensationDistributed"), description: t("distributeCompensation.toast.compensationDistributedDesc", { count: preview.length }) });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
       setConfirmOpen(false);
@@ -243,7 +245,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
       setIndividualAmount("");
       setNote("");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("distributeCompensation.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -282,14 +284,14 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           .eq("id", externalContributionId);
       }
 
-      toast({ title: "Marked as paid externally" });
+      toast({ title: t("distributeCompensation.toast.markedPaidExternally") });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
       setExternalDialogOpen(false);
       setExternalAmount("");
       setExternalNote("");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      toast({ title: t("distributeCompensation.toast.error"), description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -304,10 +306,10 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold text-sm flex items-center gap-1.5">
-            <Banknote className="h-4 w-4" /> Distribute Compensation
+            <Banknote className="h-4 w-4" /> {t("distributeCompensation.title")}
           </h3>
           <Badge variant="outline" className="text-[10px]">
-            🟩 {totalRemaining.toFixed(0)} outstanding
+            {t("distributeCompensation.outstanding", { amount: totalRemaining.toFixed(0) })}
           </Badge>
         </div>
 
@@ -316,16 +318,16 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-xs">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <span className="font-medium text-amber-700">Active contract: {activeContract.title}</span>
+              <span className="font-medium text-amber-700">{t("distributeCompensation.activeContract", { title: activeContract.title })}</span>
               <p className="text-muted-foreground mt-0.5">
-                Distributions should match the pie % defined in the contract. Deviations will be logged.
+                {t("distributeCompensation.contractHint")}
               </p>
             </div>
           </div>
         )}
 
         {contributors.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No verified contributions to compensate yet.</p>
+          <p className="text-sm text-muted-foreground">{t("distributeCompensation.noContributions")}</p>
         ) : (
           <>
             {/* Contributor table */}
@@ -333,11 +335,11 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left p-2 font-medium">Contributor</th>
-                    <th className="text-right p-2 font-medium">FMV 🟩</th>
-                    <th className="text-right p-2 font-medium">Paid</th>
-                    <th className="text-right p-2 font-medium">Remaining</th>
-                    <th className="p-2 font-medium w-24">Progress</th>
+                    <th className="text-left p-2 font-medium">{t("distributeCompensation.table.contributor")}</th>
+                    <th className="text-right p-2 font-medium">{t("distributeCompensation.table.fmv")}</th>
+                    <th className="text-right p-2 font-medium">{t("distributeCompensation.table.paid")}</th>
+                    <th className="text-right p-2 font-medium">{t("distributeCompensation.table.remaining")}</th>
+                    <th className="p-2 font-medium w-24">{t("distributeCompensation.table.progress")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -367,7 +369,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             {/* Distribution controls */}
             <div className="space-y-3 rounded-lg border border-border p-3">
               <div className="flex items-center gap-3">
-                <Label className="text-xs">Mode:</Label>
+                <Label className="text-xs">{t("distributeCompensation.mode")}</Label>
                 <div className="flex gap-2">
                   <Button
                     variant={mode === "proportional" ? "default" : "outline"}
@@ -375,7 +377,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     className="h-7 text-xs"
                     onClick={() => setMode("proportional")}
                   >
-                    Proportional
+                    {t("distributeCompensation.proportional")}
                   </Button>
                   <Button
                     variant={mode === "individual" ? "default" : "outline"}
@@ -383,20 +385,20 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     className="h-7 text-xs"
                     onClick={() => setMode("individual")}
                   >
-                    Individual
+                    {t("distributeCompensation.individual")}
                   </Button>
                 </div>
               </div>
 
               {mode === "proportional" ? (
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs whitespace-nowrap">Total amount:</Label>
+                  <Label className="text-xs whitespace-nowrap">{t("distributeCompensation.totalAmount")}</Label>
                   <Input
                     type="number"
                     min={0}
                     value={totalAmount}
                     onChange={(e) => setTotalAmount(e.target.value)}
-                    placeholder="e.g. 1000"
+                    placeholder={t("distributeCompensation.amountPlaceholder")}
                     className="h-8 w-32 text-xs"
                   />
                 </div>
@@ -404,7 +406,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Select value={selectedUser} onValueChange={setSelectedUser}>
                     <SelectTrigger className="h-8 w-40 text-xs">
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder={t("distributeCompensation.selectUser")} />
                     </SelectTrigger>
                     <SelectContent>
                       {contributors.map((c) => (
@@ -419,7 +421,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     min={0}
                     value={individualAmount}
                     onChange={(e) => setIndividualAmount(e.target.value)}
-                    placeholder="Amount"
+                    placeholder={t("distributeCompensation.amountPlaceholderShort")}
                     className="h-8 w-28 text-xs"
                   />
                 </div>
@@ -431,15 +433,15 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coins" className="text-xs">🟩 Coins (platform)</SelectItem>
-                    <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
-                    <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
+                    <SelectItem value="coins" className="text-xs">{t("distributeCompensation.compMode.coins")}</SelectItem>
+                    <SelectItem value="fiat" className="text-xs">{t("distributeCompensation.compMode.fiat")}</SelectItem>
+                    <SelectItem value="mixed" className="text-xs">{t("distributeCompensation.compMode.mixed")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Note (e.g. Grant tranche 1)"
+                  placeholder={t("distributeCompensation.notePlaceholder")}
                   className="h-8 flex-1 text-xs"
                 />
               </div>
@@ -447,7 +449,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
               {/* Preview */}
               {preview.length > 0 && (
                 <div className="rounded bg-muted/50 p-2 space-y-1">
-                  <p className="text-[10px] text-muted-foreground font-medium">Preview:</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">{t("distributeCompensation.preview")}</p>
                   {preview.map((p) => (
                     <div key={p.user_id} className="flex justify-between text-xs">
                       <span>{p.name}</span>
@@ -463,7 +465,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 disabled={preview.length === 0 || submitting}
                 onClick={() => setConfirmOpen(true)}
               >
-                <Send className="h-3 w-3" /> Distribute
+                <Send className="h-3 w-3" /> {t("distributeCompensation.distribute")}
               </Button>
             </div>
           </>
@@ -473,7 +475,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="text-sm">Confirm Distribution</DialogTitle>
+              <DialogTitle className="text-sm">{t("distributeCompensation.confirmDistributionTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2">
               {preview.map((p) => (
@@ -482,13 +484,13 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                   <span className="font-medium">🟩 {p.distribution.toFixed(0)}</span>
                 </div>
               ))}
-              {note && <p className="text-xs text-muted-foreground">Note: {note}</p>}
+              {note && <p className="text-xs text-muted-foreground">{t("distributeCompensation.noteLabel", { note })}</p>}
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" size="sm" onClick={() => setConfirmOpen(false)} className="flex-1">
-                  Cancel
+                  {t("distributeCompensation.cancel")}
                 </Button>
                 <Button size="sm" onClick={handleDistribute} disabled={submitting} className="flex-1">
-                  {submitting ? "Processing…" : "Confirm"}
+                  {submitting ? t("distributeCompensation.processing") : t("distributeCompensation.confirm")}
                 </Button>
               </div>
             </div>
@@ -499,11 +501,11 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={externalDialogOpen} onOpenChange={setExternalDialogOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="text-sm">Mark as Paid Externally</DialogTitle>
+              <DialogTitle className="text-sm">{t("distributeCompensation.markAsPaidExternallyTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label className="text-xs">Fiat amount (€)</Label>
+                <Label className="text-xs">{t("distributeCompensation.fiatAmountLabel")}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -513,7 +515,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-xs">Note (e.g. bank transfer ref)</Label>
+                <Label className="text-xs">{t("distributeCompensation.externalNoteLabel")}</Label>
                 <Textarea
                   value={externalNote}
                   onChange={(e) => setExternalNote(e.target.value)}
@@ -522,7 +524,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <Button size="sm" onClick={handleMarkExternalPaid} disabled={submitting} className="w-full">
-                {submitting ? "Saving…" : "Confirm External Payment"}
+                {submitting ? t("distributeCompensation.saving") : t("distributeCompensation.confirmExternalPayment")}
               </Button>
             </div>
           </DialogContent>
