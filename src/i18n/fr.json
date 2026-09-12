@@ -2953,5 +2953,73 @@
     "perParticipant": "{{amount}} $CTG par participant",
     "xpEarned": "+{{xp}} XP gagné",
     "rewardsOnCompletion": "Récompenses distribuées à la fin de la quête."
+  },
+  "contributionLog": {
+    "distributed": "Distribué ✓",
+    "previewDistribution": "Prévisualiser la répartition",
+    "logContribution": "Enregistrer une contribution",
+    "stats": {
+      "contributors": "Contributeurs",
+      "contributions": "Contributions",
+      "xpEarned": "XP gagné",
+      "weightedUnits": "Unités pondérées"
+    },
+    "loading": "Chargement des contributions…",
+    "noneYet": "Aucune contribution enregistrée pour le moment.",
+    "verified": "✓ Vérifié",
+    "autoVerifiedSoon": "⏳ Auto-vérification bientôt",
+    "fmvLabel": "→ FMV : {{amount}} €",
+    "wuSuffix": "{{wu}} up",
+    "xpSuffix": "+{{xp}} XP",
+    "evidence": "Preuve",
+    "verify": "Vérifier",
+    "footerNote": "Toutes les contributions sont attribuées sous licence CC-BY-SA. Les 🟩 Coins sont distribués proportionnellement via le pie OCU. Le 🌱 $CTG est émis pour chaque contribution au commun.",
+    "types": {
+      "TIME": { "label": "Temps", "desc": "Demi-journées de travail" },
+      "EXPENSES": { "label": "Dépenses", "desc": "Frais engagés" },
+      "SUPPLIES": { "label": "Fournitures", "desc": "Matériel consommé" },
+      "EQUIPMENT": { "label": "Équipement", "desc": "Valeur d'usage de l'équipement" },
+      "FACILITIES": { "label": "Locaux", "desc": "Location d'espace ou de serveur" },
+      "SALES": { "label": "Ventes", "desc": "Revenu généré" },
+      "ROYALTY": { "label": "Royalties", "desc": "Valeur de PI ou de licence" },
+      "FINDERS_FEE": { "label": "Commission d'apport", "desc": "Référencement ou mise en relation" },
+      "OTHER": { "label": "Autre", "desc": "Autre valeur convenue" }
+    },
+    "legacyTypes": {
+      "subtask_completed": "Sous-tâche",
+      "quest_completed": "Quête",
+      "proposal_accepted": "Proposition",
+      "review_given": "Avis",
+      "documentation": "Docs",
+      "mentorship": "Mentorat",
+      "governance_vote": "Vote",
+      "ecological_annotation": "Écologie",
+      "insight": "Idée",
+      "debugging": "Débogage",
+      "other": "Autre"
+    },
+    "summaryLine": {
+      "halfDays": "{{count}} demi-journée(s)",
+      "hoursLogged": "{{hours}}h enregistrées",
+      "difficultyFallback": "STANDARD",
+      "dash": "—",
+      "dealCommission": "affaire de {{value}} € · {{pct}}% de commission",
+      "dealFindersFee": "affaire de {{value}} € · {{pct}}% de commission d'apport"
+    },
+    "previewDialog": {
+      "title": "Aperçu du Value Pie",
+      "totalBudget": "Budget total",
+      "contributorPool": "Pool contributeurs",
+      "guildPct": "Guilde ({{pct}}%)",
+      "territoryAndCtg": "Territoire ({{territoryPct}}%) + CTG ({{ctgPct}}%)",
+      "contributorHeader": "Contributeur",
+      "shareHeader": "Part %",
+      "ctgHeader": "🟡 $CTG",
+      "estimateNote": "Ces montants sont des estimations basées sur les contributions actuelles.",
+      "cancel": "Annuler",
+      "distributing": "Distribution du $CTG…",
+      "confirmAndDistribute": "Confirmer et distribuer"
+    },
+    "unknown": "Inconnu"
   }
 }

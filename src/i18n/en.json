@@ -2967,5 +2967,73 @@
     "perParticipant": "{{amount}} $CTG per participant",
     "xpEarned": "+{{xp}} XP earned",
     "rewardsOnCompletion": "Rewards distributed on quest completion."
+  },
+  "contributionLog": {
+    "distributed": "Distributed ✓",
+    "previewDistribution": "Preview distribution",
+    "logContribution": "Log contribution",
+    "stats": {
+      "contributors": "Contributors",
+      "contributions": "Contributions",
+      "xpEarned": "XP Earned",
+      "weightedUnits": "Weighted Units"
+    },
+    "loading": "Loading contributions…",
+    "noneYet": "No contributions logged yet.",
+    "verified": "✓ Verified",
+    "autoVerifiedSoon": "⏳ Auto-verified soon",
+    "fmvLabel": "→ FMV: €{{amount}}",
+    "wuSuffix": "{{wu}} wu",
+    "xpSuffix": "+{{xp}} XP",
+    "evidence": "Evidence",
+    "verify": "Verify",
+    "footerNote": "All contributions are attributed under CC-BY-SA. 🟩 Coins are distributed proportionally via the OCU pie. 🌱 $CTG is emitted per contribution to the commons.",
+    "types": {
+      "TIME": { "label": "Time", "desc": "Half-days of work" },
+      "EXPENSES": { "label": "Expenses", "desc": "Out-of-pocket costs" },
+      "SUPPLIES": { "label": "Supplies", "desc": "Materials consumed" },
+      "EQUIPMENT": { "label": "Equipment", "desc": "Equipment use value" },
+      "FACILITIES": { "label": "Facilities", "desc": "Space or server rental" },
+      "SALES": { "label": "Sales", "desc": "Revenue generated" },
+      "ROYALTY": { "label": "Royalty", "desc": "IP or licensing value" },
+      "FINDERS_FEE": { "label": "Finder's Fee", "desc": "Referral or introduction" },
+      "OTHER": { "label": "Other", "desc": "Other agreed value" }
+    },
+    "legacyTypes": {
+      "subtask_completed": "Subtask",
+      "quest_completed": "Quest",
+      "proposal_accepted": "Proposal",
+      "review_given": "Review",
+      "documentation": "Docs",
+      "mentorship": "Mentorship",
+      "governance_vote": "Vote",
+      "ecological_annotation": "Ecology",
+      "insight": "Insight",
+      "debugging": "Debug",
+      "other": "Other"
+    },
+    "summaryLine": {
+      "halfDays": "{{count}} half-day(s)",
+      "hoursLogged": "{{hours}}h logged",
+      "difficultyFallback": "STANDARD",
+      "dash": "—",
+      "dealCommission": "€{{value}} deal · {{pct}}% commission",
+      "dealFindersFee": "€{{value}} deal · {{pct}}% finder's fee"
+    },
+    "previewDialog": {
+      "title": "Value Pie Preview",
+      "totalBudget": "Total budget",
+      "contributorPool": "Contributor pool",
+      "guildPct": "Guild ({{pct}}%)",
+      "territoryAndCtg": "Territory ({{territoryPct}}%) + CTG ({{ctgPct}}%)",
+      "contributorHeader": "Contributor",
+      "shareHeader": "Share %",
+      "ctgHeader": "🟡 $CTG",
+      "estimateNote": "These amounts are estimates based on current contributions.",
+      "cancel": "Cancel",
+      "distributing": "Distributing $CTG…",
+      "confirmAndDistribute": "Confirm and distribute"
+    },
+    "unknown": "Unknown"
   }
 }

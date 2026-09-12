@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuestContributions, useLogContribution } from "@/hooks/useContributionLog";
 import { useValuePieActions } from "@/hooks/useValuePie";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -20,30 +21,30 @@ type ContributionTypeEnum =
   | "SALES" | "ROYALTY" | "FINDERS_FEE" | "OTHER";
 
 const CONTRIBUTION_TYPES = [
-  { value: "TIME" as const, label: "Time", icon: "⏱", desc: "Half-days of work" },
-  { value: "EXPENSES" as const, label: "Expenses", icon: "💸", desc: "Out-of-pocket costs" },
-  { value: "SUPPLIES" as const, label: "Supplies", icon: "🗂", desc: "Materials consumed" },
-  { value: "EQUIPMENT" as const, label: "Equipment", icon: "🚛", desc: "Equipment use value" },
-  { value: "FACILITIES" as const, label: "Facilities", icon: "🏢", desc: "Space or server rental" },
-  { value: "SALES" as const, label: "Sales", icon: "💰", desc: "Revenue generated" },
-  { value: "ROYALTY" as const, label: "Royalty", icon: "🎤", desc: "IP or licensing value" },
-  { value: "FINDERS_FEE" as const, label: "Finder's Fee", icon: "👁", desc: "Referral or introduction" },
-  { value: "OTHER" as const, label: "Other", icon: "🌂", desc: "Other agreed value" },
+  { value: "TIME" as const, key: "TIME", icon: "⏱" },
+  { value: "EXPENSES" as const, key: "EXPENSES", icon: "💸" },
+  { value: "SUPPLIES" as const, key: "SUPPLIES", icon: "🗂" },
+  { value: "EQUIPMENT" as const, key: "EQUIPMENT", icon: "🚛" },
+  { value: "FACILITIES" as const, key: "FACILITIES", icon: "🏢" },
+  { value: "SALES" as const, key: "SALES", icon: "💰" },
+  { value: "ROYALTY" as const, key: "ROYALTY", icon: "🎤" },
+  { value: "FINDERS_FEE" as const, key: "FINDERS_FEE", icon: "👁" },
+  { value: "OTHER" as const, key: "OTHER", icon: "🌂" },
 ] as const;
 
 // Legacy type labels for display of old contributions
-const LEGACY_TYPE_LABELS: Record<string, { label: string; icon: typeof FileText; color: string }> = {
-  subtask_completed: { label: "Subtask", icon: CheckCircle2, color: "text-emerald-600" },
-  quest_completed: { label: "Quest", icon: Award, color: "text-primary" },
-  proposal_accepted: { label: "Proposal", icon: Star, color: "text-amber-500" },
-  review_given: { label: "Review", icon: BookOpen, color: "text-blue-500" },
-  documentation: { label: "Docs", icon: FileText, color: "text-indigo-500" },
-  mentorship: { label: "Mentorship", icon: Shield, color: "text-purple-500" },
-  governance_vote: { label: "Vote", icon: Zap, color: "text-orange-500" },
-  ecological_annotation: { label: "Ecology", icon: Star, color: "text-green-600" },
-  insight: { label: "Insight", icon: Zap, color: "text-cyan-500" },
-  debugging: { label: "Debug", icon: FileText, color: "text-red-500" },
-  other: { label: "Other", icon: FileText, color: "text-muted-foreground" },
+const LEGACY_TYPE_LABELS: Record<string, { key: string; icon: typeof FileText; color: string }> = {
+  subtask_completed: { key: "subtask_completed", icon: CheckCircle2, color: "text-emerald-600" },
+  quest_completed: { key: "quest_completed", icon: Award, color: "text-primary" },
+  proposal_accepted: { key: "proposal_accepted", icon: Star, color: "text-amber-500" },
+  review_given: { key: "review_given", icon: BookOpen, color: "text-blue-500" },
+  documentation: { key: "documentation", icon: FileText, color: "text-indigo-500" },
+  mentorship: { key: "mentorship", icon: Shield, color: "text-purple-500" },
+  governance_vote: { key: "governance_vote", icon: Zap, color: "text-orange-500" },
+  ecological_annotation: { key: "ecological_annotation", icon: Star, color: "text-green-600" },
+  insight: { key: "insight", icon: Zap, color: "text-cyan-500" },
+  debugging: { key: "debugging", icon: FileText, color: "text-red-500" },
+  other: { key: "other", icon: FileText, color: "text-muted-foreground" },
 };
 
 interface Props {
@@ -62,11 +63,12 @@ interface Props {
 
 // ── Type badge & summary line components ──
 function ContributionTypeBadge({ type }: { type: string }) {
-  const cfg = CONTRIBUTION_TYPES.find((t) => t.value === type);
+  const { t } = useTranslation();
+  const cfg = CONTRIBUTION_TYPES.find((c) => c.value === type);
   if (cfg) {
     return (
       <Badge variant="outline" className="text-[10px] gap-1">
-        {cfg.icon} {cfg.label}
+        {cfg.icon} {t(`contributionLog.types.${cfg.key}.label`)}
       </Badge>
     );
   }
@@ -75,33 +77,35 @@ function ContributionTypeBadge({ type }: { type: string }) {
   return (
     <Badge variant="outline" className={`text-[10px] gap-0.5 ${legacy.color}`}>
       <LIcon className="h-2.5 w-2.5" />
-      {legacy.label}
+      {t(`contributionLog.legacyTypes.${legacy.key}`)}
     </Badge>
   );
 }
 
 function ContributionSummaryLine({ log }: { log: any }) {
+  const { t } = useTranslation();
   const input = log.fmv_input as any;
+  const dash = t("contributionLog.summaryLine.dash");
   if (!input) {
-    if (log.half_days > 0) return <>{log.half_days} half-day{log.half_days !== 1 ? "s" : ""}</>;
-    if (log.hours_logged > 0) return <>{log.hours_logged}h logged</>;
+    if (log.half_days > 0) return <>{t("contributionLog.summaryLine.halfDays", { count: log.half_days })}</>;
+    if (log.hours_logged > 0) return <>{t("contributionLog.summaryLine.hoursLogged", { hours: log.hours_logged })}</>;
     return null;
   }
   switch (log.contribution_type) {
     case "TIME":
-      return <>{input.half_days} half-day{input.half_days !== 1 ? "s" : ""} · {input.difficulty ?? "STANDARD"}</>;
+      return <>{t("contributionLog.summaryLine.halfDays", { count: input.half_days })} · {input.difficulty ?? t("contributionLog.summaryLine.difficultyFallback")}</>;
     case "EXPENSES":
     case "SUPPLIES":
     case "ROYALTY":
     case "OTHER":
-      return <>€{Number(input.amount_eur || 0).toFixed(2)} · {input.description || "—"}</>;
+      return <>€{Number(input.amount_eur || 0).toFixed(2)} · {input.description || dash}</>;
     case "EQUIPMENT":
     case "FACILITIES":
-      return <>€{Number(input.amount_eur || 0).toFixed(2)} · {input.period_days}d · {input.description || "—"}</>;
+      return <>€{Number(input.amount_eur || 0).toFixed(2)} · {input.period_days}d · {input.description || dash}</>;
     case "SALES":
-      return <>€{Number(input.deal_value_eur || 0).toFixed(2)} deal · {input.commission_pct}% commission</>;
+      return <>{t("contributionLog.summaryLine.dealCommission", { value: Number(input.deal_value_eur || 0).toFixed(2), pct: input.commission_pct })}</>;
     case "FINDERS_FEE":
-      return <>€{Number(input.deal_value_eur || 0).toFixed(2)} deal · {input.finders_pct}% finder's fee</>;
+      return <>{t("contributionLog.summaryLine.dealFindersFee", { value: Number(input.deal_value_eur || 0).toFixed(2), pct: input.finders_pct })}</>;
     default:
       return null;
   }
@@ -120,6 +124,7 @@ export function ContributionLogPanel({
   isCoHost = false,
   isGuildAdmin = false,
 }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { data: contributions = [], isLoading } = useQuestContributions(questId);
   const { verifyContribution } = useLogContribution();
@@ -169,7 +174,7 @@ export function ContributionLogPanel({
       const wu = Number((c as any).weighted_units) || 0;
       const existing = byContributor.get(c.user_id);
       if (existing) { existing.wu += wu; }
-      else { byContributor.set(c.user_id, { wu, name: c.profile?.name || "Unknown" }); }
+      else { byContributor.set(c.user_id, { wu, name: c.profile?.name || t("contributionLog.unknown") }); }
     });
     return Array.from(byContributor.entries()).map(([uid, { wu, name }]) => {
       const sharePct = totalWeightedUnits > 0 ? wu / totalWeightedUnits : 0;
@@ -193,14 +198,14 @@ export function ContributionLogPanel({
           className="flex items-center gap-2 font-display font-semibold text-sm hover:text-primary transition-colors"
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          Contributions
+          {t("questWork.contributions")}
           <Badge variant="secondary" className="text-xs">{contributions.length}</Badge>
         </button>
         <div className="flex gap-1.5">
           {isOwner && contributions.length > 0 && questCoinBudget > 0 && (
             valuePieCalculated ? (
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled>
-                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Distributed ✓
+                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> {t("contributionLog.distributed")}
               </Button>
             ) : (
               <Button
@@ -209,13 +214,13 @@ export function ContributionLogPanel({
                 className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
                 onClick={() => setShowPreviewDialog(true)}
               >
-                <Eye className="h-3 w-3" /> Preview distribution
+                <Eye className="h-3 w-3" /> {t("contributionLog.previewDistribution")}
               </Button>
             )
           )}
           {currentUser.id && !valuePieCalculated && (
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowOCUModal(true)}>
-              <Plus className="h-3 w-3" /> Log contribution
+              <Plus className="h-3 w-3" /> {t("contributionLog.logContribution")}
             </Button>
           )}
         </div>
@@ -228,28 +233,28 @@ export function ContributionLogPanel({
             <div className="grid grid-cols-4 gap-2 text-center">
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-lg font-bold text-primary">{uniqueContributors}</p>
-                <p className="text-[10px] text-muted-foreground">Contributors</p>
+                <p className="text-[10px] text-muted-foreground">{t("contributionLog.stats.contributors")}</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-lg font-bold text-primary">{contributions.length}</p>
-                <p className="text-[10px] text-muted-foreground">Contributions</p>
+                <p className="text-[10px] text-muted-foreground">{t("contributionLog.stats.contributions")}</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-lg font-bold text-primary">{totalXp}</p>
-                <p className="text-[10px] text-muted-foreground">XP Earned</p>
+                <p className="text-[10px] text-muted-foreground">{t("contributionLog.stats.xpEarned")}</p>
               </div>
               <div className="rounded-md bg-emerald-500/5 p-2">
                 <p className="text-lg font-bold text-emerald-600">{totalWeightedUnits}</p>
-                <p className="text-[10px] text-muted-foreground">Weighted Units</p>
+                <p className="text-[10px] text-muted-foreground">{t("contributionLog.stats.weightedUnits")}</p>
               </div>
             </div>
           )}
 
           {/* ═══ Contribution List ═══ */}
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading contributions…</p>
+            <p className="text-sm text-muted-foreground">{t("contributionLog.loading")}</p>
           ) : contributions.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">No contributions logged yet.</p>
+            <p className="text-sm text-muted-foreground italic">{t("contributionLog.noneYet")}</p>
           ) : (
             <ScrollArea className="max-h-[400px]">
               <div className="space-y-1.5">
@@ -268,23 +273,23 @@ export function ContributionLogPanel({
                           <span className="text-sm font-medium truncate">{c.profile?.name}</span>
                           <ContributionTypeBadge type={c.contribution_type} />
                           {c.status === "verified" && (
-                            <Badge className="bg-emerald-500/10 text-emerald-600 border-0 text-[10px]">✓ Verified</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-600 border-0 text-[10px]">{t("contributionLog.verified")}</Badge>
                           )}
                           {c.status === "logged" && (Date.now() - new Date(c.created_at).getTime()) / 86400000 >= 14 && (
-                            <Badge variant="outline" className="text-amber-600 border-amber-400 text-[10px]">⏳ Auto-verified soon</Badge>
+                            <Badge variant="outline" className="text-amber-600 border-amber-400 text-[10px]">{t("contributionLog.autoVerifiedSoon")}</Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{c.title}</p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap text-[10px] text-muted-foreground">
                           <ContributionSummaryLine log={c} />
                           {fmv > 0 && (
-                            <span className="font-medium text-primary">→ FMV: €{fmv.toFixed(2)}</span>
+                            <span className="font-medium text-primary">{t("contributionLog.fmvLabel", { amount: fmv.toFixed(2) })}</span>
                           )}
                           {wu > 0 && (
-                            <span className="text-emerald-600 font-medium">{wu} wu</span>
+                            <span className="text-emerald-600 font-medium">{t("contributionLog.wuSuffix", { wu })}</span>
                           )}
                           {c.xp_earned > 0 && (
-                            <span className="text-primary font-medium">+{c.xp_earned} XP</span>
+                            <span className="text-primary font-medium">{t("contributionLog.xpSuffix", { xp: c.xp_earned })}</span>
                           )}
                           {evUrl && (
                             <a
@@ -293,7 +298,7 @@ export function ContributionLogPanel({
                               rel="noopener noreferrer"
                               className="text-primary hover:underline flex items-center gap-0.5"
                             >
-                              <Paperclip className="h-2.5 w-2.5" /> Evidence
+                              <Paperclip className="h-2.5 w-2.5" /> {t("contributionLog.evidence")}
                             </a>
                           )}
                           <span>
@@ -308,7 +313,7 @@ export function ContributionLogPanel({
                           className="h-6 text-[10px] opacity-0 group-hover:opacity-100"
                           onClick={() => verifyContribution(c.id)}
                         >
-                          Verify
+                          {t("contributionLog.verify")}
                         </Button>
                       )}
                     </div>
@@ -322,9 +327,7 @@ export function ContributionLogPanel({
           <ValuePieChart questId={questId} />
 
           <p className="text-[10px] text-muted-foreground">
-            All contributions are attributed under CC-BY-SA.
-            🟩 Coins are distributed proportionally via the OCU pie.
-            🌱 $CTG is emitted per contribution to the commons.
+            {t("contributionLog.footerNote")}
           </p>
         </>
       )}
@@ -343,33 +346,33 @@ export function ContributionLogPanel({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm">
-              <Scale className="h-4 w-4 text-emerald-600" /> Value Pie Preview
+              <Scale className="h-4 w-4 text-emerald-600" /> {t("contributionLog.previewDialog.title")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-muted-foreground">Total budget</p>
+                <p className="text-muted-foreground">{t("contributionLog.previewDialog.totalBudget")}</p>
                 <p className="font-bold text-emerald-600">{questCoinBudget} 🟩</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-muted-foreground">Contributor pool</p>
+                <p className="text-muted-foreground">{t("contributionLog.previewDialog.contributorPool")}</p>
                 <p className="font-bold text-emerald-600">{previewContributorPool} 🟩</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-muted-foreground">Guild ({guildPercent}%)</p>
+                <p className="text-muted-foreground">{t("contributionLog.previewDialog.guildPct", { pct: guildPercent })}</p>
                 <p className="font-medium">{Math.round(questCoinBudget * (guildPercent / 100) * 100) / 100}</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-muted-foreground">Territory ({territoryPercent}%) + CTG ({ctgPercent}%)</p>
+                <p className="text-muted-foreground">{t("contributionLog.previewDialog.territoryAndCtg", { territoryPct: territoryPercent, ctgPct: ctgPercent })}</p>
                 <p className="font-medium">{Math.round(questCoinBudget * ((territoryPercent + ctgPercent) / 100) * 100) / 100}</p>
               </div>
             </div>
             <div className="space-y-1 max-h-[200px] overflow-y-auto">
               <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
-                <span>Contributor</span>
-                <span className="text-right">Share %</span>
-                <span className="text-right">🟡 $CTG</span>
+                <span>{t("contributionLog.previewDialog.contributorHeader")}</span>
+                <span className="text-right">{t("contributionLog.previewDialog.shareHeader")}</span>
+                <span className="text-right">{t("contributionLog.previewDialog.ctgHeader")}</span>
               </div>
               {previewData.map((p) => (
                 <div key={p.userId} className="grid grid-cols-[1fr_auto_auto] gap-2 text-xs items-center">
@@ -380,11 +383,11 @@ export function ContributionLogPanel({
               ))}
             </div>
             <p className="text-[10px] text-muted-foreground italic">
-              These amounts are estimates based on current contributions.
+              {t("contributionLog.previewDialog.estimateNote")}
             </p>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>Cancel</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>{t("contributionLog.previewDialog.cancel")}</Button>
             <Button
               size="sm"
               className="gap-1"
@@ -394,7 +397,7 @@ export function ContributionLogPanel({
               }}
               disabled={distributing}
             >
-              <Scale className="h-3 w-3" /> {distributing ? "Distributing $CTG…" : "Confirm and distribute"}
+              <Scale className="h-3 w-3" /> {distributing ? t("contributionLog.previewDialog.distributing") : t("contributionLog.previewDialog.confirmAndDistribute")}
             </Button>
           </DialogFooter>
         </DialogContent>
