@@ -3400,5 +3400,28 @@
       "changeRate": "Change Rate",
       "disturbances": "Disturbances"
     }
+  },
+  "questGrid": {
+    "questNature": {
+      "idea": "Idea",
+      "achievement": "Achievement",
+      "project": "Project",
+      "mission": "Mission"
+    },
+    "entityType": {
+      "guild": "Guild",
+      "pod": "Pod",
+      "org": "Org",
+      "nature": "Nature"
+    },
+    "all": "All",
+    "quests": "Quests",
+    "newQuest": "New Quest",
+    "noQuestsYet": "No quests in {{name}} yet.",
+    "createFirstQuest": "Create the first quest",
+    "community": "Community",
+    "searchPlaceholder": "Search...",
+    "noCommunityEntities": "No guilds, pods or organizations yet.",
+    "naturalSystems": "Natural Systems"
   }
 }

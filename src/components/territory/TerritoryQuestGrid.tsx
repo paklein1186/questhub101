@@ -10,6 +10,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,25 +157,26 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
 }
 
 /* ── Quest nature config ── */
-const QUEST_NATURE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  IDEA: { label: "Idea", icon: Lightbulb, color: "text-yellow-500" },
-  ACHIEVEMENT: { label: "Achievement", icon: Star, color: "text-violet-500" },
-  ONGOING_PROJECT: { label: "Project", icon: Layers, color: "text-blue-500" },
-  MISSION: { label: "Mission", icon: Target, color: "text-red-500" },
+const QUEST_NATURE_CONFIG: Record<string, { key: string; icon: React.ElementType; color: string }> = {
+  IDEA: { key: "idea", icon: Lightbulb, color: "text-yellow-500" },
+  ACHIEVEMENT: { key: "achievement", icon: Star, color: "text-violet-500" },
+  ONGOING_PROJECT: { key: "project", icon: Layers, color: "text-blue-500" },
+  MISSION: { key: "mission", icon: Target, color: "text-red-500" },
 };
 
 /* ── Entity type config ── */
-const ENTITY_CONFIG: Record<string, { icon: React.ElementType; color: string; prefix: string; label: string }> = {
-  guild: { icon: Shield, color: "text-amber-500", prefix: "/guilds", label: "Guild" },
-  pod: { icon: CircleDot, color: "text-blue-500", prefix: "/pods", label: "Pod" },
-  company: { icon: Building2, color: "text-slate-500", prefix: "/companies", label: "Org" },
-  natural_system: { icon: TreePine, color: "text-green-500", prefix: "/natural-systems", label: "Nature" },
+const ENTITY_CONFIG: Record<string, { icon: React.ElementType; color: string; prefix: string; key: string }> = {
+  guild: { icon: Shield, color: "text-amber-500", prefix: "/guilds", key: "guild" },
+  pod: { icon: CircleDot, color: "text-blue-500", prefix: "/pods", key: "pod" },
+  company: { icon: Building2, color: "text-slate-500", prefix: "/companies", key: "org" },
+  natural_system: { icon: TreePine, color: "text-green-500", prefix: "/natural-systems", key: "nature" },
 };
 
 const QUEST_NATURE_FILTERS = ["all", "IDEA", "ACHIEVEMENT", "ONGOING_PROJECT", "MISSION"] as const;
 
 /* ── Quest card ── */
 function QuestCard({ quest }: { quest: QuestItem }) {
+  const { t } = useTranslation();
   const cfg = quest.quest_nature ? QUEST_NATURE_CONFIG[quest.quest_nature] : null;
   const Icon = cfg?.icon ?? Compass;
 
@@ -196,7 +198,7 @@ function QuestCard({ quest }: { quest: QuestItem }) {
           <div className="flex items-center gap-2 pt-1">
             {cfg && (
               <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", cfg.color)}>
-                {cfg.label}
+                {t(`questGrid.questNature.${cfg.key}`)}
               </Badge>
             )}
             {quest.reward_xp && quest.reward_xp > 0 && (
@@ -213,6 +215,7 @@ function QuestCard({ quest }: { quest: QuestItem }) {
 
 /* ── Entity chip ── */
 function EntityChip({ entity }: { entity: EntityItem }) {
+  const { t } = useTranslation();
   const cfg = ENTITY_CONFIG[entity.type];
   const Icon = cfg.icon;
 
@@ -233,7 +236,7 @@ function EntityChip({ entity }: { entity: EntityItem }) {
           <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">
             {entity.name}
           </p>
-          <p className="text-[10px] text-muted-foreground">{cfg.label}</p>
+          <p className="text-[10px] text-muted-foreground">{t(`questGrid.entityType.${cfg.key}`)}</p>
         </div>
       </div>
     </Link>
@@ -246,6 +249,7 @@ export function TerritoryQuestGrid({
   territoryName,
   canCreateQuest = false,
 }: TerritoryQuestGridProps) {
+  const { t } = useTranslation();
   const { data, isLoading } = useTerritoryQuestsAndEntities(territoryId);
   const [questFilter, setQuestFilter] = useState<string>("all");
   const [entitySearch, setEntitySearch] = useState("");
@@ -268,7 +272,7 @@ export function TerritoryQuestGrid({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Compass className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Quests</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("questGrid.quests")}</h2>
             <Badge variant="secondary" className="text-[10px]">
               {filteredQuests.length}
             </Badge>
@@ -276,7 +280,7 @@ export function TerritoryQuestGrid({
           {canCreateQuest && (
              <Link to={`/quests/new?territory=${territoryId}`}>
               <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs">
-                <Plus className="h-3.5 w-3.5" /> New Quest
+                <Plus className="h-3.5 w-3.5" /> {t("questGrid.newQuest")}
               </Button>
             </Link>
           )}
@@ -301,7 +305,7 @@ export function TerritoryQuestGrid({
                 )}
               >
                 {cfg && <cfg.icon className="h-3 w-3" />}
-                {f === "all" ? "All" : cfg?.label}
+                {f === "all" ? t("questGrid.all") : t(`questGrid.questNature.${cfg?.key}`)}
                 {count > 0 && (
                   <span className={cn("ml-0.5", questFilter === f ? "opacity-70" : "opacity-50")}>
                     {count}
@@ -321,11 +325,11 @@ export function TerritoryQuestGrid({
         ) : filteredQuests.length === 0 ? (
           <div className="text-center py-10 rounded-xl border border-dashed border-border">
             <Compass className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No quests in {territoryName} yet.</p>
+            <p className="text-sm text-muted-foreground">{t("questGrid.noQuestsYet", { name: territoryName })}</p>
             {canCreateQuest && (
               <Link to={`/quests/new?territory=${territoryId}`}>
                 <Button size="sm" variant="outline" className="mt-3 gap-1.5">
-                  <Plus className="h-3.5 w-3.5" /> Create the first quest
+                  <Plus className="h-3.5 w-3.5" /> {t("questGrid.createFirstQuest")}
                 </Button>
               </Link>
             )}
@@ -344,13 +348,13 @@ export function TerritoryQuestGrid({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-blue-500" />
-            <h2 className="text-sm font-semibold text-foreground">Community</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("questGrid.community")}</h2>
             <Badge variant="secondary" className="text-[10px]">{communityEntities.length}</Badge>
           </div>
           <div className="relative w-36">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
             <Input
-              placeholder="Search..."
+              placeholder={t("questGrid.searchPlaceholder")}
               value={entitySearch}
               onChange={e => setEntitySearch(e.target.value)}
               className="pl-7 h-7 text-xs"
@@ -360,7 +364,7 @@ export function TerritoryQuestGrid({
 
         {communityEntities.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
-            No guilds, pods or organizations yet.
+            {t("questGrid.noCommunityEntities")}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -376,7 +380,7 @@ export function TerritoryQuestGrid({
         <section>
           <div className="flex items-center gap-2 mb-3">
             <Leaf className="h-4 w-4 text-green-500" />
-            <h2 className="text-sm font-semibold text-foreground">Natural Systems</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("questGrid.naturalSystems")}</h2>
             <Badge variant="secondary" className="text-[10px]">{naturalEntities.length}</Badge>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

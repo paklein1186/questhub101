@@ -3386,5 +3386,28 @@
       "changeRate": "Taux de changement",
       "disturbances": "Perturbations"
     }
+  },
+  "questGrid": {
+    "questNature": {
+      "idea": "Idée",
+      "achievement": "Réalisation",
+      "project": "Projet",
+      "mission": "Mission"
+    },
+    "entityType": {
+      "guild": "Guilde",
+      "pod": "Pod",
+      "org": "Org",
+      "nature": "Nature"
+    },
+    "all": "Tous",
+    "quests": "Quêtes",
+    "newQuest": "Nouvelle quête",
+    "noQuestsYet": "Pas encore de quête sur {{name}}.",
+    "createFirstQuest": "Créer la première quête",
+    "community": "Communauté",
+    "searchPlaceholder": "Rechercher...",
+    "noCommunityEntities": "Pas encore de guildes, pods ou organisations.",
+    "naturalSystems": "Systèmes naturels"
   }
 }
