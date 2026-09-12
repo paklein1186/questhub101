@@ -2584,5 +2584,38 @@
     "signup": "Inscription",
     "welcome": "Bienvenue",
     "landing": "changethegame"
+  },
+  "graph": {
+    "node": {
+      "user": "Utilisateur",
+      "guild": "Guilde",
+      "quest": "Quête",
+      "territory": "Territoire",
+      "org": "Organisation",
+      "pod": "Pod",
+      "naturalSystem": "Système naturel",
+      "entity": "Entité"
+    },
+    "edge": {
+      "follows": "Suit",
+      "memberOf": "Membre de",
+      "stewardOf": "Steward de",
+      "questOwner": "Porteur de quête",
+      "partner": "Partenaire",
+      "funds": "Finance",
+      "trust": "Confiance",
+      "locatedIn": "Situé dans",
+      "anchoredIn": "Ancré dans",
+      "fundedBy": "Financé par",
+      "connected": "Connecté"
+    },
+    "nodesCount": "{{count}} nœuds",
+    "edgesCount": "{{count}} liens",
+    "hint": "Cliquez sur un nœud pour y accéder • Molette pour zoomer",
+    "loading": "Chargement du graphe…",
+    "failedToLoad": "Échec du chargement du graphe",
+    "noConnections": "Aucune connexion trouvée pour le moment.",
+    "connectionsCount": "{{count}} connexions",
+    "clickToOpen": "Cliquer pour ouvrir"
   }
 }

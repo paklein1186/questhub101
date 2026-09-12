@@ -2598,5 +2598,38 @@
     "signup": "Sign up",
     "welcome": "Welcome",
     "landing": "changethegame"
+  },
+  "graph": {
+    "node": {
+      "user": "User",
+      "guild": "Guild",
+      "quest": "Quest",
+      "territory": "Territory",
+      "org": "Organisation",
+      "pod": "Pod",
+      "naturalSystem": "Natural System",
+      "entity": "Entity"
+    },
+    "edge": {
+      "follows": "Follows",
+      "memberOf": "Member of",
+      "stewardOf": "Steward of",
+      "questOwner": "Quest owner",
+      "partner": "Partner",
+      "funds": "Funds",
+      "trust": "Trust",
+      "locatedIn": "Located in",
+      "anchoredIn": "Anchored in",
+      "fundedBy": "Funded by",
+      "connected": "Connected"
+    },
+    "nodesCount": "{{count}} nodes",
+    "edgesCount": "{{count}} edges",
+    "hint": "Click a node to navigate • Scroll to zoom",
+    "loading": "Loading graph…",
+    "failedToLoad": "Failed to load graph",
+    "noConnections": "No connections found yet.",
+    "connectionsCount": "{{count}} connections",
+    "clickToOpen": "Click to open"
   }
 }

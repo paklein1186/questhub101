@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useGraphData, type GraphNode } from "@/hooks/useGraphData";
@@ -46,6 +47,7 @@ function getOrLoadImage(url: string): HTMLImageElement | null {
 
 export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const graphRef = useRef<ForceGraphMethods>();
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(800);
@@ -242,7 +244,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillStyle = `hsla(0, 0%, 100%, ${0.85 * alpha})`;
-          const initial = (node.name || style.label || "?").charAt(0).toUpperCase();
+          const initial = (node.name || t(style.labelKey) || "?").charAt(0).toUpperCase();
           ctx.fillText(initial, x, y);
         }
 
@@ -292,7 +294,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
         const typeFontSize = Math.max(8 / globalScale, 2);
         ctx.font = `500 ${typeFontSize}px -apple-system, sans-serif`;
         ctx.fillStyle = style.color;
-        ctx.fillText(style.label, x, ty + ph + 2);
+        ctx.fillText(t(style.labelKey), x, ty + ph + 2);
       }
 
       // Show neighbor names with small font when this node is hovered
@@ -323,7 +325,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
 
       ctx.globalAlpha = 1;
     },
-    [hoveredNode, adjacencyMap]
+    [hoveredNode, adjacencyMap, t, i18n.language]
   );
 
   // ─── Link rendering ──────────────────────────────────────
@@ -368,7 +370,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       if (srcId !== hoveredNode && tgtId !== hoveredNode) return;
 
       const style = EDGE_STYLES[link.relationType] || DEFAULT_EDGE_STYLE;
-      const label = style.label;
+      const label = t(style.labelKey);
       if (!label) return;
 
       const midX = (src.x + tgt.x) / 2;
@@ -394,7 +396,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       ctx.fillText(label, midX, midY);
       ctx.globalAlpha = 1;
     },
-    [hoveredNode]
+    [hoveredNode, t, i18n.language]
   );
 
   const handleNodeClick = useCallback((node: any) => {
@@ -448,7 +450,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        <span className="ml-2 text-sm text-muted-foreground">Loading graph…</span>
+        <span className="ml-2 text-sm text-muted-foreground">{t("graph.loading")}</span>
       </div>
     );
   }
@@ -457,7 +459,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     return (
       <div className="flex items-center justify-center py-16 text-destructive gap-2">
         <AlertCircle className="h-5 w-5" />
-        <span className="text-sm">Failed to load graph</span>
+        <span className="text-sm">{t("graph.failedToLoad")}</span>
       </div>
     );
   }
@@ -465,7 +467,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   if (!data || (data.nodes.length === 0 && data.edges.length === 0)) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
-        <span className="text-sm">No connections found yet.</span>
+        <span className="text-sm">{t("graph.noConnections")}</span>
       </div>
     );
   }
@@ -483,7 +485,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           const t = typeof l.target === "object" ? l.target.id : l.target;
           return s === hoveredNode || t === hoveredNode;
         })
-        .map((l) => (EDGE_STYLES[l.relationType] || DEFAULT_EDGE_STYLE).label)
+        .map((l) => t((EDGE_STYLES[l.relationType] || DEFAULT_EDGE_STYLE).labelKey))
       )]
     : [];
 
@@ -525,7 +527,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
             <div className="min-w-0">
               <div className="font-semibold truncate">{hoveredNodeData.name}</div>
               <div className="text-[10px] text-muted-foreground">
-                {hoveredStyle.label} · {hoveredNeighborCount} connections
+                {t(hoveredStyle.labelKey)} · {t("graph.connectionsCount", { count: hoveredNeighborCount })}
               </div>
             </div>
           </div>
@@ -536,7 +538,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
               ))}
             </div>
           )}
-          <div className="text-[9px] text-muted-foreground mt-1 opacity-60">Click to open</div>
+          <div className="text-[9px] text-muted-foreground mt-1 opacity-60">{t("graph.clickToOpen")}</div>
         </div>
       )}
 

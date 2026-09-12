@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { NODE_STYLES, EDGE_STYLES } from "./graphConfig";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ interface GraphFiltersProps {
 }
 
 export function GraphFilters({ filters, onChange, nodeCount, edgeCount }: GraphFiltersProps) {
+  const { t } = useTranslation();
   const toggleNode = (key: string) => {
     onChange({
       ...filters,
@@ -34,9 +36,9 @@ export function GraphFilters({ filters, onChange, nodeCount, edgeCount }: GraphF
       {/* Stats */}
       {(nodeCount !== undefined || edgeCount !== undefined) && (
         <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-          {nodeCount !== undefined && <span>{nodeCount} nodes</span>}
-          {edgeCount !== undefined && <span>{edgeCount} edges</span>}
-          <span className="text-[10px] opacity-60">Click a node to navigate • Scroll to zoom</span>
+          {nodeCount !== undefined && <span>{t("graph.nodesCount", { count: nodeCount })}</span>}
+          {edgeCount !== undefined && <span>{t("graph.edgesCount", { count: edgeCount })}</span>}
+          <span className="text-[10px] opacity-60">{t("graph.hint")}</span>
         </div>
       )}
 
@@ -57,7 +59,7 @@ export function GraphFilters({ filters, onChange, nodeCount, edgeCount }: GraphF
               style={active ? { backgroundColor: style.color } : undefined}
             >
               <span className="text-xs">{style.icon}</span>
-              {style.label}
+              {t(style.labelKey)}
             </button>
           );
         })}
@@ -82,7 +84,7 @@ export function GraphFilters({ filters, onChange, nodeCount, edgeCount }: GraphF
                 className="inline-block w-3 h-[2px] rounded-full"
                 style={{ backgroundColor: active ? style.activeColor : style.color }}
               />
-              {style.label}
+              {t(style.labelKey)}
             </button>
           );
         })}

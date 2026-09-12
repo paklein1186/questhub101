@@ -10,7 +10,7 @@ export const NODE_STYLES: Record<
     glow: string;
     size: number;
     shape: "circle" | "diamond" | "square" | "hexagon";
-    label: string;
+    labelKey: string;
     icon: string;
   }
 > = {
@@ -19,7 +19,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(220, 75%, 58%, 0.4)",
     size: 3.5,
     shape: "circle",
-    label: "User",
+    labelKey: "graph.node.user",
     icon: "👤",
   },
   guild: {
@@ -27,7 +27,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(152, 60%, 42%, 0.4)",
     size: 5,
     shape: "hexagon",
-    label: "Guild",
+    labelKey: "graph.node.guild",
     icon: "⚔️",
   },
   quest: {
@@ -35,7 +35,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(38, 92%, 55%, 0.4)",
     size: 4,
     shape: "diamond",
-    label: "Quest",
+    labelKey: "graph.node.quest",
     icon: "⚡",
   },
   territory: {
@@ -43,7 +43,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(272, 55%, 55%, 0.4)",
     size: 6,
     shape: "circle",
-    label: "Territory",
+    labelKey: "graph.node.territory",
     icon: "🌍",
   },
   org: {
@@ -51,7 +51,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(0, 65%, 52%, 0.4)",
     size: 5,
     shape: "square",
-    label: "Organisation",
+    labelKey: "graph.node.org",
     icon: "🏢",
   },
   pod: {
@@ -59,7 +59,7 @@ export const NODE_STYLES: Record<
     glow: "hsla(185, 55%, 42%, 0.4)",
     size: 3.5,
     shape: "circle",
-    label: "Pod",
+    labelKey: "graph.node.pod",
     icon: "🔮",
   },
   natural_system: {
@@ -67,26 +67,26 @@ export const NODE_STYLES: Record<
     glow: "hsla(142, 60%, 38%, 0.4)",
     size: 4.5,
     shape: "hexagon",
-    label: "Natural System",
+    labelKey: "graph.node.naturalSystem",
     icon: "🌿",
   },
 };
 
 export const EDGE_STYLES: Record<
   string,
-  { color: string; activeColor: string; dashArray?: string; label: string }
+  { color: string; activeColor: string; dashArray?: string; labelKey: string }
 > = {
-  follows:     { color: "hsla(210, 25%, 60%, 0.15)", activeColor: "hsl(210, 50%, 65%)", dashArray: "3,3", label: "Follows" },
-  member_of:   { color: "hsla(152, 45%, 50%, 0.2)",  activeColor: "hsl(152, 60%, 50%)", label: "Member of" },
-  steward_of:  { color: "hsla(38, 70%, 50%, 0.25)",  activeColor: "hsl(38, 85%, 55%)",  label: "Steward of" },
-  quest_owner: { color: "hsla(38, 70%, 50%, 0.2)",   activeColor: "hsl(38, 85%, 55%)",  label: "Quest owner" },
-  partner:     { color: "hsla(272, 40%, 55%, 0.2)",   activeColor: "hsl(272, 55%, 60%)", label: "Partner" },
-  funds:       { color: "hsla(120, 55%, 42%, 0.2)",   activeColor: "hsl(120, 65%, 50%)", dashArray: "2,3", label: "Funds" },
-  trust:       { color: "hsla(0, 45%, 55%, 0.2)",     activeColor: "hsl(0, 60%, 60%)",   label: "Trust" },
-  located_in:    { color: "hsla(272, 25%, 55%, 0.12)",  activeColor: "hsl(272, 40%, 60%)", dashArray: "5,3", label: "Located in" },
-  anchored_in:   { color: "hsla(142, 40%, 40%, 0.18)",  activeColor: "hsl(142, 55%, 45%)", dashArray: "4,2", label: "Anchored in" },
-  steward_of_ns: { color: "hsla(142, 55%, 38%, 0.22)",  activeColor: "hsl(142, 65%, 42%)", label: "Steward of" },
-  funded_by:     { color: "hsla(45, 70%, 50%, 0.18)",    activeColor: "hsl(45, 80%, 55%)",  dashArray: "2,3", label: "Funded by" },
+  follows:     { color: "hsla(210, 25%, 60%, 0.15)", activeColor: "hsl(210, 50%, 65%)", dashArray: "3,3", labelKey: "graph.edge.follows" },
+  member_of:   { color: "hsla(152, 45%, 50%, 0.2)",  activeColor: "hsl(152, 60%, 50%)", labelKey: "graph.edge.memberOf" },
+  steward_of:  { color: "hsla(38, 70%, 50%, 0.25)",  activeColor: "hsl(38, 85%, 55%)",  labelKey: "graph.edge.stewardOf" },
+  quest_owner: { color: "hsla(38, 70%, 50%, 0.2)",   activeColor: "hsl(38, 85%, 55%)",  labelKey: "graph.edge.questOwner" },
+  partner:     { color: "hsla(272, 40%, 55%, 0.2)",   activeColor: "hsl(272, 55%, 60%)", labelKey: "graph.edge.partner" },
+  funds:       { color: "hsla(120, 55%, 42%, 0.2)",   activeColor: "hsl(120, 65%, 50%)", dashArray: "2,3", labelKey: "graph.edge.funds" },
+  trust:       { color: "hsla(0, 45%, 55%, 0.2)",     activeColor: "hsl(0, 60%, 60%)",   labelKey: "graph.edge.trust" },
+  located_in:    { color: "hsla(272, 25%, 55%, 0.12)",  activeColor: "hsl(272, 40%, 60%)", dashArray: "5,3", labelKey: "graph.edge.locatedIn" },
+  anchored_in:   { color: "hsla(142, 40%, 40%, 0.18)",  activeColor: "hsl(142, 55%, 45%)", dashArray: "4,2", labelKey: "graph.edge.anchoredIn" },
+  steward_of_ns: { color: "hsla(142, 55%, 38%, 0.22)",  activeColor: "hsl(142, 65%, 42%)", labelKey: "graph.edge.stewardOf" },
+  funded_by:     { color: "hsla(45, 70%, 50%, 0.18)",    activeColor: "hsl(45, 80%, 55%)",  dashArray: "2,3", labelKey: "graph.edge.fundedBy" },
 };
 
 const MIN_WIDTH = 0.5;
@@ -97,10 +97,10 @@ export function weightToWidth(weight: number): number {
   return MIN_WIDTH + (MAX_WIDTH - MIN_WIDTH) * clamped;
 }
 
-export const DEFAULT_EDGE_STYLE = { color: "hsla(0, 0%, 55%, 0.12)", activeColor: "hsl(0, 0%, 65%)", label: "Connected" };
+export const DEFAULT_EDGE_STYLE = { color: "hsla(0, 0%, 55%, 0.12)", activeColor: "hsl(0, 0%, 65%)", labelKey: "graph.edge.connected" };
 export const DEFAULT_NODE_STYLE = {
   color: "hsl(0, 0%, 50%)", glow: "hsla(0, 0%, 50%, 0.3)",
-  size: 3.5, shape: "circle" as const, label: "Entity", icon: "●",
+  size: 3.5, shape: "circle" as const, labelKey: "graph.node.entity", icon: "●",
 };
 
 export function drawHexagon(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
