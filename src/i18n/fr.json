@@ -3136,5 +3136,98 @@
       "graceful": "En douceur",
       "bad": "Mauvais départ"
     }
+  },
+  "territoryPortal": {
+    "notFound": "Territoire introuvable",
+    "backToExplore": "← Retour à Explorer",
+    "tabs": {
+      "portal": "Portail",
+      "ecosystem": "Écosystème",
+      "quests": "Quêtes",
+      "living": "Vivant",
+      "intelligence": "Intelligence",
+      "graph": "Graphe",
+      "admin": "Admin"
+    },
+    "intelligenceSubtabs": {
+      "synthesis": "Synthèse",
+      "library": "Bibliothèque",
+      "learnAndTeach": "Apprendre et enseigner"
+    }
+  },
+  "territoryAdmin": {
+    "levelGate": {
+      "requires": "Nécessite",
+      "levelFallback": "Niveau {{level}}",
+      "lvlSuffix": "(niv {{level}}+)",
+      "ctgSuffix": " · {{amount}} $CTG",
+      "youAreLevel": "Vous êtes niveau {{level}}{{ctgSuffix}}"
+    },
+    "portalCustomization": {
+      "territoryDescription": "Description du territoire",
+      "describePlaceholder": "Décrivez {{name}}...",
+      "coverImages": "Images de couverture (URLs)",
+      "urlPlaceholder": "https://...",
+      "tags": "Tags (séparés par des virgules)",
+      "tagsPlaceholder": "régénératif, systèmes alimentaires...",
+      "saving": "Enregistrement...",
+      "savePortal": "Enregistrer le portail",
+      "toast": {
+        "updated": "Portail mis à jour",
+        "saveFailed": "Échec de l'enregistrement"
+      }
+    },
+    "memberManagement": {
+      "noneYet": "Aucun membre dans ce territoire pour le moment."
+    },
+    "questCuration": {
+      "noneLinked": "Aucune quête liée à {{name}}.",
+      "hidden": "Masquée",
+      "visible": "Visible",
+      "toast": {
+        "hiddenFromPortal": "Quête masquée du portail",
+        "visibleAgain": "Quête à nouveau visible"
+      }
+    },
+    "stewardDelegation": {
+      "currentStewards": "Stewards actuels",
+      "onlyYouForNow": "Seulement vous pour l'instant.",
+      "pioneer": "Pionnier",
+      "coSteward": "Co-steward",
+      "delegateLabel": "Déléguer à un co-steward (par email)",
+      "emailPlaceholder": "membre@exemple.com",
+      "unknown": "Inconnu",
+      "toast": {
+        "invitationSent": "Invitation envoyée",
+        "invitationSentDesc": "Si un compte existe avec cet email, il a été ajouté comme co-steward.",
+        "failed": "Échec"
+      }
+    },
+    "economyTools": {
+      "warning": "Utilisez ces outils avec prudence. Les octrois d'XP sont permanents et visibles dans le journal des contributions.",
+      "grantLabel": "Octroyer de l'XP de stewardship à un membre",
+      "userIdPlaceholder": "ID utilisateur",
+      "xpAmountPlaceholder": "Montant d'XP",
+      "maxLabel": "Max : {{max}} XP",
+      "granting": "Octroi en cours...",
+      "grantXp": "Octroyer l'XP",
+      "toast": {
+        "granted": "+{{amount}} XP octroyé (vérifié serveur)",
+        "failed": "Échec de l'octroi"
+      }
+    },
+    "sections": {
+      "portal": { "title": "Personnalisation du portail", "description": "Modifier la description, les images de couverture et les tags" },
+      "members": { "title": "Gestion des membres", "description": "Voir et gérer les membres de ce territoire" },
+      "quests": { "title": "Curation des quêtes", "description": "Mettre en avant et épingler des quêtes dans le portail" },
+      "stewards": { "title": "Délégation de stewardship", "description": "Assigner des co-stewards et gérer les rôles" },
+      "economy": { "title": "Outils économiques", "description": "Octroyer de l'XP aux contributeurs et gérer les flux $CTG" }
+    },
+    "header": {
+      "title": "Steward Admin — {{name}}",
+      "yourLevel": "Votre niveau :",
+      "superAdmin": "Super Admin"
+    },
+    "xpLadderHint": "Les capacités d'administration se débloquent avec le niveau d'XP"
   }
 }

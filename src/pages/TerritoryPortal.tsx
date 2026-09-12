@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ function IntelligenceSubtabs({ territoryId, territoryName, userId, isMember }: {
   userId?: string;
   isMember: boolean;
 }) {
+  const { t } = useTranslation();
   const isGuest = !userId;
   const [sub, setSub] = useState("synthesis");
 
@@ -56,13 +58,13 @@ function IntelligenceSubtabs({ territoryId, territoryName, userId, isMember }: {
       <Tabs value={sub} onValueChange={setSub}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="synthesis" className="gap-1.5">
-            <Sparkles className="h-3.5 w-3.5" /> Synthesis
+            <Sparkles className="h-3.5 w-3.5" /> {t("territoryPortal.intelligenceSubtabs.synthesis")}
           </TabsTrigger>
           <TabsTrigger value="library" className="gap-1.5">
-            <BookOpen className="h-3.5 w-3.5" /> Library
+            <BookOpen className="h-3.5 w-3.5" /> {t("territoryPortal.intelligenceSubtabs.library")}
           </TabsTrigger>
           <TabsTrigger value="learn" className="gap-1.5">
-            <MessageSquarePlus className="h-3.5 w-3.5" /> Learn &amp; Teach
+            <MessageSquarePlus className="h-3.5 w-3.5" /> {t("territoryPortal.intelligenceSubtabs.learnAndTeach")}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="synthesis" className="mt-4">
@@ -265,6 +267,7 @@ function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | u
 
 /* ── Main page ── */
 export default function TerritoryPortal() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -333,9 +336,9 @@ export default function TerritoryPortal() {
       <PageShell>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
           <Globe className="h-10 w-10 text-muted-foreground/40" />
-          <p className="text-muted-foreground font-medium">Territory not found</p>
+          <p className="text-muted-foreground font-medium">{t("territoryPortal.notFound")}</p>
           <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
-            ← Back to Explore
+            {t("territoryPortal.backToExplore")}
           </button>
         </div>
       </PageShell>
@@ -393,26 +396,26 @@ export default function TerritoryPortal() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className={cn("w-full justify-start overflow-x-auto", "scrollbar-none")}>
             <TabsTrigger value="portal" className="gap-1.5">
-              <Globe className="h-3.5 w-3.5" /> Portal
+              <Globe className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.portal")}
             </TabsTrigger>
             <TabsTrigger value="ecosystem" className="gap-1.5">
-              <Compass className="h-3.5 w-3.5" /> Ecosystem
+              <Compass className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.ecosystem")}
             </TabsTrigger>
             <TabsTrigger value="quests" className="gap-1.5">
-              <Swords className="h-3.5 w-3.5" /> Quests
+              <Swords className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.quests")}
             </TabsTrigger>
             <TabsTrigger value="living" className="gap-1.5">
-              <Leaf className="h-3.5 w-3.5" /> Living
+              <Leaf className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.living")}
             </TabsTrigger>
             <TabsTrigger value="intelligence" className="gap-1.5">
-              <Brain className="h-3.5 w-3.5" /> Intelligence
+              <Brain className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.intelligence")}
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
-              <Network className="h-3.5 w-3.5" /> Graph
+              <Network className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.graph")}
             </TabsTrigger>
             {canAdmin && (
               <TabsTrigger value="admin" className="gap-1.5 ml-auto">
-                <Settings className="h-3.5 w-3.5" /> Admin
+                <Settings className="h-3.5 w-3.5" /> {t("territoryPortal.tabs.admin")}
               </TabsTrigger>
             )}
           </TabsList>

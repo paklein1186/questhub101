@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -74,6 +75,7 @@ function LevelGate({
   ctgCurrent?: number;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const xpOk = current >= required;
   const ctgOk = !ctgRequired || (ctgCurrent ?? 0) >= ctgRequired;
   const ok = xpOk && ctgOk;
@@ -84,15 +86,15 @@ function LevelGate({
     <div className="rounded-xl border border-dashed border-border p-6 text-center space-y-2">
       <Lock className="h-6 w-6 text-muted-foreground/40 mx-auto" />
       <p className="text-sm text-muted-foreground">
-        Requires{" "}
+        {t("territoryAdmin.levelGate.requires")}{" "}
         <span className="font-semibold text-foreground">
-          {LEVEL_LABELS[required] ?? `Level ${required}`}
+          {LEVEL_LABELS[required] ?? t("territoryAdmin.levelGate.levelFallback", { level: required })}
         </span>{" "}
-        (lvl {required}+)
-        {ctgRequired && ` · ${ctgRequired} $CTG`}
+        {t("territoryAdmin.levelGate.lvlSuffix", { level: required })}
+        {ctgRequired && t("territoryAdmin.levelGate.ctgSuffix", { amount: ctgRequired })}
       </p>
       <p className="text-xs text-muted-foreground opacity-60">
-        You are level {current}{ctgRequired ? ` · ${ctgCurrent ?? 0} $CTG` : ""}
+        {t("territoryAdmin.levelGate.youAreLevel", { level: current, ctgSuffix: ctgRequired ? t("territoryAdmin.levelGate.ctgSuffix", { amount: ctgCurrent ?? 0 }) : "" })}
       </p>
     </div>
   );
@@ -100,6 +102,7 @@ function LevelGate({
 
 /* ── Section: Portal Customization ── */
 function PortalCustomizationSection({ territoryId, territoryName }: SectionProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [summary, setSummary] = useState("");
@@ -145,9 +148,9 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
         .eq("id", territoryId);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["territory-detail", territoryId] });
-      toast({ title: "Portal updated" });
+      toast({ title: t("territoryAdmin.portalCustomization.toast.updated") });
     } catch (e: any) {
-      toast({ title: "Save failed", description: e.message, variant: "destructive" });
+      toast({ title: t("territoryAdmin.portalCustomization.toast.saveFailed"), description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -156,9 +159,9 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">Territory description</Label>
+        <Label className="text-xs font-medium">{t("territoryAdmin.portalCustomization.territoryDescription")}</Label>
         <Textarea
-          placeholder={`Describe ${territoryName}...`}
+          placeholder={t("territoryAdmin.portalCustomization.describePlaceholder", { name: territoryName })}
           value={summary}
           onChange={e => setSummary(e.target.value)}
           rows={3}
@@ -167,10 +170,10 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">Cover images (URLs)</Label>
+        <Label className="text-xs font-medium">{t("territoryAdmin.portalCustomization.coverImages")}</Label>
         <div className="flex gap-2">
           <Input
-            placeholder="https://..."
+            placeholder={t("territoryAdmin.portalCustomization.urlPlaceholder")}
             value={imageUrl}
             onChange={e => setImageUrl(e.target.value)}
             className="text-sm"
@@ -200,12 +203,12 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">Tags (comma-separated)</Label>
-        <Input placeholder="regenerative, food systems..." value={tags} onChange={e => setTags(e.target.value)} className="text-sm" />
+        <Label className="text-xs font-medium">{t("territoryAdmin.portalCustomization.tags")}</Label>
+        <Input placeholder={t("territoryAdmin.portalCustomization.tagsPlaceholder")} value={tags} onChange={e => setTags(e.target.value)} className="text-sm" />
       </div>
 
       <Button onClick={handleSave} disabled={saving} size="sm" className="w-full">
-        {saving ? "Saving..." : "Save portal"}
+        {saving ? t("territoryAdmin.portalCustomization.saving") : t("territoryAdmin.portalCustomization.savePortal")}
       </Button>
     </div>
   );
@@ -213,6 +216,7 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
 
 /* ── Section: Member Management ── */
 function MemberManagementSection({ territoryId }: SectionProps) {
+  const { t } = useTranslation();
   const { data: members, isLoading } = useQuery({
     queryKey: ["territory-admin-members", territoryId],
     queryFn: async () => {
@@ -232,7 +236,7 @@ function MemberManagementSection({ territoryId }: SectionProps) {
   return (
     <div className="space-y-2">
       {(members ?? []).length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-4">No members in this territory yet.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">{t("territoryAdmin.memberManagement.noneYet")}</p>
       )}
       {(members ?? []).map((m: any) => (
         <div key={m.user_id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -258,6 +262,7 @@ function MemberManagementSection({ territoryId }: SectionProps) {
 
 /* ── Section: Quest Curation ── */
 function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: quests } = useQuery({
@@ -292,13 +297,13 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
       .eq("quest_id", questId);
     queryClient.invalidateQueries({ queryKey: ["territory-admin-quests", territoryId] });
     queryClient.invalidateQueries({ queryKey: ["territory-portal-grid", territoryId] });
-    toast({ title: !currentlyHidden ? "Quest hidden from portal" : "Quest visible again" });
+    toast({ title: !currentlyHidden ? t("territoryAdmin.questCuration.toast.hiddenFromPortal") : t("territoryAdmin.questCuration.toast.visibleAgain") });
   };
 
   return (
     <div className="space-y-2">
       {(quests ?? []).length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-4">No quests linked to {territoryName}.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">{t("territoryAdmin.questCuration.noneLinked", { name: territoryName })}</p>
       )}
       {(quests ?? []).map((q: any) => (
         <div key={q.id} className={cn("flex items-center gap-3 p-2.5 rounded-lg border border-border/60", q.is_hidden && "opacity-50")}>
@@ -311,7 +316,7 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
             onClick={() => toggleHidden(q.id, q.is_hidden)}
             className="text-[10px] h-6 px-2"
           >
-            {q.is_hidden ? "Hidden" : "Visible"}
+            {q.is_hidden ? t("territoryAdmin.questCuration.hidden") : t("territoryAdmin.questCuration.visible")}
           </Button>
         </div>
       ))}
@@ -321,6 +326,7 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
 
 /* ── Section: Steward Delegation ── */
 function StewardDelegationSection({ territoryId, territoryName }: SectionProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [delegating, setDelegating] = useState(false);
@@ -341,7 +347,7 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
       const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
       return ((edges ?? []) as any[]).map((e: any) => ({
         ...e,
-        name: profileMap.get(e.from_id)?.name ?? "Unknown",
+        name: profileMap.get(e.from_id)?.name ?? t("territoryAdmin.stewardDelegation.unknown"),
         avatar_url: profileMap.get(e.from_id)?.avatar_url ?? null,
       }));
     },
@@ -356,9 +362,9 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
       });
       if (error) throw error;
       setEmail("");
-      toast({ title: "Invitation sent", description: "If an account with that email exists, they have been added as co-steward." });
+      toast({ title: t("territoryAdmin.stewardDelegation.toast.invitationSent"), description: t("territoryAdmin.stewardDelegation.toast.invitationSentDesc") });
     } catch (e: any) {
-      toast({ title: "Failed", description: e.message, variant: "destructive" });
+      toast({ title: t("territoryAdmin.stewardDelegation.toast.failed"), description: e.message, variant: "destructive" });
     } finally {
       setDelegating(false);
     }
@@ -367,10 +373,10 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
   return (
     <div className="space-y-4">
       <div>
-        <Label className="text-xs font-medium mb-1.5 block">Current stewards</Label>
+        <Label className="text-xs font-medium mb-1.5 block">{t("territoryAdmin.stewardDelegation.currentStewards")}</Label>
         <div className="space-y-1.5">
           {(stewards ?? []).length === 0 && (
-            <p className="text-xs text-muted-foreground">Only you for now.</p>
+            <p className="text-xs text-muted-foreground">{t("territoryAdmin.stewardDelegation.onlyYouForNow")}</p>
           )}
           {(stewards ?? []).map((s: any) => (
             <div key={s.from_id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 text-xs">
@@ -380,10 +386,10 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
               </Avatar>
               <span className="text-foreground">{s.name}</span>
               {s.tags?.includes("pioneer") && (
-                <Badge className="text-[9px] h-4 bg-amber-500/15 text-amber-600 border-amber-500/30 ml-auto">Pioneer</Badge>
+                <Badge className="text-[9px] h-4 bg-amber-500/15 text-amber-600 border-amber-500/30 ml-auto">{t("territoryAdmin.stewardDelegation.pioneer")}</Badge>
               )}
               {s.tags?.includes("co-steward") && (
-                <Badge className="text-[9px] h-4 bg-blue-500/15 text-blue-600 border-blue-500/30 ml-auto">Co-steward</Badge>
+                <Badge className="text-[9px] h-4 bg-blue-500/15 text-blue-600 border-blue-500/30 ml-auto">{t("territoryAdmin.stewardDelegation.coSteward")}</Badge>
               )}
             </div>
           ))}
@@ -391,11 +397,11 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">Delegate a co-steward (by email)</Label>
+        <Label className="text-xs font-medium">{t("territoryAdmin.stewardDelegation.delegateLabel")}</Label>
         <div className="flex gap-2">
           <Input
             type="email"
-            placeholder="member@example.com"
+            placeholder={t("territoryAdmin.stewardDelegation.emailPlaceholder")}
             value={email}
             onChange={e => setEmail(e.target.value)}
             className="text-sm"
@@ -411,6 +417,7 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
 
 /* ── Section: Economy Tools ── */
 function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }: SectionProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [userId, setUserId] = useState("");
   const [xpAmount, setXpAmount] = useState("10");
@@ -424,10 +431,10 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
         body: { recipient_user_id: userId, xp_amount: parseInt(xpAmount, 10), territory_id: territoryId },
       });
       if (error) throw error;
-      toast({ title: `+${(data as any).granted} XP granted (server-verified)` });
+      toast({ title: t("territoryAdmin.economyTools.toast.granted", { amount: (data as any).granted }) });
       setUserId("");
     } catch (e: any) {
-      toast({ title: "Grant failed", description: e.message, variant: "destructive" });
+      toast({ title: t("territoryAdmin.economyTools.toast.failed"), description: e.message, variant: "destructive" });
     } finally {
       setGranting(false);
     }
@@ -437,14 +444,14 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
     <div className="space-y-4">
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
         <p className="text-xs text-muted-foreground">
-          Use these tools carefully. XP grants are permanent and visible in the contribution log.
+          {t("territoryAdmin.economyTools.warning")}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium">Grant Stewardship XP to a member</Label>
+        <Label className="text-xs font-medium">{t("territoryAdmin.economyTools.grantLabel")}</Label>
         <Input
-          placeholder="User ID"
+          placeholder={t("territoryAdmin.economyTools.userIdPlaceholder")}
           value={userId}
           onChange={e => setUserId(e.target.value)}
           className="text-sm"
@@ -452,7 +459,7 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
         <div className="flex gap-2">
           <Input
             type="number"
-            placeholder="XP amount"
+            placeholder={t("territoryAdmin.economyTools.xpAmountPlaceholder")}
             value={xpAmount}
             onChange={e => setXpAmount(e.target.value)}
             className="text-sm w-28"
@@ -460,12 +467,12 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
             max={currentUserXpLevel >= 12 ? 200 : 50}
           />
           <span className="flex items-center text-xs text-muted-foreground">
-            Max: {currentUserXpLevel >= 12 ? 200 : 50} XP
+            {t("territoryAdmin.economyTools.maxLabel", { max: currentUserXpLevel >= 12 ? 200 : 50 })}
           </span>
         </div>
         <Button size="sm" onClick={handleGrantXp} disabled={granting || !userId} className="gap-1.5">
           <Zap className="h-3.5 w-3.5" />
-          {granting ? "Granting..." : "Grant XP"}
+          {granting ? t("territoryAdmin.economyTools.granting") : t("territoryAdmin.economyTools.grantXp")}
         </Button>
       </div>
     </div>
@@ -476,40 +483,40 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
 const ADMIN_SECTIONS = [
   {
     id: "portal",
-    title: "Portal Customization",
-    description: "Edit description, cover images and tags",
+    titleKey: "territoryAdmin.sections.portal.title",
+    descriptionKey: "territoryAdmin.sections.portal.description",
     icon: Globe,
     minXpLevel: 1,
     component: PortalCustomizationSection,
   },
   {
     id: "members",
-    title: "Member Management",
-    description: "View and manage members in this territory",
+    titleKey: "territoryAdmin.sections.members.title",
+    descriptionKey: "territoryAdmin.sections.members.description",
     icon: Users,
     minXpLevel: 1,
     component: MemberManagementSection,
   },
   {
     id: "quests",
-    title: "Quest Curation",
-    description: "Feature and pin quests in the portal",
+    titleKey: "territoryAdmin.sections.quests.title",
+    descriptionKey: "territoryAdmin.sections.quests.description",
     icon: Compass,
     minXpLevel: 1,
     component: QuestCurationSection,
   },
   {
     id: "stewards",
-    title: "Steward Delegation",
-    description: "Assign co-stewards and manage roles",
+    titleKey: "territoryAdmin.sections.stewards.title",
+    descriptionKey: "territoryAdmin.sections.stewards.description",
     icon: Shield,
     minXpLevel: 1,
     component: StewardDelegationSection,
   },
   {
     id: "economy",
-    title: "Economy Tools",
-    description: "Grant XP to contributors and manage CTG flows",
+    titleKey: "territoryAdmin.sections.economy.title",
+    descriptionKey: "territoryAdmin.sections.economy.description",
     icon: Coins,
     minXpLevel: 1,
     component: EconomyToolsSection,
@@ -530,6 +537,7 @@ function AdminSectionCard({
   territoryId: string;
   territoryName: string;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const locked = currentUserXpLevel < section.minXpLevel;
   const Icon = section.icon;
@@ -551,14 +559,14 @@ function AdminSectionCard({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-sm">{section.title}</CardTitle>
+                <CardTitle className="text-sm">{t(section.titleKey)}</CardTitle>
                 {locked && (
                   <Badge variant="outline" className="text-[10px] text-muted-foreground">
                     lvl {section.minXpLevel}+
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">{section.description}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(section.descriptionKey)}</p>
             </div>
             {!locked && (
               open
@@ -592,7 +600,8 @@ export function TerritoryAdminPanel({
   currentUserCtgBalance,
   isSuperAdmin = false,
 }: TerritoryAdminPanelProps) {
-  const levelLabel = LEVEL_LABELS[currentUserXpLevel] ?? `Level ${currentUserXpLevel}`;
+  const { t } = useTranslation();
+  const levelLabel = LEVEL_LABELS[currentUserXpLevel] ?? t("territoryAdmin.levelGate.levelFallback", { level: currentUserXpLevel });
 
   return (
     <div className="space-y-4">
@@ -602,15 +611,15 @@ export function TerritoryAdminPanel({
           <Settings className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Steward Admin — {territoryName}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("territoryAdmin.header.title", { name: territoryName })}</h2>
           <p className="text-xs text-muted-foreground">
-            Your level: <span className="font-medium text-foreground">{levelLabel}</span> (lvl {currentUserXpLevel})
+            {t("territoryAdmin.header.yourLevel")} <span className="font-medium text-foreground">{levelLabel}</span> (lvl {currentUserXpLevel})
             {" · "}{currentUserCtgBalance} $CTG
           </p>
         </div>
         {isSuperAdmin && (
           <Badge className="ml-auto bg-destructive/15 text-destructive border-destructive/30">
-            Super Admin
+            {t("territoryAdmin.header.superAdmin")}
           </Badge>
         )}
       </div>
@@ -619,7 +628,7 @@ export function TerritoryAdminPanel({
       <div className="rounded-xl bg-muted/30 border border-border/40 p-3">
         <div className="flex items-center gap-2 mb-2">
           <Trophy className="h-3.5 w-3.5 text-amber-500" />
-          <span className="text-xs font-medium text-foreground">Admin capabilities unlock with XP level</span>
+          <span className="text-xs font-medium text-foreground">{t("territoryAdmin.xpLadderHint")}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {[3, 5, 8, 12].map(lvl => (

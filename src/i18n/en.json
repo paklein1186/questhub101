@@ -3150,5 +3150,98 @@
       "graceful": "Graceful",
       "bad": "Bad leaver"
     }
+  },
+  "territoryPortal": {
+    "notFound": "Territory not found",
+    "backToExplore": "← Back to Explore",
+    "tabs": {
+      "portal": "Portal",
+      "ecosystem": "Ecosystem",
+      "quests": "Quests",
+      "living": "Living",
+      "intelligence": "Intelligence",
+      "graph": "Graph",
+      "admin": "Admin"
+    },
+    "intelligenceSubtabs": {
+      "synthesis": "Synthesis",
+      "library": "Library",
+      "learnAndTeach": "Learn & Teach"
+    }
+  },
+  "territoryAdmin": {
+    "levelGate": {
+      "requires": "Requires",
+      "levelFallback": "Level {{level}}",
+      "lvlSuffix": "(lvl {{level}}+)",
+      "ctgSuffix": " · {{amount}} $CTG",
+      "youAreLevel": "You are level {{level}}{{ctgSuffix}}"
+    },
+    "portalCustomization": {
+      "territoryDescription": "Territory description",
+      "describePlaceholder": "Describe {{name}}...",
+      "coverImages": "Cover images (URLs)",
+      "urlPlaceholder": "https://...",
+      "tags": "Tags (comma-separated)",
+      "tagsPlaceholder": "regenerative, food systems...",
+      "saving": "Saving...",
+      "savePortal": "Save portal",
+      "toast": {
+        "updated": "Portal updated",
+        "saveFailed": "Save failed"
+      }
+    },
+    "memberManagement": {
+      "noneYet": "No members in this territory yet."
+    },
+    "questCuration": {
+      "noneLinked": "No quests linked to {{name}}.",
+      "hidden": "Hidden",
+      "visible": "Visible",
+      "toast": {
+        "hiddenFromPortal": "Quest hidden from portal",
+        "visibleAgain": "Quest visible again"
+      }
+    },
+    "stewardDelegation": {
+      "currentStewards": "Current stewards",
+      "onlyYouForNow": "Only you for now.",
+      "pioneer": "Pioneer",
+      "coSteward": "Co-steward",
+      "delegateLabel": "Delegate a co-steward (by email)",
+      "emailPlaceholder": "member@example.com",
+      "unknown": "Unknown",
+      "toast": {
+        "invitationSent": "Invitation sent",
+        "invitationSentDesc": "If an account with that email exists, they have been added as co-steward.",
+        "failed": "Failed"
+      }
+    },
+    "economyTools": {
+      "warning": "Use these tools carefully. XP grants are permanent and visible in the contribution log.",
+      "grantLabel": "Grant Stewardship XP to a member",
+      "userIdPlaceholder": "User ID",
+      "xpAmountPlaceholder": "XP amount",
+      "maxLabel": "Max: {{max}} XP",
+      "granting": "Granting...",
+      "grantXp": "Grant XP",
+      "toast": {
+        "granted": "+{{amount}} XP granted (server-verified)",
+        "failed": "Grant failed"
+      }
+    },
+    "sections": {
+      "portal": { "title": "Portal Customization", "description": "Edit description, cover images and tags" },
+      "members": { "title": "Member Management", "description": "View and manage members in this territory" },
+      "quests": { "title": "Quest Curation", "description": "Feature and pin quests in the portal" },
+      "stewards": { "title": "Steward Delegation", "description": "Assign co-stewards and manage roles" },
+      "economy": { "title": "Economy Tools", "description": "Grant XP to contributors and manage CTG flows" }
+    },
+    "header": {
+      "title": "Steward Admin — {{name}}",
+      "yourLevel": "Your level:",
+      "superAdmin": "Super Admin"
+    },
+    "xpLadderHint": "Admin capabilities unlock with XP level"
   }
 }
