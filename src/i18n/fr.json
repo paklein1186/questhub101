@@ -3635,5 +3635,17 @@
       "voteRecorded": "Vote enregistré ({{count}}/{{quorum}} nécessaire(s))",
       "rejectionRecorded": "Rejet enregistré"
     }
+  },
+  "ocuUpgradePrompt": {
+    "title": "Open Contributive Unit (OCU)",
+    "description": "Le mode OCU débloque le sous-système complet de comptabilité contributive — suivi des contributions, value pie en direct, journaux validés par les pairs, contrats et répartition de l'enveloppe.",
+    "features": [
+      "Journal des contributions avec validation par les pairs",
+      "Value pie en direct et répartition pondérée",
+      "Contrats de quête et avenants",
+      "Budgétisation de l'enveloppe et dépenses externes"
+    ],
+    "enableButton": "Activer le mode OCU",
+    "adminOnly": "Seuls les admins de la quête peuvent activer cette fonctionnalité."
   }
 }

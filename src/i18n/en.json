@@ -3649,5 +3649,17 @@
       "voteRecorded": "Vote recorded ({{count}}/{{quorum}} needed)",
       "rejectionRecorded": "Rejection recorded"
     }
+  },
+  "ocuUpgradePrompt": {
+    "title": "Open Contributive Unit (OCU)",
+    "description": "OCU mode unlocks the full contributive accounting subsystem — contribution tracking, live value pie, peer-validated logs, contracts, and envelope distribution.",
+    "features": [
+      "Contribution logging with peer validation",
+      "Live value pie & weighted distribution",
+      "Quest contracts & amendments",
+      "Envelope budgeting & external spending"
+    ],
+    "enableButton": "Enable OCU Mode",
+    "adminOnly": "Only quest admins can enable this feature."
   }
 }
