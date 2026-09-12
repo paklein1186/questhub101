@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Badge } from "@/components/ui/badge";
@@ -6,21 +7,14 @@ import { DoorOpen, HandshakeIcon } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link } from "react-router-dom";
 
-const EXIT_TYPE_LABELS: Record<string, string> = {
-  voluntary: "Voluntary",
-  graceful_withdrawal: "Graceful Withdrawal",
-  involuntary_cause: "Involuntary (cause)",
-  involuntary_no_cause: "Involuntary (no cause)",
-  abandonment: "Abandonment",
-};
-
-const LEAVER_LABELS: Record<string, { label: string; color: string }> = {
-  good: { label: "Good leaver", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-  graceful: { label: "Graceful", color: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-  bad: { label: "Bad leaver", color: "bg-destructive/10 text-destructive border-destructive/30" },
+const LEAVER_COLORS: Record<string, string> = {
+  good: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
+  graceful: "bg-blue-500/10 text-blue-700 border-blue-500/30",
+  bad: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 export function ContributorExitCards() {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
 
   const { data: exits = [] } = useQuery({
@@ -40,7 +34,7 @@ export function ContributorExitCards() {
       const { data: quests } = await supabase.from("quests").select("id, title").in("id", questIds);
       const questMap = new Map((quests ?? []).map(q => [q.id, q.title]));
 
-      return (data as any[]).map(e => ({ ...e, quest_title: questMap.get(e.quest_id) ?? "Unknown" }));
+      return (data as any[]).map(e => ({ ...e, quest_title: questMap.get(e.quest_id) ?? t("exitCards.unknown") }));
     },
   });
 
@@ -49,12 +43,13 @@ export function ContributorExitCards() {
   return (
     <div className="space-y-3">
       <h3 className="font-display font-semibold text-sm flex items-center gap-1.5">
-        <DoorOpen className="h-4 w-4" /> Past Exits
+        <DoorOpen className="h-4 w-4" /> {t("exitCards.pastExits")}
       </h3>
 
       <div className="space-y-2">
         {exits.map((exit: any) => {
-          const leaver = LEAVER_LABELS[exit.leaver_class] ?? LEAVER_LABELS.good;
+          const leaverColor = LEAVER_COLORS[exit.leaver_class] ?? LEAVER_COLORS.good;
+          const leaverLabel = t(`exitCards.leaverClass.${exit.leaver_class}`, { defaultValue: t("exitCards.leaverClass.good") });
           return (
             <div key={exit.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -62,49 +57,49 @@ export function ContributorExitCards() {
                   {exit.quest_title}
                 </Link>
                 <Badge variant="outline" className="text-[10px]">
-                  Exited {new Date(exit.exited_at).toLocaleDateString()}
+                  {t("exitCards.exitedOn", { date: new Date(exit.exited_at).toLocaleDateString() })}
                 </Badge>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap text-xs">
-                <Badge variant="outline" className={`text-[10px] ${leaver.color}`}>{leaver.label}</Badge>
-                <span className="text-muted-foreground">{EXIT_TYPE_LABELS[exit.exit_type] ?? exit.exit_type}</span>
+                <Badge variant="outline" className={`text-[10px] ${leaverColor}`}>{leaverLabel}</Badge>
+                <span className="text-muted-foreground">{t(`exitCards.exitTypes.${exit.exit_type}`, { defaultValue: exit.exit_type })}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div>
-                  <span className="text-muted-foreground">FMV earned</span>
+                  <span className="text-muted-foreground">{t("exitCards.fmvEarned")}</span>
                   <p className="font-medium text-primary">🟩 {Number(exit.fmv_at_exit).toFixed(0)}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Settlement</span>
+                  <span className="text-muted-foreground">{t("exitCards.settlement")}</span>
                   <p className="font-medium">🟩 {Number(exit.settlement_amount).toFixed(0)} ({exit.settlement_pct}%)</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground">{t("exitCards.status")}</span>
                   <p className="font-medium">
-                    {exit.settlement_status === "paid" && <span className="text-emerald-600">PAID</span>}
-                    {exit.settlement_status === "pending" && <span className="text-amber-600">PENDING</span>}
-                    {exit.settlement_status === "waived" && <span className="text-muted-foreground">WAIVED</span>}
+                    {exit.settlement_status === "paid" && <span className="text-emerald-600">{t("exitCards.paid")}</span>}
+                    {exit.settlement_status === "pending" && <span className="text-amber-600">{t("exitCards.pending")}</span>}
+                    {exit.settlement_status === "waived" && <span className="text-muted-foreground">{t("exitCards.waived")}</span>}
                   </p>
                 </div>
               </div>
 
               {exit.settlement_status === "pending" && (
                 <p className="text-[10px] text-muted-foreground">
-                  Your settlement is awaiting distribution by the quest admin.
+                  {t("exitCards.awaitingDistribution")}
                 </p>
               )}
 
               {exit.handover_committed && exit.handover_note && (
                 <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <HandshakeIcon className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span>Handover: {exit.handover_note}</span>
+                  <span>{t("exitCards.handoverLabel", { note: exit.handover_note })}</span>
                 </div>
               )}
 
               <p className="text-[10px] text-muted-foreground italic">
-                XP and reputation earned during this quest are fully retained.
+                {t("exitCards.xpRetainedNote")}
               </p>
             </div>
           );

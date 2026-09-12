@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -44,11 +45,11 @@ interface Props {
 
 type ExitTypeOption = "voluntary" | "graceful_withdrawal" | "involuntary_cause" | "involuntary_no_cause";
 
-const EXIT_OPTIONS: { value: ExitTypeOption; label: string; emoji: string; desc: string }[] = [
-  { value: "voluntary", label: "Voluntary", emoji: "🟢", desc: "Contributor chose to leave" },
-  { value: "graceful_withdrawal", label: "Graceful Withdrawal", emoji: "🌿", desc: "Leaves with a formal handover commitment" },
-  { value: "involuntary_cause", label: "Involuntary (for cause)", emoji: "🔴", desc: "Removed due to misconduct or contract breach" },
-  { value: "involuntary_no_cause", label: "Involuntary (no cause)", emoji: "🟡", desc: "Removed for operational reasons, no fault" },
+const EXIT_OPTIONS: { value: ExitTypeOption; key: string; emoji: string }[] = [
+  { value: "voluntary", key: "voluntary", emoji: "🟢" },
+  { value: "graceful_withdrawal", key: "graceful_withdrawal", emoji: "🌿" },
+  { value: "involuntary_cause", key: "involuntary_cause", emoji: "🔴" },
+  { value: "involuntary_no_cause", key: "involuntary_no_cause", emoji: "🟡" },
 ];
 
 function getSettlementPct(exitType: ExitTypeOption | "abandonment", settings: GuildExitSettings): number {
@@ -75,6 +76,7 @@ function getLeaverClass(exitType: ExitTypeOption | "abandonment"): "good" | "gra
 export function InitiateExitDialog({
   open, onOpenChange, contributor, quest, guildSettings, allContributors, isAbandonment, activeContractId,
 }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -222,12 +224,12 @@ export function InitiateExitDialog({
         });
       }
 
-      toast({ title: "Exit initiated", description: `${contributor.name} has been exited from this quest.` });
+      toast({ title: t("initiateExit.toast.exitInitiated"), description: t("initiateExit.toast.exitInitiatedDesc", { name: contributor.name }) });
       qc.invalidateQueries({ queryKey: ["quest-pie", quest.id] });
       qc.invalidateQueries({ queryKey: ["contributor-exits", quest.id] });
       onOpenChange(false);
     } catch (e: any) {
-      toast({ title: "Failed to initiate exit", description: e.message, variant: "destructive" });
+      toast({ title: t("initiateExit.toast.failed"), description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -238,24 +240,24 @@ export function InitiateExitDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Initiate Exit — {contributor.name}
+            {t("initiateExit.dialogTitle", { name: contributor.name })}
           </DialogTitle>
           <DialogDescription>
-            {isAbandonment ? "This contributor has been flagged for abandonment." : "Process a contributor exit from this quest."}
+            {isAbandonment ? t("initiateExit.descAbandonment") : t("initiateExit.descNormal")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Step 1: Exit Type */}
         {step === 1 && !isAbandonment && (
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Exit type</Label>
+            <Label className="text-sm font-medium">{t("initiateExit.exitTypeLabel")}</Label>
             <RadioGroup value={exitType} onValueChange={(v) => setExitType(v as ExitTypeOption)} className="space-y-2">
               {EXIT_OPTIONS.map(opt => (
                 <div key={opt.value} className="flex items-start gap-2 rounded-md border border-border p-2.5 cursor-pointer hover:bg-muted/30">
                   <RadioGroupItem value={opt.value} id={opt.value} className="mt-0.5" />
                   <label htmlFor={opt.value} className="cursor-pointer flex-1">
-                    <span className="text-sm font-medium">{opt.emoji} {opt.label}</span>
-                    <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                    <span className="text-sm font-medium">{opt.emoji} {t(`initiateExit.types.${opt.key}.label`)}</span>
+                    <p className="text-xs text-muted-foreground">{t(`initiateExit.types.${opt.key}.desc`)}</p>
                   </label>
                 </div>
               ))}
@@ -263,11 +265,11 @@ export function InitiateExitDialog({
 
             {exitType === "graceful_withdrawal" && (
               <div>
-                <Label className="text-sm font-medium mb-1 block">Handover commitment *</Label>
+                <Label className="text-sm font-medium mb-1 block">{t("initiateExit.handoverCommitment")}</Label>
                 <Textarea
                   value={handoverNote}
                   onChange={(e) => setHandoverNote(e.target.value)}
-                  placeholder="What the contributor agrees to hand over or complete…"
+                  placeholder={t("initiateExit.handoverPlaceholder")}
                   rows={3}
                 />
               </div>
@@ -278,7 +280,7 @@ export function InitiateExitDialog({
               onClick={() => setStep(2)}
               disabled={exitType === "graceful_withdrawal" && !handoverNote.trim()}
             >
-              Next: Settlement Preview
+              {t("initiateExit.nextSettlementPreview")}
             </Button>
           </div>
         )}
@@ -295,36 +297,36 @@ export function InitiateExitDialog({
                 <div>
                   <p className="font-medium">{contributor.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {isAbandonment ? "Abandonment exit" : EXIT_OPTIONS.find(o => o.value === exitType)?.label}
+                    {isAbandonment ? t("initiateExit.abandonmentExit") : t(`initiateExit.types.${EXIT_OPTIONS.find(o => o.value === exitType)?.key}.label`)}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-muted-foreground">FMV at exit:</span>
+                  <span className="text-muted-foreground">{t("initiateExit.fmvAtExit")}</span>
                   <p className="font-medium text-primary">🟩 {contributor.fmv}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Current pie %:</span>
+                  <span className="text-muted-foreground">{t("initiateExit.currentPiePct")}</span>
                   <p className="font-medium">{contributor.pct.toFixed(1)}%</p>
                 </div>
               </div>
 
               {needsVote ? (
                 <div className="rounded bg-amber-500/10 border border-amber-500/30 p-2 text-xs">
-                  <p className="font-medium text-amber-700">A governance vote will determine the leaver classification.</p>
-                  <p className="text-muted-foreground mt-1">Settlement will be calculated after the vote resolves.</p>
+                  <p className="font-medium text-amber-700">{t("initiateExit.voteWillDetermine")}</p>
+                  <p className="text-muted-foreground mt-1">{t("initiateExit.settlementAfterVote")}</p>
                 </div>
               ) : (
                 <div className="rounded bg-muted p-2">
-                  <p className="text-xs text-muted-foreground">Settlement</p>
-                  <p className="font-bold text-sm">{settlementPct}% = 🟩 {settlementAmount}</p>
+                  <p className="text-xs text-muted-foreground">{t("initiateExit.settlement")}</p>
+                  <p className="font-bold text-sm">{t("initiateExit.settlementValue", { pct: settlementPct, amount: settlementAmount })}</p>
                 </div>
               )}
 
               <p className="text-xs text-muted-foreground">
-                Their slice ({contributor.pct.toFixed(1)}%) will be redistributed proportionally to remaining contributors.
+                {t("initiateExit.redistributeNote", { pct: contributor.pct.toFixed(1) })}
               </p>
             </div>
 
@@ -333,19 +335,19 @@ export function InitiateExitDialog({
               <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-xs">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-medium text-amber-700">Active contract detected</p>
+                  <p className="font-medium text-amber-700">{t("initiateExit.contractDetected")}</p>
                   <p className="text-muted-foreground mt-0.5">
-                    A contract amendment will be auto-proposed to remove this contributor from the signatory list.
+                    {t("initiateExit.contractDetectedHint")}
                   </p>
                 </div>
               </div>
             )}
 
             <Button className="w-full" onClick={() => setStep(isAbandonment ? 3 : 3)}>
-              Next: Confirm
+              {t("initiateExit.nextConfirm")}
             </Button>
             {!isAbandonment && (
-              <Button variant="ghost" className="w-full" onClick={() => setStep(1)}>Back</Button>
+              <Button variant="ghost" className="w-full" onClick={() => setStep(1)}>{t("initiateExit.back")}</Button>
             )}
           </div>
         )}
@@ -354,11 +356,11 @@ export function InitiateExitDialog({
         {step === 3 && (
           <div className="space-y-3">
             <div>
-              <Label className="text-sm font-medium mb-1 block">Exit note (visible to contributor)</Label>
+              <Label className="text-sm font-medium mb-1 block">{t("initiateExit.exitNoteLabel")}</Label>
               <Textarea
                 value={exitNote}
                 onChange={(e) => setExitNote(e.target.value)}
-                placeholder="Optional note…"
+                placeholder={t("initiateExit.exitNotePlaceholder")}
                 rows={2}
               />
             </div>
@@ -370,7 +372,7 @@ export function InitiateExitDialog({
                 onCheckedChange={(v) => setBlockReEntry(!!v)}
               />
               <label htmlFor="block-reentry" className="text-xs text-muted-foreground cursor-pointer">
-                Prevent this contributor from re-joining this quest
+                {t("initiateExit.blockReEntry")}
               </label>
             </div>
 
@@ -380,9 +382,9 @@ export function InitiateExitDialog({
               disabled={submitting}
             >
               {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              Finalise Exit
+              {t("initiateExit.finaliseExit")}
             </Button>
-            <Button variant="ghost" className="w-full" onClick={() => setStep(2)}>Back</Button>
+            <Button variant="ghost" className="w-full" onClick={() => setStep(2)}>{t("initiateExit.back")}</Button>
           </div>
         )}
       </DialogContent>

@@ -3088,5 +3088,67 @@
       "markedPaidExternally": "Marked as paid externally"
     },
     "unknown": "Unknown"
+  },
+  "initiateExit": {
+    "dialogTitle": "Initiate Exit — {{name}}",
+    "descAbandonment": "This contributor has been flagged for abandonment.",
+    "descNormal": "Process a contributor exit from this quest.",
+    "exitTypeLabel": "Exit type",
+    "types": {
+      "voluntary": { "label": "Voluntary", "desc": "Contributor chose to leave" },
+      "graceful_withdrawal": { "label": "Graceful Withdrawal", "desc": "Leaves with a formal handover commitment" },
+      "involuntary_cause": { "label": "Involuntary (for cause)", "desc": "Removed due to misconduct or contract breach" },
+      "involuntary_no_cause": { "label": "Involuntary (no cause)", "desc": "Removed for operational reasons, no fault" }
+    },
+    "handoverCommitment": "Handover commitment *",
+    "handoverPlaceholder": "What the contributor agrees to hand over or complete…",
+    "nextSettlementPreview": "Next: Settlement Preview",
+    "abandonmentExit": "Abandonment exit",
+    "fmvAtExit": "FMV at exit:",
+    "currentPiePct": "Current pie %:",
+    "voteWillDetermine": "A governance vote will determine the leaver classification.",
+    "settlementAfterVote": "Settlement will be calculated after the vote resolves.",
+    "settlement": "Settlement",
+    "settlementValue": "{{pct}}% = 🟩 {{amount}}",
+    "redistributeNote": "Their slice ({{pct}}%) will be redistributed proportionally to remaining contributors.",
+    "contractDetected": "Active contract detected",
+    "contractDetectedHint": "A contract amendment will be auto-proposed to remove this contributor from the signatory list.",
+    "nextConfirm": "Next: Confirm",
+    "back": "Back",
+    "exitNoteLabel": "Exit note (visible to contributor)",
+    "exitNotePlaceholder": "Optional note…",
+    "blockReEntry": "Prevent this contributor from re-joining this quest",
+    "finaliseExit": "Finalise Exit",
+    "toast": {
+      "exitInitiated": "Exit initiated",
+      "exitInitiatedDesc": "{{name}} has been exited from this quest.",
+      "failed": "Failed to initiate exit"
+    }
+  },
+  "exitCards": {
+    "pastExits": "Past Exits",
+    "exitedOn": "Exited {{date}}",
+    "fmvEarned": "FMV earned",
+    "settlement": "Settlement",
+    "status": "Status",
+    "paid": "PAID",
+    "pending": "PENDING",
+    "waived": "WAIVED",
+    "awaitingDistribution": "Your settlement is awaiting distribution by the quest admin.",
+    "handoverLabel": "Handover: {{note}}",
+    "xpRetainedNote": "XP and reputation earned during this quest are fully retained.",
+    "unknown": "Unknown",
+    "exitTypes": {
+      "voluntary": "Voluntary",
+      "graceful_withdrawal": "Graceful Withdrawal",
+      "involuntary_cause": "Involuntary (cause)",
+      "involuntary_no_cause": "Involuntary (no cause)",
+      "abandonment": "Abandonment"
+    },
+    "leaverClass": {
+      "good": "Good leaver",
+      "graceful": "Graceful",
+      "bad": "Bad leaver"
+    }
   }
 }

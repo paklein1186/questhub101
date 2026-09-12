@@ -3074,5 +3074,67 @@
       "markedPaidExternally": "Marqué comme payé en externe"
     },
     "unknown": "Inconnu"
+  },
+  "initiateExit": {
+    "dialogTitle": "Initier la sortie — {{name}}",
+    "descAbandonment": "Ce contributeur a été signalé pour abandon.",
+    "descNormal": "Traiter la sortie d'un contributeur de cette quête.",
+    "exitTypeLabel": "Type de sortie",
+    "types": {
+      "voluntary": { "label": "Volontaire", "desc": "Le contributeur a choisi de partir" },
+      "graceful_withdrawal": { "label": "Retrait en douceur", "desc": "Part avec un engagement formel de passation" },
+      "involuntary_cause": { "label": "Involontaire (avec motif)", "desc": "Exclu pour faute ou rupture de contrat" },
+      "involuntary_no_cause": { "label": "Involontaire (sans motif)", "desc": "Exclu pour raisons opérationnelles, sans faute" }
+    },
+    "handoverCommitment": "Engagement de passation *",
+    "handoverPlaceholder": "Ce que le contributeur s'engage à transmettre ou terminer…",
+    "nextSettlementPreview": "Suivant : aperçu du règlement",
+    "abandonmentExit": "Sortie pour abandon",
+    "fmvAtExit": "FMV à la sortie :",
+    "currentPiePct": "% du pie actuel :",
+    "voteWillDetermine": "Un vote de gouvernance déterminera la classification du départ.",
+    "settlementAfterVote": "Le règlement sera calculé après le résultat du vote.",
+    "settlement": "Règlement",
+    "settlementValue": "{{pct}}% = 🟩 {{amount}}",
+    "redistributeNote": "Sa part ({{pct}}%) sera redistribuée proportionnellement aux contributeurs restants.",
+    "contractDetected": "Contrat actif détecté",
+    "contractDetectedHint": "Un avenant au contrat sera automatiquement proposé pour retirer ce contributeur de la liste des signataires.",
+    "nextConfirm": "Suivant : confirmer",
+    "back": "Précédent",
+    "exitNoteLabel": "Note de sortie (visible par le contributeur)",
+    "exitNotePlaceholder": "Note facultative…",
+    "blockReEntry": "Empêcher ce contributeur de rejoindre à nouveau cette quête",
+    "finaliseExit": "Finaliser la sortie",
+    "toast": {
+      "exitInitiated": "Sortie initiée",
+      "exitInitiatedDesc": "{{name}} a été sorti de cette quête.",
+      "failed": "Échec de l'initiation de la sortie"
+    }
+  },
+  "exitCards": {
+    "pastExits": "Sorties passées",
+    "exitedOn": "Sorti le {{date}}",
+    "fmvEarned": "FMV gagnée",
+    "settlement": "Règlement",
+    "status": "Statut",
+    "paid": "PAYÉ",
+    "pending": "EN ATTENTE",
+    "waived": "ANNULÉ",
+    "awaitingDistribution": "Votre règlement est en attente de distribution par l'admin de la quête.",
+    "handoverLabel": "Passation : {{note}}",
+    "xpRetainedNote": "L'XP et la réputation gagnées durant cette quête sont entièrement conservées.",
+    "unknown": "Inconnu",
+    "exitTypes": {
+      "voluntary": "Volontaire",
+      "graceful_withdrawal": "Retrait en douceur",
+      "involuntary_cause": "Involontaire (motif)",
+      "involuntary_no_cause": "Involontaire (sans motif)",
+      "abandonment": "Abandon"
+    },
+    "leaverClass": {
+      "good": "Bon départ",
+      "graceful": "En douceur",
+      "bad": "Mauvais départ"
+    }
   }
 }
