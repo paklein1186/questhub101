@@ -1,4 +1,5 @@
 import { useState, useMemo, useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { GridDensityContext } from "@/pages/ExploreHub";
 import { Link } from "react-router-dom";
 import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain, Leaf } from "lucide-react";
@@ -34,15 +35,16 @@ function getInitials(name: string) {
   return name.split(/[\s-]+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("");
 }
 
-function getActivityLevel(t: TerritoryLeaderboardItem) {
-  const score = t.quests * 3 + t.entities * 2 + t.memoryContributions;
-  if (score >= 15) return { label: "Very Active", color: "bg-emerald-500" };
-  if (score >= 6) return { label: "Active", color: "bg-blue-500" };
-  if (score >= 1) return { label: "Growing", color: "bg-amber-500" };
-  return { label: "Emerging", color: "bg-muted-foreground" };
+function getActivityLevel(item: TerritoryLeaderboardItem) {
+  const score = item.quests * 3 + item.entities * 2 + item.memoryContributions;
+  if (score >= 15) return { key: "territoryBrowse.activity.veryActive", color: "bg-emerald-500" };
+  if (score >= 6) return { key: "territoryBrowse.activity.active", color: "bg-blue-500" };
+  if (score >= 1) return { key: "territoryBrowse.activity.growing", color: "bg-amber-500" };
+  return { key: "territoryBrowse.activity.emerging", color: "bg-muted-foreground" };
 }
 
 function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index: number }) {
+  const { t } = useTranslation();
   const activity = getActivityLevel(item);
   const totalScore = item.quests * 3 + item.entities * 2 + item.memoryContributions;
   const gradient = GRADIENTS[index % GRADIENTS.length];
@@ -68,7 +70,7 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
           <div className="absolute top-3 left-3">
             <div className="flex items-center gap-1.5">
               <div className={`h-2 w-2 rounded-full ${activity.color}`} />
-              <span className="text-[10px] font-medium text-foreground/70">{activity.label}</span>
+              <span className="text-[10px] font-medium text-foreground/70">{t(activity.key)}</span>
             </div>
           </div>
           <div className="absolute -bottom-5 left-4">
@@ -83,7 +85,7 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
           {totalScore > 0 && (
             <div className="absolute top-3 right-3">
               <Badge variant="secondary" className="text-[10px] font-mono bg-background/80 backdrop-blur-sm">
-                {totalScore} pts
+                {t("territoryBrowse.pts", { score: totalScore })}
               </Badge>
             </div>
           )}
@@ -143,6 +145,7 @@ type TypeFilter = "all" | "locations" | "bioregions";
 const BIOREGION_LEVELS = new Set(["BIOREGION"]);
 
 export function TerritoryBrowseSection() {
+  const { t } = useTranslation();
   const [sort, setSort] = useState<SortMode>("activity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -187,7 +190,7 @@ export function TerritoryBrowseSection() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px] max-w-sm">
           <Input
-            placeholder="Search territories..."
+            placeholder={t("territoryBrowse.searchPlaceholder")}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="h-9 text-sm"
@@ -197,13 +200,13 @@ export function TerritoryBrowseSection() {
           {/* Type filter */}
           <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
             <Button size="sm" variant={typeFilter === "all" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("all")}>
-              <Globe className="h-3 w-3" /> All
+              <Globe className="h-3 w-3" /> {t("territoryBrowse.filters.all")}
             </Button>
             <Button size="sm" variant={typeFilter === "locations" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("locations")}>
-              <MapPin className="h-3 w-3" /> Locations
+              <MapPin className="h-3 w-3" /> {t("territoryBrowse.filters.locations")}
             </Button>
             <Button size="sm" variant={typeFilter === "bioregions" ? "secondary" : "ghost"} className="h-7 text-xs gap-1" onClick={() => setTypeFilter("bioregions")}>
-              <Leaf className="h-3 w-3" /> Bioregions
+              <Leaf className="h-3 w-3" /> {t("territoryBrowse.filters.bioregions")}
             </Button>
           </div>
 
@@ -214,7 +217,7 @@ export function TerritoryBrowseSection() {
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               className="h-7 w-7 p-0"
               onClick={() => setViewMode("grid")}
-              title="Grid view"
+              title={t("territoryBrowse.gridView")}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
             </Button>
@@ -223,7 +226,7 @@ export function TerritoryBrowseSection() {
               variant={viewMode === "map" ? "secondary" : "ghost"}
               className="h-7 w-7 p-0"
               onClick={() => setViewMode("map")}
-              title="Map view"
+              title={t("territoryBrowse.mapView")}
             >
               <Map className="h-3.5 w-3.5" />
             </Button>
@@ -234,10 +237,10 @@ export function TerritoryBrowseSection() {
             <div className="flex items-center gap-1">
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <Button size="sm" variant={sort === "activity" ? "secondary" : "ghost"} className="h-7 text-xs" onClick={() => setSort("activity")}>
-                Most active
+                {t("territoryBrowse.sort.mostActive")}
               </Button>
               <Button size="sm" variant={sort === "name" ? "secondary" : "ghost"} className="h-7 text-xs" onClick={() => setSort("name")}>
-                A–Z
+                {t("territoryBrowse.sort.az")}
               </Button>
             </div>
           )}
@@ -248,7 +251,7 @@ export function TerritoryBrowseSection() {
       {filtered.length === 0 ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
           <MapPin className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-          <p className="text-muted-foreground">No territories found.</p>
+          <p className="text-muted-foreground">{t("territoryBrowse.noneFound")}</p>
         </div>
       ) : (
         <AnimatePresence mode="wait">

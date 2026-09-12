@@ -3271,5 +3271,41 @@
     "setAsMyTerritory": "Définir comme mon territoire",
     "joinCtg": "Rejoindre CTG",
     "signIn": "Se connecter"
+  },
+  "territoriesHome": {
+    "title": "Territoires",
+    "intro": "Explorez des lieux vivants à travers le monde. Recherchez n'importe quel endroit — même s'il n'est pas encore sur la plateforme, vous pouvez en devenir le pionnier.",
+    "searchPlaceholder": "Rechercher une ville, une région, un pays…",
+    "onPlatform": "Sur la plateforme",
+    "explore": "Explorer",
+    "locationsWorldwide": "Lieux dans le monde",
+    "noLocationsFound": "Aucun lieu trouvé",
+    "notOnPlatform": "{{name}} n'est pas encore sur la plateforme",
+    "pioneerHint": "Soyez le premier à devenir le pionnier de ce territoire et à construire sa communauté écologique.",
+    "pioneer": "Pionnier",
+    "createBioregion": "Créer une bioregion",
+    "addTerritory": "Ajouter un territoire"
+  },
+  "territoryBrowse": {
+    "activity": {
+      "veryActive": "Très actif",
+      "active": "Actif",
+      "growing": "En croissance",
+      "emerging": "Émergent"
+    },
+    "pts": "{{score}} pts",
+    "searchPlaceholder": "Rechercher des territoires...",
+    "filters": {
+      "all": "Tous",
+      "locations": "Lieux",
+      "bioregions": "Bioregions"
+    },
+    "gridView": "Vue grille",
+    "mapView": "Vue carte",
+    "sort": {
+      "mostActive": "Plus actifs",
+      "az": "A–Z"
+    },
+    "noneFound": "Aucun territoire trouvé."
   }
 }

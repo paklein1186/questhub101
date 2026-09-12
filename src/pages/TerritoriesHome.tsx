@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { TerritoryCreateWizard } from "@/components/territory/TerritoryCreateWizard";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -67,6 +68,7 @@ function useMatchTerritory(name: string | null) {
 }
 
 export default function TerritoriesHome() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,11 +113,11 @@ export default function TerritoriesHome() {
           <div className="flex items-center gap-2 mb-3">
             <Globe2 className="h-6 w-6 text-primary" />
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
-              Territories
+              {t("territoriesHome.title")}
             </h1>
           </div>
           <p className="text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">
-            Explore living places across the world. Search for any location — even if it's not yet on the platform, you can pioneer it.
+            {t("territoriesHome.intro")}
           </p>
 
           {/* ── Location search with geocoding ── */}
@@ -130,7 +132,7 @@ export default function TerritoriesHome() {
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              placeholder="Search any city, region, country…"
+              placeholder={t("territoriesHome.searchPlaceholder")}
               className="pl-9 h-11 text-sm bg-background/80 backdrop-blur-sm"
             />
 
@@ -140,7 +142,7 @@ export default function TerritoriesHome() {
                 {/* Matched platform territories */}
                 {matchedTerritories.length > 0 && (
                   <div className="p-2 border-b border-border">
-                    <p className="text-[10px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">On the platform</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">{t("territoriesHome.onPlatform")}</p>
                     {matchedTerritories.map((t: any) => (
                       <button
                         key={t.id}
@@ -152,7 +154,7 @@ export default function TerritoriesHome() {
                           <p className="text-sm font-medium truncate">{t.name}</p>
                           <p className="text-[11px] text-muted-foreground">{t.level}</p>
                         </div>
-                        <Badge variant="secondary" className="text-[9px]">Explore</Badge>
+                        <Badge variant="secondary" className="text-[9px]">{t("territoriesHome.explore")}</Badge>
                       </button>
                     ))}
                   </div>
@@ -165,7 +167,7 @@ export default function TerritoriesHome() {
                   </div>
                 ) : geoResults.length > 0 ? (
                   <div className="p-2">
-                    <p className="text-[10px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">Locations worldwide</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">{t("territoriesHome.locationsWorldwide")}</p>
                     {geoResults.map(r => {
                       const shortName = r.display_name.split(",")[0];
                       const rest = r.display_name.split(",").slice(1, 3).join(",").trim();
@@ -185,7 +187,7 @@ export default function TerritoriesHome() {
                     })}
                   </div>
                 ) : searchQuery.length >= 3 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No locations found</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t("territoriesHome.noLocationsFound")}</p>
                 ) : null}
               </div>
             )}
@@ -202,16 +204,16 @@ export default function TerritoriesHome() {
                 <Mountain className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">
-                    {selectedGeo.display_name.split(",")[0]} isn't on the platform yet
+                    {t("territoriesHome.notOnPlatform", { name: selectedGeo.display_name.split(",")[0] })}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Be the first to pioneer this territory and build its ecological community.
+                    {t("territoriesHome.pioneerHint")}
                   </p>
                 </div>
                 {currentUser.id && (
                   <Button size="sm" className="shrink-0 gap-1.5" asChild>
                     <Link to={`/explore?tab=territories`}>
-                      <Sparkles className="h-3.5 w-3.5" /> Pioneer
+                      <Sparkles className="h-3.5 w-3.5" /> {t("territoriesHome.pioneer")}
                     </Link>
                   </Button>
                 )}
@@ -223,13 +225,13 @@ export default function TerritoriesHome() {
           <div className="flex items-center gap-2 mt-4">
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" asChild>
               <Link to="/create/bioregion">
-                <Plus className="h-3.5 w-3.5" /> Create Bioregion
+                <Plus className="h-3.5 w-3.5" /> {t("territoriesHome.createBioregion")}
               </Link>
             </Button>
             {currentUser.id && (
               <>
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setShowWizard(true)}>
-                  <Plus className="h-3.5 w-3.5" /> Add Territory
+                  <Plus className="h-3.5 w-3.5" /> {t("territoriesHome.addTerritory")}
                 </Button>
                 {showWizard && <TerritoryCreateWizard open={showWizard} onClose={() => setShowWizard(false)} />}
               </>
