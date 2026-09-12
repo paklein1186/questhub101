@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ interface PieEntry {
 }
 
 export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -121,7 +123,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
 
       return [...byUser.entries()].map(([userId, data]) => ({
         userId,
-        name: profileMap.get(userId)?.name || "Unknown",
+        name: profileMap.get(userId)?.name || t("valuePie.pdf.unknown"),
         avatarUrl: profileMap.get(userId)?.avatar_url,
         fmv: data.fmv,
         halfDays: data.halfDays,
@@ -192,7 +194,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     if (isFrozen && pieSnapshot?.contributors) {
       return (pieSnapshot.contributors as any[]).map((c: any) => ({
         userId: c.user_id,
-        name: c.name || "Unknown",
+        name: c.name || t("valuePie.pdf.unknown"),
         avatarUrl: c.avatar_url || null,
         fmv: c.total_fmv || 0,
         halfDays: 0,
@@ -242,7 +244,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
 
     const snapshot = {
       frozen_at: new Date().toISOString(),
-      frozen_by: { user_id: currentUser.id, name: currentUser.name || "Unknown" },
+      frozen_by: { user_id: currentUser.id, name: currentUser.name || t("valuePie.pdf.unknown") },
       total_fmv: totalFmv,
       external_spending: externalSpending,
       distributable_fmv: distributable,
@@ -263,7 +265,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     } as any).eq("id", quest.id);
     qc.invalidateQueries({ queryKey: ["quest", quest.id] });
     qc.invalidateQueries({ queryKey: ["quest-pie", quest.id] });
-    toast({ title: "Pie frozen — final split locked" });
+    toast({ title: t("valuePie.toast.pieFrozen") });
     setFreezing(false);
     setFreezeOpen(false);
   };
@@ -285,7 +287,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     } as any).eq("id", quest.id);
 
     qc.invalidateQueries({ queryKey: ["quest", quest.id] });
-    toast({ title: "External spending added" });
+    toast({ title: t("valuePie.toast.externalSpendingAdded") });
     setSpendDesc("");
     setSpendAmount("");
     setAddingSpend(false);
@@ -297,30 +299,30 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     const snap = pieSnapshot;
     const lines: string[] = [];
     lines.push("═══════════════════════════════════════════════");
-    lines.push(`  PIE DISTRIBUTION REPORT`);
+    lines.push(`  ${t("valuePie.pdf.title")}`);
     lines.push("═══════════════════════════════════════════════");
     lines.push("");
-    lines.push(`Quest: ${quest.title}`);
-    if (quest.guild_name) lines.push(`Guild: ${quest.guild_name}`);
-    lines.push(`Frozen: ${new Date(snap.frozen_at).toLocaleDateString()} by ${snap.frozen_by?.name || "Admin"}`);
+    lines.push(t("valuePie.pdf.questLabel", { title: quest.title }));
+    if (quest.guild_name) lines.push(t("valuePie.pdf.guildLabel", { name: quest.guild_name }));
+    lines.push(t("valuePie.pdf.frozenLine", { date: new Date(snap.frozen_at).toLocaleDateString(), name: snap.frozen_by?.name || t("valuePie.pdf.adminFallback") }));
     lines.push("");
-    lines.push(`Total FMV:           🟩 ${snap.total_fmv}`);
-    lines.push(`External Spending:   -${snap.external_spending}`);
-    lines.push(`Distributable:       🟩 ${snap.distributable_fmv}`);
+    lines.push(t("valuePie.pdf.totalFmvLine", { value: snap.total_fmv }));
+    lines.push(t("valuePie.pdf.externalSpendingLine", { value: snap.external_spending }));
+    lines.push(t("valuePie.pdf.distributableLine", { value: snap.distributable_fmv }));
     lines.push("");
     lines.push("───────────────────────────────────────────────");
-    lines.push("  Contributor             FMV     % Share  Status");
+    lines.push(t("valuePie.pdf.tableHeader"));
     lines.push("───────────────────────────────────────────────");
     for (const c of snap.contributors || []) {
-      const name = (c.name || "Unknown").padEnd(24);
+      const name = (c.name || t("valuePie.pdf.unknown")).padEnd(24);
       const fmv = String(c.total_fmv || 0).padStart(6);
       const pct = `${(c.pct_share || 0).toFixed(1)}%`.padStart(8);
-      const status = c.compensation_status || "pending";
+      const status = c.compensation_status || t("valuePie.pdf.pending");
       lines.push(`  ${name} ${fmv} ${pct}  ${status}`);
     }
     lines.push("───────────────────────────────────────────────");
     lines.push("");
-    lines.push(`Generated: ${new Date().toISOString()}`);
+    lines.push(t("valuePie.pdf.generatedLine", { date: new Date().toISOString() }));
 
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -340,20 +342,20 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
               <p className="text-sm font-medium">
-                Frozen {new Date((quest as any).pie_frozen_at).toLocaleDateString()}
-                {frozenByProfile?.name && ` by ${frozenByProfile.name}`}.
-                This is the final distribution record.
+                {frozenByProfile?.name
+                  ? t("valuePie.frozenWithName", { date: new Date((quest as any).pie_frozen_at).toLocaleDateString(), name: frozenByProfile.name })
+                  : t("valuePie.frozenNoName", { date: new Date((quest as any).pie_frozen_at).toLocaleDateString() })}
               </p>
             </div>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleDownloadPdf}>
-              <Download className="h-3 w-3" /> Download PDF summary
+              <Download className="h-3 w-3" /> {t("valuePie.downloadPdfSummary")}
             </Button>
           </div>
         ) : (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center gap-2">
             <Info className="h-4 w-4 text-primary shrink-0" />
             <p className="text-sm text-foreground">
-              Pie is live and updates with each approved contribution.
+              {t("valuePie.pieLiveNote")}
             </p>
           </div>
         )}
@@ -363,22 +365,22 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
           <div className="rounded-lg border border-border bg-card p-3">
             <div className="flex items-center gap-4 text-sm flex-wrap">
               <div>
-                <span className="text-muted-foreground">Total Envelope:</span>{" "}
+                <span className="text-muted-foreground">{t("valuePie.totalEnvelope")}</span>{" "}
                 <span className="font-medium">🟩 {envelopeTotal}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">External:</span>{" "}
+                <span className="text-muted-foreground">{t("valuePie.external")}</span>{" "}
                 <span className="font-medium text-destructive">-{externalSpending}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Distributable:</span>{" "}
+                <span className="text-muted-foreground">{t("valuePie.distributable")}</span>{" "}
                 <span className="font-bold text-primary">🟩 {distributable}</span>
-                <span className="text-xs text-muted-foreground ml-1">(= 100% of pie)</span>
+                <span className="text-xs text-muted-foreground ml-1">{t("valuePie.ofPieNote")}</span>
               </div>
             </div>
             {isAdmin && !isFrozen && (
               <Button variant="outline" size="sm" className="h-7 text-xs mt-2" onClick={() => setSpendingOpen(true)}>
-                <Plus className="h-3 w-3 mr-1" /> Add external spending
+                <Plus className="h-3 w-3 mr-1" /> {t("valuePie.addExternalSpending")}
               </Button>
             )}
           </div>
@@ -390,8 +392,8 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
           </div>
         ) : pieData.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
-            <p className="text-sm text-muted-foreground">No verified contributions yet.</p>
-            <p className="text-xs text-muted-foreground mt-1">Approved contributions will appear here as pie slices.</p>
+            <p className="text-sm text-muted-foreground">{t("valuePie.noContributionsYet")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("valuePie.noContributionsHint")}</p>
           </div>
         ) : (
           <>
@@ -416,7 +418,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`🟩 ${value}`, "FMV"]}
+                    formatter={(value: number) => [`🟩 ${value}`, t("valuePie.fmvTooltipLabel")]}
                     contentStyle={{ fontSize: "12px", borderRadius: "8px" }}
                   />
                 </PieChart>
@@ -428,7 +430,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
               <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2.5 text-xs">
                 <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
                 <p className="text-foreground">
-                  <span className="font-medium">{abandonedUsers.size} contributor(s)</span> may have abandoned this quest (no activity in {abandonmentThreshold}+ days).
+                  {t("valuePie.abandonedBanner", { count: abandonedUsers.size, days: abandonmentThreshold })}
                 </p>
               </div>
             )}
@@ -438,11 +440,11 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left px-3 py-2 font-medium">#</th>
-                    <th className="text-left px-3 py-2 font-medium">Contributor</th>
-                    <th className="text-right px-3 py-2 font-medium">FMV 🟩</th>
-                    <th className="text-right px-3 py-2 font-medium">% Share</th>
-                    <th className="text-right px-3 py-2 font-medium">Status</th>
+                    <th className="text-left px-3 py-2 font-medium">{t("valuePie.tableHash")}</th>
+                    <th className="text-left px-3 py-2 font-medium">{t("valuePie.contributor")}</th>
+                    <th className="text-right px-3 py-2 font-medium">{t("valuePie.fmvColumn")}</th>
+                    <th className="text-right px-3 py-2 font-medium">{t("valuePie.percentShare")}</th>
+                    <th className="text-right px-3 py-2 font-medium">{t("valuePie.status")}</th>
                     {isAdmin && !isFrozen && <th className="w-8" />}
                   </tr>
                 </thead>
@@ -464,11 +466,11 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                             <span className="font-medium truncate max-w-[120px]">{d.name}</span>
                             {isAbandoned && (
                               <Badge variant="destructive" className="text-[9px] h-4">
-                                Inactive {daysSinceActive}d
+                                {t("valuePie.inactiveDays", { days: daysSinceActive })}
                               </Badge>
                             )}
                             {isExited && (
-                              <Badge variant="outline" className="text-[9px] h-4">Exited</Badge>
+                              <Badge variant="outline" className="text-[9px] h-4">{t("valuePie.exited")}</Badge>
                             )}
                           </div>
                         </td>
@@ -477,14 +479,14 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                         <td className="px-3 py-2 text-right">
                           {d.compensationStatus === "compensated" ? (
                             <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-                              Compensated
+                              {t("valuePie.compensated")}
                             </Badge>
                           ) : d.compensationStatus === "partial" ? (
                             <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
-                              Partial
+                              {t("valuePie.partial")}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[10px]">Pending</Badge>
+                            <Badge variant="outline" className="text-[10px]">{t("valuePie.pending")}</Badge>
                           )}
                         </td>
                         {isAdmin && !isFrozen && (
@@ -501,14 +503,14 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                                     setExitTarget(d);
                                     setExitIsAbandonment(false);
                                   }}>
-                                    <DoorOpen className="h-3.5 w-3.5 mr-1.5" /> Initiate exit for {d.name}
+                                    <DoorOpen className="h-3.5 w-3.5 mr-1.5" /> {t("valuePie.initiateExitFor", { name: d.name })}
                                   </DropdownMenuItem>
                                   {isAbandoned && (
                                     <DropdownMenuItem onClick={() => {
                                       setExitTarget(d);
                                       setExitIsAbandonment(true);
                                     }}>
-                                      <AlertTriangle className="h-3.5 w-3.5 mr-1.5" /> Flag as abandoned
+                                      <AlertTriangle className="h-3.5 w-3.5 mr-1.5" /> {t("valuePie.flagAsAbandoned")}
                                     </DropdownMenuItem>
                                   )}
                                 </DropdownMenuContent>
@@ -520,7 +522,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                     );
                   })}
                   <tr className="border-t border-border bg-muted/30 font-semibold">
-                    <td className="px-3 py-2" colSpan={2}>Total</td>
+                    <td className="px-3 py-2" colSpan={2}>{t("valuePie.total")}</td>
                     <td className="px-3 py-2 text-right text-primary">{totalFmv}</td>
                     <td className="px-3 py-2 text-right">100%</td>
                     <td />
@@ -538,7 +540,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                 className="text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
                 onClick={() => setFreezeOpen(true)}
               >
-                <Lock className="h-4 w-4 mr-1" /> Freeze Pie
+                <Lock className="h-4 w-4 mr-1" /> {t("valuePie.freezePie")}
               </Button>
             )}
           </>
@@ -548,16 +550,16 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={freezeOpen} onOpenChange={setFreezeOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Freeze Contribution Pie?</DialogTitle>
+              <DialogTitle>{t("valuePie.freezeDialogTitle")}</DialogTitle>
               <DialogDescription>
-                This permanently locks the contribution split. No further contributions will change the distribution percentages.
+                {t("valuePie.freezeDialogDescription")}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setFreezeOpen(false)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setFreezeOpen(false)}>{t("valuePie.cancel")}</Button>
               <Button onClick={handleFreeze} disabled={freezing} className="bg-amber-600 hover:bg-amber-700">
                 {freezing && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                Freeze Permanently
+                {t("valuePie.freezePermanently")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -567,20 +569,20 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
         <Dialog open={spendingOpen} onOpenChange={setSpendingOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Add External Spending</DialogTitle>
+              <DialogTitle>{t("valuePie.addExternalSpendingTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium mb-1 block">Description</label>
+                <label className="text-sm font-medium mb-1 block">{t("valuePie.descriptionLabel")}</label>
                 <Textarea
                   value={spendDesc}
                   onChange={(e) => setSpendDesc(e.target.value)}
-                  placeholder="e.g. Hosting costs, tool subscriptions…"
+                  placeholder={t("valuePie.descriptionPlaceholder")}
                   rows={2}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Amount (🟩 Coins)</label>
+                <label className="text-sm font-medium mb-1 block">{t("valuePie.amountLabel")}</label>
                 <Input
                   type="number"
                   value={spendAmount}
@@ -591,10 +593,10 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setSpendingOpen(false)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setSpendingOpen(false)}>{t("valuePie.cancel")}</Button>
               <Button onClick={handleAddSpending} disabled={addingSpend || !spendDesc.trim() || !spendAmount}>
                 {addingSpend && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                Add Spending
+                {t("valuePie.addSpending")}
               </Button>
             </DialogFooter>
           </DialogContent>
