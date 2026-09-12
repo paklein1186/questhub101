@@ -3571,5 +3571,33 @@
       "monthlyRewardsGranted": "Monthly rewards granted",
       "monthlyRewardsGrantedDesc": "{{count}} stewards rewarded with $CTG."
     }
+  },
+  "logContribution": {
+    "difficulty": {
+      "standard": { "label": "Standard", "desc": "Regular tasks" },
+      "enhanced": { "label": "Enhanced", "desc": "Above-average complexity" },
+      "complex": { "label": "Complex", "desc": "Specialist-level work" },
+      "critical": { "label": "Critical", "desc": "Mission-critical delivery" }
+    },
+    "dialogTitle": "Log Contribution",
+    "titleLabel": "Title *",
+    "titlePlaceholder": "What did you contribute?",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Details about your work…",
+    "halfDaysLabel": "Half-days worked",
+    "difficultyLabel": "Difficulty / Impact",
+    "deliverableUrlLabel": "Deliverable URL (optional)",
+    "deliverableUrlPlaceholder": "https://…",
+    "linkSubtaskLabel": "Link to subtask (optional)",
+    "selectSubtaskPlaceholder": "Select a subtask…",
+    "none": "None",
+    "estimatedFmv": "Estimated Fair Market Value",
+    "hdSuffix": "hd",
+    "cancel": "Cancel",
+    "submitForReview": "Submit for Review",
+    "toast": {
+      "failed": "Failed to log contribution",
+      "submitted": "Contribution submitted for review"
+    }
   }
 }

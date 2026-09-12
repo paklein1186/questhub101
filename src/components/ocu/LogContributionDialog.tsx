@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +15,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Difficulty = "standard" | "enhanced" | "complex" | "critical";
 
-const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; multiplier: number; desc: string }[] = [
-  { value: "standard", label: "Standard", multiplier: 1.0, desc: "Regular tasks" },
-  { value: "enhanced", label: "Enhanced", multiplier: 1.5, desc: "Above-average complexity" },
-  { value: "complex", label: "Complex", multiplier: 2.0, desc: "Specialist-level work" },
-  { value: "critical", label: "Critical", multiplier: 3.0, desc: "Mission-critical delivery" },
+const DIFFICULTY_OPTIONS: { value: Difficulty; key: string; multiplier: number }[] = [
+  { value: "standard", key: "standard", multiplier: 1.0 },
+  { value: "enhanced", key: "enhanced", multiplier: 1.5 },
+  { value: "complex", key: "complex", multiplier: 2.0 },
+  { value: "critical", key: "critical", multiplier: 3.0 },
 ];
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function LogContributionDialog({ open, onOpenChange, questId, guildId, territoryId, fmvRate = 200 }: Props) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -94,7 +96,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
       } as any);
 
     if (error) {
-      toast({ title: "Failed to log contribution", variant: "destructive" });
+      toast({ title: t("logContribution.toast.failed"), variant: "destructive" });
       setSubmitting(false);
       return;
     }
@@ -112,7 +114,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
       } as any);
     }
 
-    toast({ title: "Contribution submitted for review" });
+    toast({ title: t("logContribution.toast.submitted") });
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
 
     // Reset
@@ -130,28 +132,28 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Log Contribution</DialogTitle>
+          <DialogTitle>{t("logContribution.dialogTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Title */}
           <div>
-            <Label className="text-sm font-medium">Title *</Label>
+            <Label className="text-sm font-medium">{t("logContribution.titleLabel")}</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What did you contribute?"
+              placeholder={t("logContribution.titlePlaceholder")}
               className="mt-1"
             />
           </div>
 
           {/* Description */}
           <div>
-            <Label className="text-sm font-medium">Description</Label>
+            <Label className="text-sm font-medium">{t("logContribution.descriptionLabel")}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Details about your work…"
+              placeholder={t("logContribution.descriptionPlaceholder")}
               rows={3}
               className="mt-1"
             />
@@ -159,7 +161,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
 
           {/* Half-days */}
           <div>
-            <Label className="text-sm font-medium">Half-days worked</Label>
+            <Label className="text-sm font-medium">{t("logContribution.halfDaysLabel")}</Label>
             <Input
               type="number"
               value={halfDays}
@@ -172,7 +174,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
 
           {/* Difficulty */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">Difficulty / Impact</Label>
+            <Label className="text-sm font-medium mb-2 block">{t("logContribution.difficultyLabel")}</Label>
             <RadioGroup
               value={difficulty}
               onValueChange={(v) => setDifficulty(v as Difficulty)}
@@ -189,9 +191,9 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
                 >
                   <RadioGroupItem value={d.value} />
                   <div>
-                    <span className="text-sm font-medium">{d.label}</span>
+                    <span className="text-sm font-medium">{t(`logContribution.difficulty.${d.key}.label`)}</span>
                     <span className="text-xs text-muted-foreground ml-1">×{d.multiplier}</span>
-                    <p className="text-[10px] text-muted-foreground">{d.desc}</p>
+                    <p className="text-[10px] text-muted-foreground">{t(`logContribution.difficulty.${d.key}.desc`)}</p>
                   </div>
                 </label>
               ))}
@@ -200,11 +202,11 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
 
           {/* Deliverable URL */}
           <div>
-            <Label className="text-sm font-medium">Deliverable URL (optional)</Label>
+            <Label className="text-sm font-medium">{t("logContribution.deliverableUrlLabel")}</Label>
             <Input
               value={deliverableUrl}
               onChange={(e) => setDeliverableUrl(e.target.value)}
-              placeholder="https://…"
+              placeholder={t("logContribution.deliverableUrlPlaceholder")}
               className="mt-1"
             />
           </div>
@@ -212,13 +214,13 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
           {/* Subtask link */}
           {subtasks.length > 0 && (
             <div>
-              <Label className="text-sm font-medium">Link to subtask (optional)</Label>
+              <Label className="text-sm font-medium">{t("logContribution.linkSubtaskLabel")}</Label>
               <Select value={subtaskId} onValueChange={setSubtaskId}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select a subtask…" />
+                  <SelectValue placeholder={t("logContribution.selectSubtaskPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">None</SelectItem>
+                  <SelectItem value="__none__">{t("logContribution.none")}</SelectItem>
                   {subtasks.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>
                   ))}
@@ -229,11 +231,11 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
 
           {/* FMV Display */}
           <div className="rounded-lg bg-muted/50 border border-border p-3">
-            <p className="text-xs text-muted-foreground mb-1 font-medium">Estimated Fair Market Value</p>
+            <p className="text-xs text-muted-foreground mb-1 font-medium">{t("logContribution.estimatedFmv")}</p>
             <div className="flex items-center gap-1.5 text-sm">
-              <span>{parsedHalfDays} hd</span>
+              <span>{parsedHalfDays} {t("logContribution.hdSuffix")}</span>
               <span className="text-muted-foreground">×</span>
-              <span>€{fmvRate}/hd</span>
+              <span>€{fmvRate}/{t("logContribution.hdSuffix")}</span>
               <span className="text-muted-foreground">×</span>
               <span>{multiplier}x</span>
               <span className="text-muted-foreground">=</span>
@@ -243,10 +245,10 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("logContribution.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={!title.trim() || submitting}>
             {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-            Submit for Review
+            {t("logContribution.submitForReview")}
           </Button>
         </DialogFooter>
       </DialogContent>

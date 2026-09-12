@@ -3557,5 +3557,33 @@
       "monthlyRewardsGranted": "Récompenses mensuelles octroyées",
       "monthlyRewardsGrantedDesc": "{{count}} stewards récompensés en $CTG."
     }
+  },
+  "logContribution": {
+    "difficulty": {
+      "standard": { "label": "Standard", "desc": "Tâches habituelles" },
+      "enhanced": { "label": "Renforcé", "desc": "Complexité au-dessus de la moyenne" },
+      "complex": { "label": "Complexe", "desc": "Travail de niveau spécialiste" },
+      "critical": { "label": "Critique", "desc": "Livraison critique pour la mission" }
+    },
+    "dialogTitle": "Enregistrer une contribution",
+    "titleLabel": "Titre *",
+    "titlePlaceholder": "Qu'avez-vous contribué ?",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Détails sur votre travail…",
+    "halfDaysLabel": "Demi-journées travaillées",
+    "difficultyLabel": "Difficulté / Impact",
+    "deliverableUrlLabel": "URL du livrable (facultatif)",
+    "deliverableUrlPlaceholder": "https://…",
+    "linkSubtaskLabel": "Lier à une sous-tâche (facultatif)",
+    "selectSubtaskPlaceholder": "Sélectionner une sous-tâche…",
+    "none": "Aucune",
+    "estimatedFmv": "Valeur de marché équitable estimée",
+    "hdSuffix": "dj",
+    "cancel": "Annuler",
+    "submitForReview": "Soumettre pour validation",
+    "toast": {
+      "failed": "Échec de l'enregistrement de la contribution",
+      "submitted": "Contribution soumise pour validation"
+    }
   }
 }
