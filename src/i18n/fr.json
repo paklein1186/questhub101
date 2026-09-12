@@ -3507,5 +3507,55 @@
     "includeNested": "Inclure les territoires imbriqués",
     "subTerritoriesCount": "{{count}} sous-territoires",
     "noEntities": "Aucune entité rattachée à ce territoire pour le moment."
+  },
+  "adminStewardship": {
+    "unnamed": "Sans nom",
+    "searchLabel": "Rechercher {{label}}…",
+    "noResults": "Aucun résultat trouvé.",
+    "title": "Gestion du stewardship",
+    "subtitle": "Voir, assigner et révoquer les liens de stewardship des territoires.",
+    "granting": "Octroi…",
+    "grantMonthlyRewards": "Octroyer les récompenses mensuelles",
+    "grantHint": "À exécuter une fois par mois — $CTG pour tous les stewards actifs",
+    "assignSteward": "Assigner un steward",
+    "stats": {
+      "totalEdges": "Liens totaux",
+      "active": "Actifs",
+      "revoked": "Révoqués"
+    },
+    "searchPlaceholder": "Rechercher par nom de steward, nom de territoire ou ID…",
+    "table": {
+      "steward": "Steward",
+      "territory": "Territoire",
+      "tags": "Tags",
+      "status": "Statut",
+      "since": "Depuis"
+    },
+    "loading": "Chargement…",
+    "noEdgesFound": "Aucun lien de stewardship trouvé.",
+    "unknownUser": "Utilisateur inconnu",
+    "notInTerritoriesTable": "ID : {{id}}… (absent de la table territories)",
+    "revokeStewardship": "Révoquer le stewardship ?",
+    "revokeDescription": "Ceci révoquera le stewardship de {{user}} sur {{territory}}.",
+    "thisUser": "cet utilisateur",
+    "thisTerritory": "ce territoire",
+    "cancel": "Annuler",
+    "revoke": "Révoquer",
+    "assignDialogTitle": "Assigner un stewardship",
+    "userLabel": "Utilisateur",
+    "userSearchPlaceholder": "Rechercher par nom ou email…",
+    "territoryLabel": "Territoire",
+    "territorySearchPlaceholder": "Rechercher par nom de territoire…",
+    "assigning": "Attribution…",
+    "assign": "Assigner",
+    "toast": {
+      "error": "Erreur",
+      "stewardshipRevoked": "Stewardship révoqué",
+      "alreadySteward": "Déjà steward",
+      "alreadyStewardDesc": "Cet utilisateur est déjà steward de ce territoire.",
+      "stewardshipAssigned": "Stewardship assigné",
+      "monthlyRewardsGranted": "Récompenses mensuelles octroyées",
+      "monthlyRewardsGrantedDesc": "{{count}} stewards récompensés en $CTG."
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +58,7 @@ function SearchCombobox({
   onChange: (id: string) => void;
   renderItem?: (item: { id: string; label: string; sub?: string }) => React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selected = items.find((i) => i.id === value);
 
@@ -81,9 +83,9 @@ function SearchCombobox({
         </PopoverTrigger>
         <PopoverContent className="w-[360px] p-0" align="start">
           <Command>
-            <CommandInput placeholder={`Search ${label.toLowerCase()}…`} />
+            <CommandInput placeholder={t("adminStewardship.searchLabel", { label: label.toLowerCase() })} />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty>{t("adminStewardship.noResults")}</CommandEmpty>
               <CommandGroup className="max-h-[240px] overflow-auto">
                 {items.map((item) => (
                   <CommandItem
@@ -114,6 +116,7 @@ function SearchCombobox({
 
 /* ─── Main Component ─── */
 export default function AdminStewardship() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -135,7 +138,7 @@ export default function AdminStewardship() {
         .order("name");
       return (data || []).map((p: any) => ({
         id: p.user_id,
-        label: p.name || "Unnamed",
+        label: p.name || t("adminStewardship.unnamed"),
         sub: p.email,
       }));
     },
@@ -151,10 +154,10 @@ export default function AdminStewardship() {
         .eq("is_deleted", false)
         .order("name")
         .limit(2000);
-      return (data || []).map((t: any) => ({
-        id: t.id,
-        label: t.name || "Unnamed",
-        sub: t.level,
+      return (data || []).map((terr: any) => ({
+        id: terr.id,
+        label: terr.name || t("adminStewardship.unnamed"),
+        sub: terr.level,
       }));
     },
   });
@@ -217,9 +220,9 @@ export default function AdminStewardship() {
       .update({ status: "revoked" as any })
       .eq("id", edgeId);
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t("adminStewardship.toast.error"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Stewardship revoked" });
+      toast({ title: t("adminStewardship.toast.stewardshipRevoked") });
       qc.invalidateQueries({ queryKey: ["admin-stewardship-edges"] });
     }
   };
@@ -239,7 +242,7 @@ export default function AdminStewardship() {
         .maybeSingle();
 
       if (existing) {
-        toast({ title: "Already a steward", description: "This user is already a steward of this territory.", variant: "destructive" });
+        toast({ title: t("adminStewardship.toast.alreadySteward"), description: t("adminStewardship.toast.alreadyStewardDesc"), variant: "destructive" });
         return;
       }
 
@@ -257,7 +260,7 @@ export default function AdminStewardship() {
       });
 
       if (error) throw error;
-      toast({ title: "Stewardship assigned" });
+      toast({ title: t("adminStewardship.toast.stewardshipAssigned") });
       qc.invalidateQueries({ queryKey: ["admin-stewardship-edges"] });
       setShowAssign(false);
       setAssignUserId("");
@@ -294,7 +297,7 @@ export default function AdminStewardship() {
         });
         count++;
       }
-      toast({ title: "Monthly rewards granted", description: `${count} stewards rewarded with $CTG.` });
+      toast({ title: t("adminStewardship.toast.monthlyRewardsGranted"), description: t("adminStewardship.toast.monthlyRewardsGrantedDesc", { count }) });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -310,21 +313,21 @@ export default function AdminStewardship() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-display font-bold text-foreground flex items-center gap-2">
-            <Trees className="h-5 w-5 text-primary" /> Stewardship Management
+            <Trees className="h-5 w-5 text-primary" /> {t("adminStewardship.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            View, assign, and revoke territory stewardship edges.
+            {t("adminStewardship.subtitle")}
           </p>
         </div>
         <div className="flex gap-2 items-center">
           <div className="text-right">
             <Button size="sm" variant="outline" onClick={handleGrantMonthlyRewards} disabled={grantingRewards}>
-              <Gift className="h-4 w-4 mr-1" /> {grantingRewards ? "Granting…" : "Grant monthly rewards"}
+              <Gift className="h-4 w-4 mr-1" /> {grantingRewards ? t("adminStewardship.granting") : t("adminStewardship.grantMonthlyRewards")}
             </Button>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Run once/month — $CTG to all active stewards</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{t("adminStewardship.grantHint")}</p>
           </div>
           <Button size="sm" onClick={() => setShowAssign(true)}>
-            <UserPlus className="h-4 w-4 mr-1" /> Assign Steward
+            <UserPlus className="h-4 w-4 mr-1" /> {t("adminStewardship.assignSteward")}
           </Button>
         </div>
       </div>
@@ -334,19 +337,19 @@ export default function AdminStewardship() {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{resolvedEdges.length}</p>
-            <p className="text-xs text-muted-foreground">Total Edges</p>
+            <p className="text-xs text-muted-foreground">{t("adminStewardship.stats.totalEdges")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-primary">{activeCount}</p>
-            <p className="text-xs text-muted-foreground">Active</p>
+            <p className="text-xs text-muted-foreground">{t("adminStewardship.stats.active")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-destructive">{revokedCount}</p>
-            <p className="text-xs text-muted-foreground">Revoked</p>
+            <p className="text-xs text-muted-foreground">{t("adminStewardship.stats.revoked")}</p>
           </CardContent>
         </Card>
       </div>
@@ -355,7 +358,7 @@ export default function AdminStewardship() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by steward name, territory name, or ID…"
+          placeholder={t("adminStewardship.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -368,22 +371,22 @@ export default function AdminStewardship() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Steward</TableHead>
-                <TableHead>Territory</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Since</TableHead>
+                <TableHead>{t("adminStewardship.table.steward")}</TableHead>
+                <TableHead>{t("adminStewardship.table.territory")}</TableHead>
+                <TableHead>{t("adminStewardship.table.tags")}</TableHead>
+                <TableHead>{t("adminStewardship.table.status")}</TableHead>
+                <TableHead>{t("adminStewardship.table.since")}</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading…</TableCell>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">{t("adminStewardship.loading")}</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No stewardship edges found.</TableCell>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">{t("adminStewardship.noEdgesFound")}</TableCell>
                 </TableRow>
               ) : (
                 filtered.map((edge) => (
@@ -393,7 +396,7 @@ export default function AdminStewardship() {
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-foreground">
-                            {edge.from_profile?.name || "Unknown user"}
+                            {edge.from_profile?.name || t("adminStewardship.unknownUser")}
                           </p>
                           <p className="text-xs text-muted-foreground font-mono truncate max-w-[140px]">
                             {edge.from_node_id.slice(0, 8)}…
@@ -408,7 +411,7 @@ export default function AdminStewardship() {
                           <p className="text-sm font-medium text-foreground">
                             {edge.to_territory?.name || (
                               <span className="text-muted-foreground italic">
-                                ID: {edge.to_node_id.slice(0, 8)}… (not in territories table)
+                                {t("adminStewardship.notInTerritoriesTable", { id: edge.to_node_id.slice(0, 8) })}
                               </span>
                             )}
                           </p>
@@ -443,14 +446,17 @@ export default function AdminStewardship() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Revoke stewardship?</AlertDialogTitle>
+                              <AlertDialogTitle>{t("adminStewardship.revokeStewardship")}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will revoke {edge.from_profile?.name || "this user"}'s stewardship of {edge.to_territory?.name || "this territory"}.
+                                {t("adminStewardship.revokeDescription", {
+                                  user: edge.from_profile?.name || t("adminStewardship.thisUser"),
+                                  territory: edge.to_territory?.name || t("adminStewardship.thisTerritory"),
+                                })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleRevoke(edge.id)}>Revoke</AlertDialogAction>
+                              <AlertDialogCancel>{t("adminStewardship.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleRevoke(edge.id)}>{t("adminStewardship.revoke")}</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -468,28 +474,28 @@ export default function AdminStewardship() {
       <Dialog open={showAssign} onOpenChange={setShowAssign}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign Stewardship</DialogTitle>
+            <DialogTitle>{t("adminStewardship.assignDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <SearchCombobox
-              label="User"
-              placeholder="Search by name or email…"
+              label={t("adminStewardship.userLabel")}
+              placeholder={t("adminStewardship.userSearchPlaceholder")}
               items={allProfiles}
               value={assignUserId}
               onChange={setAssignUserId}
             />
             <SearchCombobox
-              label="Territory"
-              placeholder="Search by territory name…"
+              label={t("adminStewardship.territoryLabel")}
+              placeholder={t("adminStewardship.territorySearchPlaceholder")}
               items={allTerritories}
               value={assignTerritoryId}
               onChange={setAssignTerritoryId}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAssign(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowAssign(false)}>{t("adminStewardship.cancel")}</Button>
             <Button onClick={handleAssign} disabled={assigning || !assignUserId || !assignTerritoryId}>
-              {assigning ? "Assigning…" : "Assign"}
+              {assigning ? t("adminStewardship.assigning") : t("adminStewardship.assign")}
             </Button>
           </DialogFooter>
         </DialogContent>

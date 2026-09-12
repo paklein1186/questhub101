@@ -3521,5 +3521,55 @@
     "includeNested": "Include nested territories",
     "subTerritoriesCount": "{{count}} sub-territories",
     "noEntities": "No entities connected to this territory yet."
+  },
+  "adminStewardship": {
+    "unnamed": "Unnamed",
+    "searchLabel": "Search {{label}}…",
+    "noResults": "No results found.",
+    "title": "Stewardship Management",
+    "subtitle": "View, assign, and revoke territory stewardship edges.",
+    "granting": "Granting…",
+    "grantMonthlyRewards": "Grant monthly rewards",
+    "grantHint": "Run once/month — $CTG to all active stewards",
+    "assignSteward": "Assign Steward",
+    "stats": {
+      "totalEdges": "Total Edges",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "searchPlaceholder": "Search by steward name, territory name, or ID…",
+    "table": {
+      "steward": "Steward",
+      "territory": "Territory",
+      "tags": "Tags",
+      "status": "Status",
+      "since": "Since"
+    },
+    "loading": "Loading…",
+    "noEdgesFound": "No stewardship edges found.",
+    "unknownUser": "Unknown user",
+    "notInTerritoriesTable": "ID: {{id}}… (not in territories table)",
+    "revokeStewardship": "Revoke stewardship?",
+    "revokeDescription": "This will revoke {{user}}'s stewardship of {{territory}}.",
+    "thisUser": "this user",
+    "thisTerritory": "this territory",
+    "cancel": "Cancel",
+    "revoke": "Revoke",
+    "assignDialogTitle": "Assign Stewardship",
+    "userLabel": "User",
+    "userSearchPlaceholder": "Search by name or email…",
+    "territoryLabel": "Territory",
+    "territorySearchPlaceholder": "Search by territory name…",
+    "assigning": "Assigning…",
+    "assign": "Assign",
+    "toast": {
+      "error": "Error",
+      "stewardshipRevoked": "Stewardship revoked",
+      "alreadySteward": "Already a steward",
+      "alreadyStewardDesc": "This user is already a steward of this territory.",
+      "stewardshipAssigned": "Stewardship assigned",
+      "monthlyRewardsGranted": "Monthly rewards granted",
+      "monthlyRewardsGrantedDesc": "{{count}} stewards rewarded with $CTG."
+    }
   }
 }
