@@ -3229,5 +3229,22 @@
       "superAdmin": "Super Admin"
     },
     "xpLadderHint": "Les capacités d'administration se débloquent avec le niveau d'XP"
+  },
+  "stewardsSidebar": {
+    "title": "Stewards",
+    "noneYet": "Pas encore de steward. Devenez le pionnier de ce territoire !",
+    "requestStewardship": "Demander le stewardship",
+    "requestPending": "Demande de stewardship en attente",
+    "loginToRequest": "Connectez-vous pour demander le stewardship (niveau 2+).",
+    "pendingRequests": "Demandes en attente",
+    "unknown": "Inconnu",
+    "toast": {
+      "requestSent": "Demande de stewardship envoyée",
+      "requestSentDesc": "Un steward va examiner votre demande.",
+      "requestFailed": "Échec de l'envoi de la demande",
+      "approved": "Stewardship approuvé !",
+      "approveFailed": "Échec de l'approbation",
+      "rejected": "Demande rejetée"
+    }
   }
 }

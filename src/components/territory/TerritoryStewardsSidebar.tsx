@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export function TerritoryStewardsSidebar({
   isPioneerTerritory,
   userXpLevel,
 }: TerritoryStewardsSidebarProps) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -74,7 +76,7 @@ export function TerritoryStewardsSidebar({
       const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
       return data.map((r: any) => ({
         ...r,
-        name: profileMap.get(r.requester_user_id)?.name ?? "Unknown",
+        name: profileMap.get(r.requester_user_id)?.name ?? t("stewardsSidebar.unknown"),
         avatar_url: profileMap.get(r.requester_user_id)?.avatar_url ?? null,
       }));
     },
@@ -91,11 +93,11 @@ export function TerritoryStewardsSidebar({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Stewardship request sent", description: "A steward will review your request." });
+      toast({ title: t("stewardsSidebar.toast.requestSent"), description: t("stewardsSidebar.toast.requestSentDesc") });
       queryClient.invalidateQueries({ queryKey: ["stewardship-request", territoryId] });
     },
     onError: () => {
-      toast({ title: "Failed to send request", variant: "destructive" });
+      toast({ title: t("stewardsSidebar.toast.requestFailed"), variant: "destructive" });
     },
   });
 
@@ -128,12 +130,12 @@ export function TerritoryStewardsSidebar({
       if (edgeError) throw edgeError;
     },
     onSuccess: () => {
-      toast({ title: "Stewardship approved!" });
+      toast({ title: t("stewardsSidebar.toast.approved") });
       queryClient.invalidateQueries({ queryKey: ["stewardship-pending-requests", territoryId] });
       queryClient.invalidateQueries({ queryKey: ["territory-portal-stewards", territoryId] });
     },
     onError: () => {
-      toast({ title: "Failed to approve", variant: "destructive" });
+      toast({ title: t("stewardsSidebar.toast.approveFailed"), variant: "destructive" });
     },
   });
 
@@ -150,7 +152,7 @@ export function TerritoryStewardsSidebar({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Request rejected" });
+      toast({ title: t("stewardsSidebar.toast.rejected") });
       queryClient.invalidateQueries({ queryKey: ["stewardship-pending-requests", territoryId] });
     },
   });
@@ -159,14 +161,14 @@ export function TerritoryStewardsSidebar({
     <div className="rounded-xl border border-border bg-card p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Shield className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Stewards</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("stewardsSidebar.title")}</h3>
         {stewards.length > 0 && (
           <Badge variant="secondary" className="text-[10px] ml-auto">{stewards.length}</Badge>
         )}
       </div>
 
       {stewards.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No stewards yet. Pioneer this territory!</p>
+        <p className="text-xs text-muted-foreground">{t("stewardsSidebar.noneYet")}</p>
       ) : (
         <div className="space-y-2">
           {stewards.map(s => (
@@ -199,25 +201,25 @@ export function TerritoryStewardsSidebar({
           ) : (
             <UserPlus className="h-3 w-3" />
           )}
-          Request Stewardship
+          {t("stewardsSidebar.requestStewardship")}
         </Button>
       )}
 
       {existingRequest && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
           <Clock className="h-3 w-3" />
-          Stewardship request pending
+          {t("stewardsSidebar.requestPending")}
         </div>
       )}
 
       {!isAuthenticated && !isPioneerTerritory && stewards.length > 0 && (
-        <p className="text-[11px] text-muted-foreground">Log in to request stewardship (Level 2+).</p>
+        <p className="text-[11px] text-muted-foreground">{t("stewardsSidebar.loginToRequest")}</p>
       )}
 
       {/* Pending requests for stewards */}
       {isSteward && pendingRequests.length > 0 && (
         <div className="space-y-2 pt-2 border-t border-border">
-          <p className="text-[11px] font-medium text-muted-foreground">Pending requests</p>
+          <p className="text-[11px] font-medium text-muted-foreground">{t("stewardsSidebar.pendingRequests")}</p>
           {pendingRequests.map((req: any) => (
             <div key={req.id} className="flex items-center gap-2 rounded-lg bg-muted/30 px-2 py-1.5">
               <Avatar className="h-6 w-6">

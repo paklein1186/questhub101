@@ -3243,5 +3243,22 @@
       "superAdmin": "Super Admin"
     },
     "xpLadderHint": "Admin capabilities unlock with XP level"
+  },
+  "stewardsSidebar": {
+    "title": "Stewards",
+    "noneYet": "No stewards yet. Pioneer this territory!",
+    "requestStewardship": "Request Stewardship",
+    "requestPending": "Stewardship request pending",
+    "loginToRequest": "Log in to request stewardship (Level 2+).",
+    "pendingRequests": "Pending requests",
+    "unknown": "Unknown",
+    "toast": {
+      "requestSent": "Stewardship request sent",
+      "requestSentDesc": "A steward will review your request.",
+      "requestFailed": "Failed to send request",
+      "approved": "Stewardship approved!",
+      "approveFailed": "Failed to approve",
+      "rejected": "Request rejected"
+    }
   }
 }
