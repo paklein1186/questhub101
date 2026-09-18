@@ -115,7 +115,7 @@ export default function OrganizationLanding() {
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild><Link to="/login">{t("landing.nav.login", "Log in")}</Link></Button>
-                <Button size="sm" asChild><Link to="/welcome">{t("landing.nav.signup", "Sign up")}</Link></Button>
+                <Button size="sm" asChild><Link to="/signup">{t("landing.nav.signup", "Sign up")}</Link></Button>
               </>
             )}
           </nav>
