@@ -65,7 +65,7 @@ serve(async (req) => {
     );
 
     // Verify agent is admitted to this unit
-    const { data: unitAgent, error: uaErr } = await adminClient
+    let { data: unitAgent } = await adminClient
       .from("unit_agents")
       .select("*, agents(*)")
       .eq("agent_id", agentId)
@@ -73,6 +73,23 @@ serve(async (req) => {
       .eq("unit_id", unitId)
       .eq("is_active", true)
       .maybeSingle();
+
+    // Bilateral activation: a quest inherits agents admitted to its parent
+    // guild, so fall back to the guild-level admission before rejecting.
+    if (!unitAgent && unitType === "quest") {
+      const { data: quest } = await adminClient.from("quests").select("guild_id").eq("id", unitId).maybeSingle();
+      if (quest?.guild_id) {
+        const { data: guildUnitAgent } = await adminClient
+          .from("unit_agents")
+          .select("*, agents(*)")
+          .eq("agent_id", agentId)
+          .eq("unit_type", "guild")
+          .eq("unit_id", quest.guild_id)
+          .eq("is_active", true)
+          .maybeSingle();
+        unitAgent = guildUnitAgent;
+      }
+    }
 
     if (!unitAgent) {
       return new Response(JSON.stringify({ error: "Agent not admitted to this unit" }), {

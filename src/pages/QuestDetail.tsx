@@ -1183,7 +1183,7 @@ export default function QuestDetail() {
 
         {isParticipant && (
           <TabsContent value="agents" className="mt-6">
-            <UnitAgentsTab unitType="quest" unitId={quest.id} unitName={quest.title} isAdmin={isOwner} />
+            <UnitAgentsTab unitType="quest" unitId={quest.id} unitName={quest.title} isAdmin={isOwner} parentGuildId={quest.guild_id || undefined} />
           </TabsContent>
         )}
 

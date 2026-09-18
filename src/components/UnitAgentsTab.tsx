@@ -22,16 +22,21 @@ interface UnitAgentsTabProps {
   unitId: string;
   unitName: string;
   isAdmin: boolean;
+  /** When set (a quest belonging to a guild), agents attached to that parent
+   * guild are also shown here, read-only — bilateral activation: a guild
+   * admits an agent once and it becomes usable in every quest of the guild,
+   * without needing separate per-quest attachment. */
+  parentGuildId?: string;
 }
 
-export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgentsTabProps) {
+export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuildId }: UnitAgentsTabProps) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [activeChatAgentId, setActiveChatAgentId] = useState<string | null>(null);
 
   // Fetch admitted agents for this unit
-  const { data: unitAgents, isLoading } = useQuery({
+  const { data: ownUnitAgents, isLoading } = useQuery({
     queryKey: ["unit-agents", unitType, unitId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -44,6 +49,27 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
       return data as any[];
     },
   });
+
+  // Agents inherited from the parent guild (quest pages only)
+  const { data: inheritedAgents } = useQuery({
+    queryKey: ["unit-agents", "guild", parentGuildId],
+    enabled: !!parentGuildId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unit_agents" as any)
+        .select("*, agents(*)")
+        .eq("unit_type", "guild")
+        .eq("unit_id", parentGuildId!)
+        .eq("is_active", true);
+      if (error) throw error;
+      return (data as any[]).map((ua) => ({ ...ua, inherited: true }));
+    },
+  });
+
+  const unitAgents = [
+    ...(ownUnitAgents ?? []),
+    ...((inheritedAgents ?? []).filter((ia) => !(ownUnitAgents ?? []).some((ua) => ua.agent_id === ia.agent_id))),
+  ];
 
   const removeAgent = useMutation({
     mutationFn: async (unitAgentId: string) => {
@@ -129,12 +155,15 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
                   <Badge variant="outline" className="text-[10px] mt-0.5">
                     {ua.agents?.category}
                   </Badge>
+                  {ua.inherited && (
+                    <Badge variant="secondary" className="text-[10px] mt-0.5 ml-1">From guild</Badge>
+                  )}
                   <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                     {ua.agents?.description}
                   </p>
                 </div>
-                {isAdmin && (
+                {isAdmin && !ua.inherited && (
                   <Button
                     variant="ghost"
                     size="icon"
