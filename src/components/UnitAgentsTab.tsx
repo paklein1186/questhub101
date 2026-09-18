@@ -106,7 +106,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin }: UnitAgent
           <p className="text-sm text-muted-foreground">No agents attached yet.</p>
           {isAdmin && (
             <p className="text-xs text-muted-foreground mt-1">
-              Attach one of your hired agents to get started.
+              Attach a published agent — your own or one another guild already uses.
             </p>
           )}
         </Card>
@@ -178,23 +178,45 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
 
-  // Only show agents that the current user has hired
+  // Browse every published agent — including ones another guild admitted
+  // first — rather than only agents this user personally hired, so agents
+  // can circulate across guilds instead of staying siloed to their creator.
   const { data: hiredAgents, isLoading } = useQuery({
-    queryKey: ["my-hired-agents-for-admit", userId, search],
+    queryKey: ["published-agents-for-admit", search],
     enabled: open,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_hires")
-        .select("agent_id, agents(*)")
-        .eq("user_id", userId)
-        .eq("status", "active");
+      let q = supabase
+        .from("agents" as any)
+        .select("*")
+        .eq("is_published", true)
+        .order("usage_count", { ascending: false })
+        .limit(50);
+      if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
+      const { data: agents, error } = await q;
       if (error) throw error;
-      let agents = (data || []).map((h: any) => h.agents).filter(Boolean);
-      if (search.trim()) {
-        const s = search.trim().toLowerCase();
-        agents = agents.filter((a: any) => a.name?.toLowerCase().includes(s));
+
+      const agentIds = (agents ?? []).map((a: any) => a.id);
+      if (agentIds.length === 0) return [];
+
+      const { data: attachments } = await supabase
+        .from("unit_agents" as any)
+        .select("agent_id, unit_type, unit_id")
+        .eq("unit_type", "guild")
+        .eq("is_active", true)
+        .in("agent_id", agentIds);
+
+      const guildCountByAgent = new Map<string, Set<string>>();
+      for (const a of (attachments ?? []) as any[]) {
+        if (a.unit_id === unitId) continue; // don't count this guild itself
+        const set = guildCountByAgent.get(a.agent_id) ?? new Set();
+        set.add(a.unit_id);
+        guildCountByAgent.set(a.agent_id, set);
       }
-      return agents;
+
+      return (agents ?? []).map((a: any) => ({
+        ...a,
+        guildCount: guildCountByAgent.get(a.id)?.size ?? 0,
+      }));
     },
   });
 
@@ -217,12 +239,14 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Attach a Hired Agent</DialogTitle></DialogHeader>
-        <p className="text-xs text-muted-foreground -mt-2">Only agents you've hired can be attached here.</p>
+        <DialogHeader><DialogTitle>Attach a Published Agent</DialogTitle></DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Any published agent can be attached here — including ones already used by other guilds.
+        </p>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search your agents..."
+            placeholder="Search published agents..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -233,9 +257,9 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
             <Skeleton className="h-16" />
           ) : !hiredAgents?.length ? (
             <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">No hired agents found.</p>
+              <p className="text-sm text-muted-foreground">No published agents found.</p>
               <p className="text-xs text-muted-foreground mt-1">
-                <a href="/agents" className="text-primary hover:underline">Browse & hire agents</a> first.
+                <a href="/agents" className="text-primary hover:underline">Browse the agent marketplace</a> to create one.
               </p>
             </div>
           ) : (
@@ -253,6 +277,11 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{agent.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{agent.description}</p>
+                    {agent.guildCount > 0 && (
+                      <p className="text-[10px] text-primary mt-0.5">
+                        Used by {agent.guildCount} other guild{agent.guildCount !== 1 ? "s" : ""}
+                      </p>
+                    )}
                   </div>
                   <Badge variant="secondary" className="text-[10px] shrink-0">
                     {agent.cost_per_use} cr
