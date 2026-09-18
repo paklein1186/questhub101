@@ -3973,5 +3973,27 @@
       "occurrenceScheduled": "Occurrence du rituel planifiée",
       "markedCompleted": "Rituel marqué comme terminé"
     }
+  },
+  "opportunities": {
+    "title": "Opportunités",
+    "subtitle": "Missions, offres d'emploi, services et formations au même endroit — parcourez par ce que vous cherchez, pas par catégorie.",
+    "tabs": {
+      "all": "Toutes",
+      "MISSION": "Missions",
+      "JOB": "Emplois",
+      "SERVICE": "Services",
+      "COURSE": "Formations"
+    },
+    "type": {
+      "MISSION": "Mission",
+      "JOB": "Emploi",
+      "SERVICE": "Service",
+      "COURSE": "Formation"
+    },
+    "free": "Gratuit",
+    "searchPlaceholder": "Rechercher une opportunité…",
+    "loading": "Chargement des opportunités…",
+    "empty": "Aucune opportunité ne correspond à vos filtres.",
+    "clearFilters": "Réinitialiser les filtres"
   }
 }

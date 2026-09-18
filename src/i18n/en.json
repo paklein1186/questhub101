@@ -3987,5 +3987,27 @@
       "occurrenceScheduled": "Ritual occurrence scheduled",
       "markedCompleted": "Ritual marked as completed"
     }
+  },
+  "opportunities": {
+    "title": "Opportunities",
+    "subtitle": "Missions, jobs, services and courses in one place — browse by what you're looking for, not by category.",
+    "tabs": {
+      "all": "All",
+      "MISSION": "Missions",
+      "JOB": "Jobs",
+      "SERVICE": "Services",
+      "COURSE": "Courses"
+    },
+    "type": {
+      "MISSION": "Mission",
+      "JOB": "Job",
+      "SERVICE": "Service",
+      "COURSE": "Course"
+    },
+    "free": "Free",
+    "searchPlaceholder": "Search opportunities…",
+    "loading": "Loading opportunities…",
+    "empty": "No opportunities match your filters.",
+    "clearFilters": "Clear filters"
   }
 }
