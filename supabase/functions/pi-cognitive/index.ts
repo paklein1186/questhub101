@@ -278,6 +278,35 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "search_site",
+      description: "Search across the whole platform — quests, guilds, territories, services and courses — not just the entity currently being viewed. Use this when the user asks a broad 'where can I find...' / 'is there anything about...' question rather than a single-entity lookup.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search keywords" },
+          limit: { type: "number", description: "Max results per entity type (default 5)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_web",
+      description: "Search the open web for information not available on the platform (news, definitions, external organizations, general knowledge). Returns a short instant-answer summary and related links, not a full page fetch.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Web search query" },
+        },
+        required: ["query"],
+      },
+    },
+  },
 ];
 
 // =====================================================================
@@ -682,6 +711,63 @@ async function executeToolCall(
         members: { total: parts.length, active: parts.filter(p => (p.status || "").toLowerCase() === "active").length },
         last_discussion_at: postsR.data?.[0]?.created_at || null,
       };
+    }
+
+    case "search_site": {
+      const q = (params.query || "").trim();
+      if (!q) return { error: "query required" };
+      const limit = params.limit || 5;
+      const like = `%${q}%`;
+
+      const [quests, guilds, territories, services, courses] = await Promise.all([
+        sb.from("quests").select("id, title, description")
+          .eq("is_deleted", false).eq("is_draft", false)
+          .or(`title.ilike.${like},description.ilike.${like}`).limit(limit),
+        sb.from("guilds").select("id, name, description")
+          .eq("is_deleted", false)
+          .or(`name.ilike.${like},description.ilike.${like}`).limit(limit),
+        sb.from("territories").select("id, name")
+          .ilike("name", like).limit(limit),
+        sb.from("services").select("id, title, description")
+          .eq("is_deleted", false)
+          .or(`title.ilike.${like},description.ilike.${like}`).limit(limit),
+        sb.from("courses").select("id, title, description")
+          .eq("is_deleted", false).eq("is_published", true)
+          .or(`title.ilike.${like},description.ilike.${like}`).limit(limit),
+      ]);
+
+      return {
+        quests: quests.data || [],
+        guilds: guilds.data || [],
+        territories: territories.data || [],
+        services: services.data || [],
+        courses: courses.data || [],
+      };
+    }
+
+    case "search_web": {
+      const q = (params.query || "").trim();
+      if (!q) return { error: "query required" };
+      try {
+        const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`;
+        const res = await fetch(url);
+        if (!res.ok) return { error: `Web search failed (${res.status})` };
+        const data = await res.json();
+        const relatedTopics = (data.RelatedTopics || [])
+          .filter((t: any) => t.Text)
+          .slice(0, 5)
+          .map((t: any) => ({ text: t.Text, url: t.FirstURL }));
+        return {
+          summary: data.AbstractText || null,
+          summary_source: data.AbstractURL || null,
+          related: relatedTopics,
+          note: relatedTopics.length === 0 && !data.AbstractText
+            ? "No instant-answer result for this query — this tool covers known entities/topics, not full web search."
+            : undefined,
+        };
+      } catch (e: any) {
+        return { error: `Web search error: ${e?.message || e}` };
+      }
     }
 
     default:
