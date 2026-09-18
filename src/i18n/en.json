@@ -3760,5 +3760,24 @@
     "summaryReply": "Reply",
     "summaryManage": "Manage",
     "createRoomButton": "Create Room"
+  },
+  "audiencePicker": {
+    "hints": {
+      "public": "Anyone, including non-members, can access.",
+      "followers": "Followers and members can access.",
+      "members": "Only members can access.",
+      "activeRoles": "Only members with at least one role assigned.",
+      "selectedRoles": "Only members with one of the selected roles.",
+      "operationsTeam": "Only members with the Operations role.",
+      "adminsOnly": "Only admins and the Source."
+    }
+  },
+  "roomSettings": {
+    "title": "Room settings",
+    "dialogTitle": "Room Settings — #{{name}}",
+    "whoCanPost": "Who can post?",
+    "saveChanges": "Save Changes",
+    "deleteConfirm": "Delete room \"{{name}}\"? All posts in this room will lose their room association.",
+    "deleteRoom": "Delete Room"
   }
 }

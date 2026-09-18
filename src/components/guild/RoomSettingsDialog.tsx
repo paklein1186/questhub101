@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { AudiencePicker } from "./AudiencePicker";
-import { AUDIENCE_LABELS, type AudienceType } from "@/lib/permissions";
+import { type AudienceType } from "@/lib/permissions";
+import { translateAudienceType } from "@/lib/entityLabels";
 import type { EntityRole } from "@/hooks/useEntityRoles";
 import type { DiscussionRoom } from "@/hooks/useDiscussionRooms";
 
@@ -19,6 +21,7 @@ interface RoomSettingsDialogProps {
 }
 
 export function RoomSettingsDialog({ room, roles, onUpdate, onDelete }: RoomSettingsDialogProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(room.name);
   const [description, setDescription] = useState(room.description || "");
@@ -44,10 +47,10 @@ export function RoomSettingsDialog({ room, roles, onUpdate, onDelete }: RoomSett
   };
 
   const summary = [
-    `View: ${AUDIENCE_LABELS[audienceType]}`,
-    `Post: ${AUDIENCE_LABELS[canPostType]}`,
-    `Reply: ${AUDIENCE_LABELS[canReplyType]}`,
-    `Manage: ${AUDIENCE_LABELS[canManageType]}`,
+    `${t("roomCreation.summaryView")}: ${translateAudienceType(audienceType, t)}`,
+    `${t("roomCreation.summaryPost")}: ${translateAudienceType(canPostType, t)}`,
+    `${t("roomCreation.summaryReply")}: ${translateAudienceType(canReplyType, t)}`,
+    `${t("roomCreation.summaryManage")}: ${translateAudienceType(canManageType, t)}`,
   ].join(" · ");
 
   return (
@@ -55,29 +58,29 @@ export function RoomSettingsDialog({ room, roles, onUpdate, onDelete }: RoomSett
       <DialogTrigger asChild>
         <button
           className="ml-0.5 p-0.5 rounded hover:bg-muted/80 transition-colors opacity-60 hover:opacity-100"
-          title="Room settings"
+          title={t("roomSettings.title")}
           onClick={(e) => { e.stopPropagation(); setOpen(true); }}
         >
           <Settings2 className="h-3 w-3" />
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Room Settings — #{room.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("roomSettings.dialogTitle", { name: room.name })}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <label className="text-sm font-medium mb-1 block">Room name</label>
+            <label className="text-sm font-medium mb-1 block">{t("roomCreation.roomNameLabel")}</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Description (optional)</label>
+            <label className="text-sm font-medium mb-1 block">{t("roomCreation.descriptionLabel")}</label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="resize-none min-h-[60px]" maxLength={200} />
           </div>
 
-          <AudiencePicker label="Who can see this room?" value={audienceType} onChange={setAudienceType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
-          <AudiencePicker label="Who can post?" value={canPostType} onChange={setCanPostType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
-          <AudiencePicker label="Who can reply?" value={canReplyType} onChange={setCanReplyType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomCreation.whoCanSee")} value={audienceType} onChange={setAudienceType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomSettings.whoCanPost")} value={canPostType} onChange={setCanPostType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomCreation.whoCanReply")} value={canReplyType} onChange={setCanReplyType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
           <AudiencePicker
-            label="Who can manage this room?"
+            label={t("roomCreation.whoCanManage")}
             value={canManageType}
             onChange={(v) => setCanManageType(v as "ADMINS_ONLY" | "SELECTED_ROLES")}
             allowedTypes={["ADMINS_ONLY", "SELECTED_ROLES"]}
@@ -87,12 +90,12 @@ export function RoomSettingsDialog({ room, roles, onUpdate, onDelete }: RoomSett
           />
 
           <div className="rounded-lg bg-muted/50 border border-border px-3 py-2">
-            <p className="text-xs text-muted-foreground font-medium">Summary</p>
+            <p className="text-xs text-muted-foreground font-medium">{t("roomCreation.summary")}</p>
             <p className="text-xs text-foreground mt-0.5">{summary}</p>
           </div>
 
           <Button onClick={handleSave} disabled={!name.trim()} className="w-full">
-            Save Changes
+            {t("roomSettings.saveChanges")}
           </Button>
 
           {!room.is_default && (
@@ -101,13 +104,13 @@ export function RoomSettingsDialog({ room, roles, onUpdate, onDelete }: RoomSett
               size="sm"
               className="w-full"
               onClick={() => {
-                if (window.confirm(`Delete room "${room.name}"? All posts in this room will lose their room association.`)) {
+                if (window.confirm(t("roomSettings.deleteConfirm", { name: room.name }))) {
                   onDelete(room.id);
                   setOpen(false);
                 }
               }}
             >
-              <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Room
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> {t("roomSettings.deleteRoom")}
             </Button>
           )}
         </div>

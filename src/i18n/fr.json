@@ -3746,5 +3746,24 @@
     "summaryReply": "Répondre",
     "summaryManage": "Gérer",
     "createRoomButton": "Créer le salon"
+  },
+  "audiencePicker": {
+    "hints": {
+      "public": "Accessible à tous, y compris aux non-membres.",
+      "followers": "Accessible aux abonnés et aux membres.",
+      "members": "Accessible uniquement aux membres.",
+      "activeRoles": "Uniquement les membres ayant au moins un rôle assigné.",
+      "selectedRoles": "Uniquement les membres ayant l'un des rôles sélectionnés.",
+      "operationsTeam": "Uniquement les membres ayant le rôle Opérations.",
+      "adminsOnly": "Uniquement les admins et la Source."
+    }
+  },
+  "roomSettings": {
+    "title": "Réglages du salon",
+    "dialogTitle": "Réglages du salon — #{{name}}",
+    "whoCanPost": "Qui peut publier ?",
+    "saveChanges": "Enregistrer les modifications",
+    "deleteConfirm": "Supprimer le salon « {{name}} » ? Toutes les publications de ce salon perdront leur association au salon.",
+    "deleteRoom": "Supprimer le salon"
   }
 }

@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AUDIENCE_LABELS, AUDIENCE_ORDER, type AudienceType } from "@/lib/permissions";
+import { AUDIENCE_ORDER, type AudienceType } from "@/lib/permissions";
+import { translateAudienceType } from "@/lib/entityLabels";
 import type { EntityRole } from "@/hooks/useEntityRoles";
 
 interface AudiencePickerProps {
@@ -24,6 +26,7 @@ export function AudiencePicker({
   selectedRoleIds = [],
   onRoleIdsChange,
 }: AudiencePickerProps) {
+  const { t } = useTranslation();
   const types = allowedTypes || AUDIENCE_ORDER;
   const showRoles = (value === "SELECTED_ROLES" || value === "ACTIVE_ROLES") && roles.length > 0;
 
@@ -35,9 +38,9 @@ export function AudiencePicker({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {types.map((t) => (
-            <SelectItem key={t} value={t}>
-              {AUDIENCE_LABELS[t]}
+          {types.map((audienceType) => (
+            <SelectItem key={audienceType} value={audienceType}>
+              {translateAudienceType(audienceType, t)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -74,13 +77,13 @@ export function AudiencePicker({
       )}
 
       <p className="text-xs text-muted-foreground">
-        {value === "PUBLIC" && "Anyone, including non-members, can access."}
-        {value === "FOLLOWERS" && "Followers and members can access."}
-        {value === "MEMBERS" && "Only members can access."}
-        {value === "ACTIVE_ROLES" && "Only members with at least one role assigned."}
-        {value === "SELECTED_ROLES" && "Only members with one of the selected roles."}
-        {value === "OPERATIONS_TEAM" && "Only members with the Operations role."}
-        {value === "ADMINS_ONLY" && "Only admins and the Source."}
+        {value === "PUBLIC" && t("audiencePicker.hints.public")}
+        {value === "FOLLOWERS" && t("audiencePicker.hints.followers")}
+        {value === "MEMBERS" && t("audiencePicker.hints.members")}
+        {value === "ACTIVE_ROLES" && t("audiencePicker.hints.activeRoles")}
+        {value === "SELECTED_ROLES" && t("audiencePicker.hints.selectedRoles")}
+        {value === "OPERATIONS_TEAM" && t("audiencePicker.hints.operationsTeam")}
+        {value === "ADMINS_ONLY" && t("audiencePicker.hints.adminsOnly")}
       </p>
     </div>
   );
