@@ -155,14 +155,15 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
   guild: any; fc: any; isAdmin: boolean; isMember: boolean; currentUser: any; currentMembership: any; members: any[]; territories: any[]; topics: any[];
   guildMembership?: any;
 }) {
+  const { t } = useTranslation();
   const [sub, setSub] = useState("discussions");
   return (
     <Tabs value={sub} onValueChange={setSub}>
       <TabsList>
-        <TabsTrigger value="discussions"><MessageCircle className="h-3.5 w-3.5 mr-1" />Discussions</TabsTrigger>
-        <TabsTrigger value="docs"><FileText className="h-3.5 w-3.5 mr-1" />Docs</TabsTrigger>
-        <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 mr-1" />Decisions</TabsTrigger>
-        <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" />Rituals</TabsTrigger>
+        <TabsTrigger value="discussions"><MessageCircle className="h-3.5 w-3.5 mr-1" />{t("guildActivity.tabs.discussions")}</TabsTrigger>
+        <TabsTrigger value="docs"><FileText className="h-3.5 w-3.5 mr-1" />{t("guildActivity.tabs.docs")}</TabsTrigger>
+        <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 mr-1" />{t("guildActivity.tabs.decisions")}</TabsTrigger>
+        <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" />{t("guildActivity.tabs.rituals")}</TabsTrigger>
       </TabsList>
       <TabsContent value="discussions" className="mt-4">
         {(fc as any).discussionTab ? (
@@ -176,24 +177,24 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
             initialTopicIds={topics.map((t: any) => t.id)}
           />
         ) : (
-          <p className="text-muted-foreground">Discussions are disabled for this guild.</p>
+          <p className="text-muted-foreground">{t("guildActivity.disabled.discussions")}</p>
         )}
       </TabsContent>
       <TabsContent value="docs" className="mt-4">
         {(fc as any).docsSpace ? (
           <GuildDocsSpace guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
         ) : (
-          <p className="text-muted-foreground">Docs space is disabled for this guild.</p>
+          <p className="text-muted-foreground">{t("guildActivity.disabled.docs")}</p>
         )}
       </TabsContent>
       <TabsContent value="decisions" className="mt-4">
         {(() => {
           const votingAllowed = isAdmin || canAccessGuildVoting(guild, guildMembership);
           if (!votingAllowed && guild.enable_membership) {
-            return <p className="text-muted-foreground">Only members can access this governance view. Become a member from the Membership card.</p>;
+            return <p className="text-muted-foreground">{t("guildActivity.disabled.membersOnlyGovernance")}</p>;
           }
           if (!isMember) {
-            return <p className="text-muted-foreground">Join the guild to participate in decisions.</p>;
+            return <p className="text-muted-foreground">{t("guildActivity.disabled.joinToParticipate")}</p>;
           }
           return (
             <GuildDecisions
@@ -212,7 +213,7 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
         {(fc as any).rituals ? (
           <GuildRitualsTab guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
         ) : (
-          <p className="text-muted-foreground">Rituals are disabled for this guild.</p>
+          <p className="text-muted-foreground">{t("guildActivity.disabled.rituals")}</p>
         )}
       </TabsContent>
     </Tabs>
@@ -513,11 +514,11 @@ export default function GuildDetail() {
       <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview" && v !== "work") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         <div className="flex items-center gap-1">
           <TabsList>
-            <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 mr-1" /> Overview</TabsTrigger>
-            <TabsTrigger value="network"><Users className="h-3.5 w-3.5 mr-1" /> Network ({members.length})</TabsTrigger>
-            <TabsTrigger value="work"><Compass className="h-3.5 w-3.5 mr-1" /> Work</TabsTrigger>
+            <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.mainTabs.overview")}</TabsTrigger>
+            <TabsTrigger value="network"><Users className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.mainTabs.network", { count: members.length })}</TabsTrigger>
+            <TabsTrigger value="work"><Compass className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.mainTabs.work")}</TabsTrigger>
             {(isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public")) && (
-              <TabsTrigger value="activity"><MessageCircle className="h-3.5 w-3.5 mr-1" /> Activity</TabsTrigger>
+              <TabsTrigger value="activity"><MessageCircle className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.mainTabs.activity")}</TabsTrigger>
             )}
           </TabsList>
 
@@ -526,39 +527,39 @@ export default function GuildDetail() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-9 px-2.5">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="ml-1 text-sm">More</span>
+                <span className="ml-1 text-sm">{t("guildActivity.more.trigger")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setActiveTab("ovn")}>
-                <Network className="h-4 w-4 mr-2" /> Contribution Ledger
+                <Network className="h-4 w-4 mr-2" /> {t("guildActivity.more.contributionLedger")}
               </DropdownMenuItem>
               {isMember && (
                 <DropdownMenuItem onClick={() => setActiveTab("contribution-map")}>
-                  <Network className="h-4 w-4 mr-2" /> Value Map
+                  <Network className="h-4 w-4 mr-2" /> {t("guildActivity.more.valueMap")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => setActiveTab("living")}>
-                <Leaf className="h-4 w-4 mr-2" /> Ecosystem
+                <Leaf className="h-4 w-4 mr-2" /> {t("guildActivity.more.ecosystem")}
               </DropdownMenuItem>
               {isMember && (
                 <DropdownMenuItem onClick={() => setActiveTab("ai")}>
-                  <Bot className="h-4 w-4 mr-2" /> AI Studio
+                  <Bot className="h-4 w-4 mr-2" /> {t("guildActivity.more.aiStudio")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => setActiveTab("graph")}>
-                <Compass className="h-4 w-4 mr-2" /> Graph
+                <Compass className="h-4 w-4 mr-2" /> {t("guildActivity.more.graph")}
               </DropdownMenuItem>
               {isAdmin && (
                 <>
                   <DropdownMenuItem onClick={() => setActiveTab("agent-settings")}>
-                    <BotIcon className="h-4 w-4 mr-2" /> Agent Settings
+                    <BotIcon className="h-4 w-4 mr-2" /> {t("guildActivity.more.agentSettings")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
-                    <Sparkles className="h-4 w-4 mr-2" /> Matchmaker
+                    <Sparkles className="h-4 w-4 mr-2" /> {t("guildActivity.more.matchmaker")}
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-2" /> Settings</Link>
+                    <Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-2" /> {t("guildActivity.more.settings")}</Link>
                   </DropdownMenuItem>
                 </>
               )}

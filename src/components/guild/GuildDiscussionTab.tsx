@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostComposer } from "@/components/feed/PostComposer";
@@ -15,9 +16,10 @@ import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
 import { useDiscussionRooms, type DiscussionRoom } from "@/hooks/useDiscussionRooms";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { usePermissionContext } from "@/hooks/usePermissionContext";
-import { evaluateRoomPermissions, AUDIENCE_LABELS, type AudienceType } from "@/lib/permissions";
+import { evaluateRoomPermissions, type AudienceType } from "@/lib/permissions";
 import { RoomCreationDialog } from "@/components/guild/RoomCreationDialog";
 import { RoomSettingsDialog } from "@/components/guild/RoomSettingsDialog";
+import { translateAudienceType } from "@/lib/entityLabels";
 import { cn } from "@/lib/utils";
 
 interface GuildDiscussionTabProps {
@@ -35,10 +37,10 @@ interface GuildDiscussionTabProps {
   currentUserId?: string;
 }
 
-const VISIBILITY_LABELS: Record<string, { label: string; icon: typeof Globe }> = {
-  public: { label: "Public", icon: Globe },
-  members: { label: "Members only", icon: Lock },
-  admins: { label: "Admins only", icon: Shield },
+const VISIBILITY_LABEL_KEYS: Record<string, { key: string; icon: typeof Globe }> = {
+  public: { key: "public", icon: Globe },
+  members: { key: "membersOnly", icon: Lock },
+  admins: { key: "adminsOnly", icon: Shield },
 };
 
 export function GuildDiscussionTab({
@@ -54,6 +56,7 @@ export function GuildDiscussionTab({
   membership,
   currentUserId: externalUserId,
 }: GuildDiscussionTabProps) {
+  const { t } = useTranslation();
   const { session } = useAuth();
   const isLoggedIn = !!session;
   const userId = externalUserId || session?.user?.id;
@@ -104,7 +107,7 @@ export function GuildDiscussionTab({
     qc.invalidateQueries({ queryKey: ["guild-config-highlights", guildId] });
     qc.invalidateQueries({ queryKey: ["guild", guildId] });
     qc.invalidateQueries({ queryKey: ["highlighted-posts", guildId] });
-    toast({ title: current.includes(postId) ? "Post unhighlighted" : "Post highlighted in Overview" });
+    toast({ title: current.includes(postId) ? t("guildDiscussion.toast.postUnhighlighted") : t("guildDiscussion.toast.postHighlighted") });
   };
 
   const contextType = scopeType === "QUEST" ? "QUEST_DISCUSSION" : "GUILD_DISCUSSION";
@@ -202,7 +205,7 @@ export function GuildDiscussionTab({
                   {room.name}
                   {room.audience_type !== "MEMBERS" && room.audience_type !== "PUBLIC" && (
                     <Badge variant="outline" className="text-[9px] px-1 py-0 ml-0.5">
-                      {AUDIENCE_LABELS[room.audience_type as AudienceType]}
+                      {translateAudienceType(room.audience_type, t)}
                     </Badge>
                   )}
                   {roomP.canManage && (
@@ -259,19 +262,19 @@ export function GuildDiscussionTab({
       ) : !roomPerms.canView ? (
         <div className="text-center py-12 text-muted-foreground">
           <Lock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">You don't have access to this room</p>
+          <p className="text-sm">{t("guildDiscussion.noAccessToRoom")}</p>
         </div>
       ) : sortedPosts.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No discussions in {selectedRoom?.name || guildName} yet</p>
-          {roomPerms.canPost && <p className="text-xs mt-1">Start a conversation!</p>}
+          <p className="text-sm">{t("guildDiscussion.noDiscussionsYet", { name: selectedRoom?.name || guildName })}</p>
+          {roomPerms.canPost && <p className="text-xs mt-1">{t("guildDiscussion.startConversation")}</p>}
         </div>
       ) : (
         <div className="space-y-4">
           {sortedPosts.map((post) => {
             const vis = (post as any).visibility || "public";
-            const visInfo = VISIBILITY_LABELS[vis];
+            const visInfo = VISIBILITY_LABEL_KEYS[vis];
             const isHighlighted = highlightedPosts.includes(post.id);
             return (
               <div key={post.id} className="relative">
@@ -282,7 +285,7 @@ export function GuildDiscussionTab({
                       size="icon"
                       className="h-7 w-7 bg-background/80 backdrop-blur-sm"
                       onClick={() => toggleHighlight(post.id)}
-                      title={isHighlighted ? "Remove from Overview" : "Highlight in Overview"}
+                      title={isHighlighted ? t("guildDiscussion.removeFromOverview") : t("guildDiscussion.highlightInOverview")}
                     >
                       <Pin className={`h-3.5 w-3.5 ${isHighlighted ? "fill-current" : ""}`} />
                     </Button>
@@ -290,7 +293,7 @@ export function GuildDiscussionTab({
                   {vis !== "public" && (
                     <Badge variant="outline" className="text-[10px] gap-1 bg-background/80 backdrop-blur-sm">
                       {visInfo && <visInfo.icon className="h-3 w-3" />}
-                      {visInfo?.label}
+                      {visInfo && t(`guildDiscussion.visibility.${visInfo.key}`)}
                     </Badge>
                   )}
                 </div>

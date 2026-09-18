@@ -3686,5 +3686,79 @@
     "viewContributions": "View quest contributions",
     "unknownQuest": "Unknown Quest",
     "paid": "Paid"
+  },
+  "guildActivity": {
+    "mainTabs": {
+      "overview": "Overview",
+      "network": "Network ({{count}})",
+      "work": "Work",
+      "activity": "Activity"
+    },
+    "more": {
+      "trigger": "More",
+      "contributionLedger": "Contribution Ledger",
+      "valueMap": "Value Map",
+      "ecosystem": "Ecosystem",
+      "aiStudio": "AI Studio",
+      "graph": "Graph",
+      "agentSettings": "Agent Settings",
+      "matchmaker": "Matchmaker",
+      "settings": "Settings"
+    },
+    "tabs": {
+      "discussions": "Discussions",
+      "docs": "Docs",
+      "decisions": "Decisions",
+      "rituals": "Rituals"
+    },
+    "disabled": {
+      "discussions": "Discussions are disabled for this guild.",
+      "docs": "Docs space is disabled for this guild.",
+      "rituals": "Rituals are disabled for this guild.",
+      "membersOnlyGovernance": "Only members can access this governance view. Become a member from the Membership card.",
+      "joinToParticipate": "Join the guild to participate in decisions."
+    }
+  },
+  "audienceTypes": {
+    "public": "Public",
+    "followers": "Followers",
+    "members": "Members",
+    "activeRoles": "Active roles",
+    "selectedRoles": "Selected roles",
+    "operationsTeam": "Operations Team",
+    "adminsOnly": "Admins only"
+  },
+  "guildDiscussion": {
+    "toast": {
+      "postUnhighlighted": "Post unhighlighted",
+      "postHighlighted": "Post highlighted in Overview"
+    },
+    "noAccessToRoom": "You don't have access to this room",
+    "noDiscussionsYet": "No discussions in {{name}} yet",
+    "startConversation": "Start a conversation!",
+    "removeFromOverview": "Remove from Overview",
+    "highlightInOverview": "Highlight in Overview",
+    "visibility": {
+      "public": "Public",
+      "membersOnly": "Members only",
+      "adminsOnly": "Admins only"
+    }
+  },
+  "roomCreation": {
+    "newRoom": "New Room",
+    "createRoomTitle": "Create Discussion Room",
+    "roomNameLabel": "Room name",
+    "roomNamePlaceholder": "e.g. Strategy, Design, Announcements",
+    "descriptionLabel": "Description (optional)",
+    "whoCanSee": "Who can see this room?",
+    "whoCanPost": "Who can post (create threads)?",
+    "whoCanReply": "Who can reply?",
+    "whoCanManage": "Who can manage this room?",
+    "summary": "Summary",
+    "summaryView": "View",
+    "summaryPost": "Post",
+    "summaryReply": "Reply",
+    "summaryManage": "Manage",
+    "createRoomButton": "Create Room"
   }
 }

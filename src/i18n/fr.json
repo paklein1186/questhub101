@@ -3672,5 +3672,79 @@
     "viewContributions": "Voir les contributions de la quête",
     "unknownQuest": "Quête inconnue",
     "paid": "Payé"
+  },
+  "guildActivity": {
+    "mainTabs": {
+      "overview": "Vue d'ensemble",
+      "network": "Réseau ({{count}})",
+      "work": "Travail",
+      "activity": "Activité"
+    },
+    "more": {
+      "trigger": "Plus",
+      "contributionLedger": "Registre des contributions",
+      "valueMap": "Carte de valeur",
+      "ecosystem": "Écosystème",
+      "aiStudio": "Studio IA",
+      "graph": "Graphe",
+      "agentSettings": "Réglages des agents",
+      "matchmaker": "Mise en relation",
+      "settings": "Réglages"
+    },
+    "tabs": {
+      "discussions": "Discussions",
+      "docs": "Docs",
+      "decisions": "Décisions",
+      "rituals": "Rituels"
+    },
+    "disabled": {
+      "discussions": "Les discussions sont désactivées pour cette guilde.",
+      "docs": "L'espace Docs est désactivé pour cette guilde.",
+      "rituals": "Les rituels sont désactivés pour cette guilde.",
+      "membersOnlyGovernance": "Seuls les membres ont accès à cette vue de gouvernance. Devenez membre depuis la carte Adhésion.",
+      "joinToParticipate": "Rejoignez la guilde pour participer aux décisions."
+    }
+  },
+  "audienceTypes": {
+    "public": "Public",
+    "followers": "Abonnés",
+    "members": "Membres",
+    "activeRoles": "Rôles actifs",
+    "selectedRoles": "Rôles sélectionnés",
+    "operationsTeam": "Équipe opérationnelle",
+    "adminsOnly": "Admins uniquement"
+  },
+  "guildDiscussion": {
+    "toast": {
+      "postUnhighlighted": "Publication retirée de la mise en avant",
+      "postHighlighted": "Publication mise en avant dans Vue d'ensemble"
+    },
+    "noAccessToRoom": "Vous n'avez pas accès à ce salon",
+    "noDiscussionsYet": "Pas encore de discussion dans {{name}}",
+    "startConversation": "Lancez la conversation !",
+    "removeFromOverview": "Retirer de Vue d'ensemble",
+    "highlightInOverview": "Mettre en avant dans Vue d'ensemble",
+    "visibility": {
+      "public": "Public",
+      "membersOnly": "Membres uniquement",
+      "adminsOnly": "Admins uniquement"
+    }
+  },
+  "roomCreation": {
+    "newRoom": "Nouveau salon",
+    "createRoomTitle": "Créer un salon de discussion",
+    "roomNameLabel": "Nom du salon",
+    "roomNamePlaceholder": "ex. Stratégie, Design, Annonces",
+    "descriptionLabel": "Description (facultatif)",
+    "whoCanSee": "Qui peut voir ce salon ?",
+    "whoCanPost": "Qui peut publier (créer des fils) ?",
+    "whoCanReply": "Qui peut répondre ?",
+    "whoCanManage": "Qui peut gérer ce salon ?",
+    "summary": "Résumé",
+    "summaryView": "Voir",
+    "summaryPost": "Publier",
+    "summaryReply": "Répondre",
+    "summaryManage": "Gérer",
+    "createRoomButton": "Créer le salon"
   }
 }

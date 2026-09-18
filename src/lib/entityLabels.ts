@@ -93,3 +93,19 @@ export function translateCompanySize(size: string | null | undefined, t: TFuncti
   const key = COMPANY_SIZE_KEYS[size ?? ""];
   return key ? t(`companySize.${key}`, { defaultValue: size ?? "" }) : (size ?? "");
 }
+
+const AUDIENCE_TYPE_KEYS: Record<string, string> = {
+  PUBLIC: "public",
+  FOLLOWERS: "followers",
+  MEMBERS: "members",
+  ACTIVE_ROLES: "activeRoles",
+  SELECTED_ROLES: "selectedRoles",
+  OPERATIONS_TEAM: "operationsTeam",
+  ADMINS_ONLY: "adminsOnly",
+};
+
+/** Translates a room/post `audience_type` value (e.g. "MEMBERS", "ADMINS_ONLY"). */
+export function translateAudienceType(type: string | null | undefined, t: TFunction): string {
+  const key = AUDIENCE_TYPE_KEYS[type ?? ""];
+  return key ? t(`audienceTypes.${key}`, { defaultValue: type ?? "" }) : (type ?? "");
+}

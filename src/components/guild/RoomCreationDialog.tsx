@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { AudiencePicker } from "./AudiencePicker";
-import { AUDIENCE_LABELS, type AudienceType } from "@/lib/permissions";
+import { type AudienceType } from "@/lib/permissions";
+import { translateAudienceType } from "@/lib/entityLabels";
 import type { EntityRole } from "@/hooks/useEntityRoles";
 
 interface RoomCreationDialogProps {
@@ -25,6 +27,7 @@ interface RoomCreationDialogProps {
 }
 
 export function RoomCreationDialog({ roles, onSubmit }: RoomCreationDialogProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -42,36 +45,36 @@ export function RoomCreationDialog({ roles, onSubmit }: RoomCreationDialogProps)
   };
 
   const summary = [
-    `View: ${AUDIENCE_LABELS[audienceType]}`,
-    `Post: ${AUDIENCE_LABELS[canPostType]}`,
-    `Reply: ${AUDIENCE_LABELS[canReplyType]}`,
-    `Manage: ${AUDIENCE_LABELS[canManageType]}`,
+    `${t("roomCreation.summaryView")}: ${translateAudienceType(audienceType, t)}`,
+    `${t("roomCreation.summaryPost")}: ${translateAudienceType(canPostType, t)}`,
+    `${t("roomCreation.summaryReply")}: ${translateAudienceType(canReplyType, t)}`,
+    `${t("roomCreation.summaryManage")}: ${translateAudienceType(canManageType, t)}`,
   ].join(" · ");
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
-          <Plus className="h-4 w-4 mr-1" /> New Room
+          <Plus className="h-4 w-4 mr-1" /> {t("roomCreation.newRoom")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Create Discussion Room</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("roomCreation.createRoomTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <label className="text-sm font-medium mb-1 block">Room name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Strategy, Design, Announcements" maxLength={60} />
+            <label className="text-sm font-medium mb-1 block">{t("roomCreation.roomNameLabel")}</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("roomCreation.roomNamePlaceholder")} maxLength={60} />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Description (optional)</label>
+            <label className="text-sm font-medium mb-1 block">{t("roomCreation.descriptionLabel")}</label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="resize-none min-h-[60px]" maxLength={200} />
           </div>
 
-          <AudiencePicker label="Who can see this room?" value={audienceType} onChange={setAudienceType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
-          <AudiencePicker label="Who can post (create threads)?" value={canPostType} onChange={setCanPostType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
-          <AudiencePicker label="Who can reply?" value={canReplyType} onChange={setCanReplyType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomCreation.whoCanSee")} value={audienceType} onChange={setAudienceType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomCreation.whoCanPost")} value={canPostType} onChange={setCanPostType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
+          <AudiencePicker label={t("roomCreation.whoCanReply")} value={canReplyType} onChange={setCanReplyType} roles={roles} selectedRoleIds={allowedRoleIds} onRoleIdsChange={setAllowedRoleIds} />
           <AudiencePicker
-            label="Who can manage this room?"
+            label={t("roomCreation.whoCanManage")}
             value={canManageType}
             onChange={(v) => setCanManageType(v as "ADMINS_ONLY" | "SELECTED_ROLES")}
             allowedTypes={["ADMINS_ONLY", "SELECTED_ROLES"]}
@@ -81,7 +84,7 @@ export function RoomCreationDialog({ roles, onSubmit }: RoomCreationDialogProps)
           />
 
           <div className="rounded-lg bg-muted/50 border border-border px-3 py-2">
-            <p className="text-xs text-muted-foreground font-medium">Summary</p>
+            <p className="text-xs text-muted-foreground font-medium">{t("roomCreation.summary")}</p>
             <p className="text-xs text-foreground mt-0.5">{summary}</p>
           </div>
 
@@ -102,7 +105,7 @@ export function RoomCreationDialog({ roles, onSubmit }: RoomCreationDialogProps)
             disabled={!name.trim()}
             className="w-full"
           >
-            Create Room
+            {t("roomCreation.createRoomButton")}
           </Button>
         </div>
       </DialogContent>
