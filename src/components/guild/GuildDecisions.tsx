@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -52,8 +53,12 @@ interface Props {
   featuresConfig?: any;
 }
 
-const TYPE_LABELS: Record<DecisionType, string> = {
-  POLL: "Poll", VOTE_SIMPLE: "Simple Vote", MULTI_OPTION: "Multi-Option", CONSENT: "Consent",
+const TYPE_LABEL_KEYS: Record<DecisionType, string> = {
+  POLL: "poll", VOTE_SIMPLE: "voteSimple", MULTI_OPTION: "multiOption", CONSENT: "consent",
+};
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  DRAFT: "draft", OPEN: "open", CLOSED: "closed", ARCHIVED: "archived", ENDED: "ended",
 };
 
 const STATUS_COLORS: Record<DecisionStatus, string> = {
@@ -65,6 +70,7 @@ const STATUS_COLORS: Record<DecisionStatus, string> = {
 
 /* ───────── Component ───────── */
 export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig, permissionContext }: Props & { permissionContext?: import("@/lib/permissions").PermissionContext }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { notifyDecisionCreated } = useNotifications();
@@ -109,14 +115,14 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2"><Vote className="h-5 w-5" /> Decisions</h3>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2"><Vote className="h-5 w-5" /> {t("guildDecisions.title")}</h3>
         {canPropose && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> New Decision</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {t("guildDecisions.newDecision")}</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Create Decision</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("guildDecisions.createDecision")}</DialogTitle></DialogHeader>
               <CreateDecisionForm guildId={guildId} userId={currentUserId} onCreated={() => { setCreateOpen(false); qc.invalidateQueries({ queryKey: ["guild-decisions", guildId] }); }} />
             </DialogContent>
           </Dialog>
@@ -125,10 +131,10 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 
       <Tabs value={filterTab} onValueChange={setFilterTab}>
         <TabsList className="grid grid-cols-4 w-full max-w-sm">
-          <TabsTrigger value="open">Open</TabsTrigger>
-          <TabsTrigger value="closed">Closed</TabsTrigger>
-          {isAdmin && <TabsTrigger value="draft">Drafts</TabsTrigger>}
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="open">{t("guildDecisions.tabs.open")}</TabsTrigger>
+          <TabsTrigger value="closed">{t("guildDecisions.tabs.closed")}</TabsTrigger>
+          {isAdmin && <TabsTrigger value="draft">{t("guildDecisions.tabs.drafts")}</TabsTrigger>}
+          <TabsTrigger value="all">{t("guildDecisions.tabs.all")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -154,7 +160,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 
       {!isLoading && visible.length === 0 && (
         <p className="text-center text-muted-foreground py-8">
-          {filterTab === "open" ? "No open decisions right now." : "No decisions to show."}
+          {filterTab === "open" ? t("guildDecisions.emptyOpen") : t("guildDecisions.emptyAll")}
         </p>
       )}
     </div>
@@ -163,6 +169,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 
 /* ═══════════ Create Form ═══════════ */
 function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; userId: string; onCreated: () => void }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { notifyDecisionCreated } = useNotifications();
   const { roles: entityRoles } = useEntityRoles("guild", guildId);
@@ -223,7 +230,7 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: saveAsDraft ? "Decision saved as draft" : "Decision created & opened" });
+      toast({ title: saveAsDraft ? t("guildDecisions.toast.savedDraft") : t("guildDecisions.toast.createdOpened") });
       // Notify members (fire-and-forget)
       if (!saveAsDraft) {
         (async () => {
@@ -241,75 +248,75 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
       }
       onCreated();
     },
-    onError: (e: any) => { toast({ title: "Error", description: e.message, variant: "destructive" }); },
+    onError: (e: any) => { toast({ title: t("guildDecisions.toast.errorTitle"), description: e.message, variant: "destructive" }); },
   });
 
   return (
     <div className="space-y-4 mt-2">
-      <div><label className="text-sm font-medium mb-1 block">Title / Question</label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="What should we decide on?" maxLength={200} /></div>
-      <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Context, background, relevant links…" className="resize-none min-h-[80px]" /></div>
+      <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.titleLabel")}</label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t("guildDecisions.form.titlePlaceholder")} maxLength={200} /></div>
+      <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.descriptionLabel")}</label><Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t("guildDecisions.form.descriptionPlaceholder")} className="resize-none min-h-[80px]" /></div>
 
-      <div><label className="text-sm font-medium mb-1 block">Decision Type</label>
+      <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.decisionTypeLabel")}</label>
         <Select value={decisionType} onValueChange={v => setDecisionType(v as DecisionType)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="VOTE_SIMPLE">Simple Vote (Yes / No / Abstain)</SelectItem>
-            <SelectItem value="MULTI_OPTION">Multi-Option Choice</SelectItem>
-            <SelectItem value="CONSENT">Consent (Consent / Object)</SelectItem>
-            <SelectItem value="POLL">Poll (Non-binding sentiment)</SelectItem>
+            <SelectItem value="VOTE_SIMPLE">{t("guildDecisions.form.typeVoteSimple")}</SelectItem>
+            <SelectItem value="MULTI_OPTION">{t("guildDecisions.form.typeMultiOption")}</SelectItem>
+            <SelectItem value="CONSENT">{t("guildDecisions.form.typeConsent")}</SelectItem>
+            <SelectItem value="POLL">{t("guildDecisions.form.typePoll")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {needsOptions && (
         <div className="space-y-2">
-          <label className="text-sm font-medium">Options</label>
+          <label className="text-sm font-medium">{t("guildDecisions.form.optionsLabel")}</label>
           {options.map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
-              <Input value={opt.label} onChange={e => { const next = [...options]; next[i] = { ...opt, label: e.target.value }; setOptions(next); }} placeholder={`Option ${i + 1}`} />
+              <Input value={opt.label} onChange={e => { const next = [...options]; next[i] = { ...opt, label: e.target.value }; setOptions(next); }} placeholder={t("guildDecisions.form.optionPlaceholder", { number: i + 1 })} />
               {options.length > 2 && <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setOptions(options.filter((_, j) => j !== i))}><X className="h-3.5 w-3.5" /></Button>}
             </div>
           ))}
-          {options.length < 10 && <Button variant="outline" size="sm" onClick={() => setOptions([...options, { label: "" }])}><Plus className="h-3.5 w-3.5 mr-1" /> Add option</Button>}
+          {options.length < 10 && <Button variant="outline" size="sm" onClick={() => setOptions([...options, { label: "" }])}><Plus className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.form.addOption")}</Button>}
           {decisionType === "MULTI_OPTION" && (
-            <div className="flex items-center gap-2"><Switch checked={multiSelect} onCheckedChange={setMultiSelect} /><span className="text-sm">Allow selecting multiple options</span></div>
+            <div className="flex items-center gap-2"><Switch checked={multiSelect} onCheckedChange={setMultiSelect} /><span className="text-sm">{t("guildDecisions.form.allowMultiSelect")}</span></div>
           )}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-sm font-medium mb-1 block">Closes at (optional)</label><Input type="datetime-local" value={closesAt} onChange={e => setClosesAt(e.target.value)} /></div>
-        <div><label className="text-sm font-medium mb-1 block">Pass threshold (%)</label><Input type="number" value={passThreshold} onChange={e => setPassThreshold(e.target.value)} min={1} max={100} /></div>
+        <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.closesAtLabel")}</label><Input type="datetime-local" value={closesAt} onChange={e => setClosesAt(e.target.value)} /></div>
+        <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.passThresholdLabel")}</label><Input type="number" value={passThreshold} onChange={e => setPassThreshold(e.target.value)} min={1} max={100} /></div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-sm font-medium mb-1 block">Quorum type</label>
+        <div><label className="text-sm font-medium mb-1 block">{t("guildDecisions.form.quorumTypeLabel")}</label>
           <Select value={quorumType} onValueChange={setQuorumType}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="NONE">None</SelectItem>
-              <SelectItem value="PERCENT_OF_MEMBERS">% of members</SelectItem>
-              <SelectItem value="ABSOLUTE_NUMBER">Absolute number</SelectItem>
+              <SelectItem value="NONE">{t("guildDecisions.form.quorumNone")}</SelectItem>
+              <SelectItem value="PERCENT_OF_MEMBERS">{t("guildDecisions.form.quorumPercent")}</SelectItem>
+              <SelectItem value="ABSOLUTE_NUMBER">{t("guildDecisions.form.quorumAbsolute")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         {quorumType !== "NONE" && (
-          <div><label className="text-sm font-medium mb-1 block">{quorumType === "PERCENT_OF_MEMBERS" ? "Quorum %" : "Min votes"}</label><Input type="number" value={quorumValue} onChange={e => setQuorumValue(e.target.value)} min={1} /></div>
+          <div><label className="text-sm font-medium mb-1 block">{quorumType === "PERCENT_OF_MEMBERS" ? t("guildDecisions.form.quorumPercentLabel") : t("guildDecisions.form.minVotesLabel")}</label><Input type="number" value={quorumValue} onChange={e => setQuorumValue(e.target.value)} min={1} /></div>
         )}
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2"><Switch checked={allowComments} onCheckedChange={setAllowComments} /><span className="text-sm">Allow comments</span></div>
-        <div className="flex items-center gap-2"><Switch checked={allowVoteChange} onCheckedChange={setAllowVoteChange} /><span className="text-sm">Allow vote change</span></div>
+        <div className="flex items-center gap-2"><Switch checked={allowComments} onCheckedChange={setAllowComments} /><span className="text-sm">{t("guildDecisions.form.allowComments")}</span></div>
+        <div className="flex items-center gap-2"><Switch checked={allowVoteChange} onCheckedChange={setAllowVoteChange} /><span className="text-sm">{t("guildDecisions.form.allowVoteChange")}</span></div>
       </div>
 
       <Separator />
 
       {/* Audience Pickers */}
       <div className="space-y-3 rounded-lg border border-border p-3">
-        <h4 className="text-sm font-semibold">Permissions</h4>
+        <h4 className="text-sm font-semibold">{t("guildDecisions.form.permissions")}</h4>
         <AudiencePicker
-          label="Who can see this decision?"
+          label={t("guildDecisions.form.whoCanSee")}
           value={visibilityAudience}
           onChange={setVisibilityAudience}
           roles={entityRoles}
@@ -317,7 +324,7 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
           onRoleIdsChange={setVisibilityRoleIds}
         />
         <AudiencePicker
-          label="Who can vote?"
+          label={t("guildDecisions.form.whoCanVote")}
           value={voteAudience}
           onChange={setVoteAudience}
           roles={entityRoles}
@@ -325,7 +332,7 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
           onRoleIdsChange={setVoteRoleIds}
         />
         <AudiencePicker
-          label="Who can manage (close, edit outcome)?"
+          label={t("guildDecisions.form.whoCanManage")}
           value={manageAudience}
           onChange={setManageAudience}
           allowedTypes={["ADMINS_ONLY", "SELECTED_ROLES", "OPERATIONS_TEAM"]}
@@ -335,11 +342,11 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
         />
       </div>
 
-      <div className="flex items-center gap-2"><Switch checked={saveAsDraft} onCheckedChange={setSaveAsDraft} /><span className="text-sm">Save as draft (don't open yet)</span></div>
+      <div className="flex items-center gap-2"><Switch checked={saveAsDraft} onCheckedChange={setSaveAsDraft} /><span className="text-sm">{t("guildDecisions.form.saveAsDraft")}</span></div>
 
       <Button onClick={() => save.mutate()} disabled={!title.trim() || save.isPending} className="w-full">
         {save.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-        {saveAsDraft ? "Save Draft" : "Create & Open"}
+        {saveAsDraft ? t("guildDecisions.form.saveDraftButton") : t("guildDecisions.form.createOpenButton")}
       </Button>
     </div>
   );
@@ -349,6 +356,7 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
 function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUserRole, memberCount, guildId, onRefresh, permissionContext }: {
   decision: any; isAdmin: boolean; isMember: boolean; currentUserId: string; currentUserRole?: string; memberCount: number; guildId: string; onRefresh: () => void; permissionContext?: import("@/lib/permissions").PermissionContext;
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [outcomeEdit, setOutcomeEdit] = useState(false);
@@ -393,14 +401,14 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
   const updateStatus = async (newStatus: string) => {
     await supabase.from("decision_polls").update({ status: newStatus } as any).eq("id", d.id);
     onRefresh();
-    toast({ title: `Decision ${newStatus.toLowerCase()}` });
+    toast({ title: t("guildDecisions.toast.statusChanged", { status: t(`guildDecisions.statuses.${STATUS_LABEL_KEYS[newStatus] ?? newStatus.toLowerCase()}`) }) });
   };
 
   const saveOutcome = async () => {
     await supabase.from("decision_polls").update({ outcome_summary: outcomeTxt.trim() } as any).eq("id", d.id);
     setOutcomeEdit(false);
     onRefresh();
-    toast({ title: "Outcome saved" });
+    toast({ title: t("guildDecisions.toast.outcomeSaved") });
   };
 
   return (
@@ -409,14 +417,14 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3 hover:bg-muted/30 transition-colors">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Badge className={cn("text-[10px]", STATUS_COLORS[status])}>{shouldBeClosedByTime ? "ENDED" : status}</Badge>
-            <Badge variant="outline" className="text-[10px]">{TYPE_LABELS[type]}</Badge>
-            {d.closes_at && isOpen && <span className="text-xs text-muted-foreground"><Clock className="h-3 w-3 inline mr-0.5" />Closes {formatDistanceToNow(new Date(d.closes_at), { addSuffix: true })}</span>}
+            <Badge className={cn("text-[10px]", STATUS_COLORS[status])}>{t(`guildDecisions.statuses.${shouldBeClosedByTime ? "ended" : STATUS_LABEL_KEYS[status]}`)}</Badge>
+            <Badge variant="outline" className="text-[10px]">{t(`guildDecisions.types.${TYPE_LABEL_KEYS[type]}`)}</Badge>
+            {d.closes_at && isOpen && <span className="text-xs text-muted-foreground"><Clock className="h-3 w-3 inline mr-0.5" />{t("guildDecisions.closes", { time: formatDistanceToNow(new Date(d.closes_at), { addSuffix: true }) })}</span>}
           </div>
           <h4 className="font-display font-semibold">{d.question}</h4>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Users className="h-3 w-3" />{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</span>
-            {!quorumReached && d.quorum_type !== "NONE" && <span className="flex items-center gap-1 text-amber-500"><AlertTriangle className="h-3 w-3" />Quorum not met</span>}
+            <span className="flex items-center gap-1"><Users className="h-3 w-3" />{t("guildDecisions.voteCount", { count: totalVotes })}</span>
+            {!quorumReached && d.quorum_type !== "NONE" && <span className="flex items-center gap-1 text-amber-500"><AlertTriangle className="h-3 w-3" />{t("guildDecisions.quorumNotMet")}</span>}
           </div>
         </div>
         {expanded ? <ChevronUp className="h-4 w-4 mt-1 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />}
@@ -432,16 +440,16 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
               {/* Outcome summary */}
               {d.outcome_summary && !outcomeEdit && (
                 <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
-                  <p className="text-xs font-medium text-primary mb-1">📋 Outcome</p>
+                  <p className="text-xs font-medium text-primary mb-1">📋 {t("guildDecisions.outcome")}</p>
                   <p className="text-sm">{d.outcome_summary}</p>
-                  {canManageDecision && <Button variant="ghost" size="sm" className="mt-1" onClick={() => { setOutcomeEdit(true); setOutcomeTxt(d.outcome_summary); }}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>}
+                  {canManageDecision && <Button variant="ghost" size="sm" className="mt-1" onClick={() => { setOutcomeEdit(true); setOutcomeTxt(d.outcome_summary); }}><Pencil className="h-3 w-3 mr-1" /> {t("guildDecisions.edit")}</Button>}
                 </div>
               )}
 
               {outcomeEdit && (
                 <div className="space-y-2">
-                  <Textarea value={outcomeTxt} onChange={e => setOutcomeTxt(e.target.value)} placeholder="Summarize what was decided…" className="resize-none" />
-                  <div className="flex gap-2"><Button size="sm" onClick={saveOutcome}>Save</Button><Button size="sm" variant="ghost" onClick={() => setOutcomeEdit(false)}>Cancel</Button></div>
+                  <Textarea value={outcomeTxt} onChange={e => setOutcomeTxt(e.target.value)} placeholder={t("guildDecisions.outcomePlaceholder")} className="resize-none" />
+                  <div className="flex gap-2"><Button size="sm" onClick={saveOutcome}>{t("guildDecisions.save")}</Button><Button size="sm" variant="ghost" onClick={() => setOutcomeEdit(false)}>{t("guildDecisions.cancel")}</Button></div>
                 </div>
               )}
 
@@ -468,7 +476,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
               {/* Comments */}
               {d.allow_comments && (
                 <div className="pt-2">
-                  <p className="text-sm font-medium flex items-center gap-1 mb-2"><MessageSquare className="h-3.5 w-3.5" /> Discussion</p>
+                  <p className="text-sm font-medium flex items-center gap-1 mb-2"><MessageSquare className="h-3.5 w-3.5" /> {t("guildDecisions.discussion")}</p>
                   <CommentThread targetType={CommentTargetType.QUEST} targetId={d.id} />
                 </div>
               )}
@@ -476,10 +484,10 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
               {/* Admin controls */}
               {canManageDecision && (
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {status === "DRAFT" && <Button size="sm" onClick={() => updateStatus("OPEN")}><Check className="h-3.5 w-3.5 mr-1" /> Open Now</Button>}
-                  {(status === "OPEN" || shouldBeClosedByTime) && <Button size="sm" variant="outline" onClick={() => updateStatus("CLOSED")}><X className="h-3.5 w-3.5 mr-1" /> Close</Button>}
-                  {status === "CLOSED" && !outcomeEdit && <Button size="sm" variant="outline" onClick={() => setOutcomeEdit(true)}><Pencil className="h-3.5 w-3.5 mr-1" /> Add Outcome</Button>}
-                  {(status === "CLOSED") && <Button size="sm" variant="ghost" onClick={() => updateStatus("ARCHIVED")}><Archive className="h-3.5 w-3.5 mr-1" /> Archive</Button>}
+                  {status === "DRAFT" && <Button size="sm" onClick={() => updateStatus("OPEN")}><Check className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.openNow")}</Button>}
+                  {(status === "OPEN" || shouldBeClosedByTime) && <Button size="sm" variant="outline" onClick={() => updateStatus("CLOSED")}><X className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.close")}</Button>}
+                  {status === "CLOSED" && !outcomeEdit && <Button size="sm" variant="outline" onClick={() => setOutcomeEdit(true)}><Pencil className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.addOutcome")}</Button>}
+                  {(status === "CLOSED") && <Button size="sm" variant="ghost" onClick={() => updateStatus("ARCHIVED")}><Archive className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.archive")}</Button>}
                 </div>
               )}
             </div>
@@ -494,6 +502,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
 function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen, totalVotes, memberCount, quorumReached, onRefresh, currentUserId, guildId }: {
   decision: any; type: DecisionType; options: Option[]; votes: any[]; myVote: any; canVote: boolean; isOpen: boolean; totalVotes: number; memberCount: number; quorumReached: boolean; onRefresh: () => void; currentUserId: string; guildId: string;
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { grantXp } = useXpCredits();
@@ -515,7 +524,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
     const { raw_weight, applied_weight } = await computeVoteWeights(guildId, currentUserId);
 
     if (myVote) {
-      if (!decision.allow_vote_change) { toast({ title: "Vote change not allowed" }); return; }
+      if (!decision.allow_vote_change) { toast({ title: t("guildDecisions.toast.voteChangeNotAllowed") }); return; }
       await supabase.from("decision_poll_votes").update({
         option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
         raw_weight, applied_weight,
@@ -559,7 +568,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
     onRefresh();
-    toast({ title: "Vote recorded" });
+    toast({ title: t("guildDecisions.toast.voteRecorded") });
   };
 
   // Tally per option (raw count and weighted)
@@ -583,7 +592,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant="outline" className="text-[10px] gap-1 cursor-help">
-              <Info className="h-2.5 w-2.5" /> Weighted by: {govInfo.label}
+              <Info className="h-2.5 w-2.5" /> {t("guildDecisions.weightedBy", { label: govInfo.label })}
             </Badge>
           </TooltipTrigger>
           <TooltipContent className="text-xs max-w-xs">{govInfo.description}</TooltipContent>
@@ -596,18 +605,18 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
           {canVote && (
             <div className="flex gap-2">
               <Button size="sm" variant={myVote?.option_index === 0 ? "default" : "outline"} onClick={() => castVote(0, "YES")} className="flex-1">
-                <ThumbsUp className="h-3.5 w-3.5 mr-1" /> Yes
+                <ThumbsUp className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.yes")}
               </Button>
               <Button size="sm" variant={myVote?.option_index === 1 ? "default" : "outline"} onClick={() => castVote(1, "NO")} className="flex-1">
-                <ThumbsDown className="h-3.5 w-3.5 mr-1" /> No
+                <ThumbsDown className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.no")}
               </Button>
               <Button size="sm" variant={myVote?.option_index === 2 ? "default" : "outline"} onClick={() => castVote(2, "ABSTAIN")} className="flex-1">
-                <Minus className="h-3.5 w-3.5 mr-1" /> Abstain
+                <Minus className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.abstain")}
               </Button>
             </div>
           )}
-          {!canVote && myVote && <p className="text-xs text-muted-foreground">You voted: <strong>{["Yes", "No", "Abstain"][myVote.option_index]}</strong></p>}
-          <ResultBars options={[{ label: "Yes" }, { label: "No" }, { label: "Abstain" }]} tally={tally} weightedTally={weightedTally} total={totalVotes} totalWeight={totalWeight} isWeighted={isWeighted} passThreshold={decision.pass_threshold} />
+          {!canVote && myVote && <p className="text-xs text-muted-foreground">{t("guildDecisions.youVoted")} <strong>{[t("guildDecisions.yes"), t("guildDecisions.no"), t("guildDecisions.abstain")][myVote.option_index]}</strong></p>}
+          <ResultBars options={[{ label: t("guildDecisions.yes") }, { label: t("guildDecisions.no") }, { label: t("guildDecisions.abstain") }]} tally={tally} weightedTally={weightedTally} total={totalVotes} totalWeight={totalWeight} isWeighted={isWeighted} passThreshold={decision.pass_threshold} />
         </div>
       )}
 
@@ -625,7 +634,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium truncate">{opt.label}</span>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                    {t("guildDecisions.voteCount", { count: tally[i] })}
                     {isWeighted && totalWeight > 0 && ` (${Math.round((weightedTally[i] / totalWeight) * 100)}%w)`}
                   </span>
                 </div>
@@ -643,26 +652,26 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Button size="sm" variant={myVote?.option_index === 0 ? "default" : "outline"} onClick={() => castVote(0, "CONSENT")} className="flex-1">
-                  <Check className="h-3.5 w-3.5 mr-1" /> I consent
+                  <Check className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.iConsent")}
                 </Button>
                 <Button size="sm" variant={myVote?.option_index === 1 ? "destructive" : "outline"} onClick={() => { if (objReason.trim()) castVote(1, "OBJECTION", objReason.trim()); else castVote(1, "OBJECTION"); }} className="flex-1">
-                  <AlertTriangle className="h-3.5 w-3.5 mr-1" /> I object
+                  <AlertTriangle className="h-3.5 w-3.5 mr-1" /> {t("guildDecisions.iObject")}
                 </Button>
               </div>
-              <Input value={objReason} onChange={e => setObjReason(e.target.value)} placeholder="Reason for objection (optional)" className="text-sm" />
+              <Input value={objReason} onChange={e => setObjReason(e.target.value)} placeholder={t("guildDecisions.objectionReasonPlaceholder")} className="text-sm" />
             </div>
           )}
           <div className="flex gap-4 text-sm">
-            <span className="text-emerald-600 dark:text-emerald-400"><Check className="h-3.5 w-3.5 inline mr-0.5" />{consentCount} consent</span>
-            <span className={objectionCount > 0 ? "text-destructive" : "text-muted-foreground"}><AlertTriangle className="h-3.5 w-3.5 inline mr-0.5" />{objectionCount} objection{objectionCount !== 1 ? "s" : ""}</span>
+            <span className="text-emerald-600 dark:text-emerald-400"><Check className="h-3.5 w-3.5 inline mr-0.5" />{t("guildDecisions.consentCount", { count: consentCount })}</span>
+            <span className={objectionCount > 0 ? "text-destructive" : "text-muted-foreground"}><AlertTriangle className="h-3.5 w-3.5 inline mr-0.5" />{t("guildDecisions.objectionCount", { count: objectionCount })}</span>
           </div>
           {objections.length > 0 && (
             <div className="space-y-1">
-              <p className="text-xs font-medium text-destructive">Objections raised:</p>
+              <p className="text-xs font-medium text-destructive">{t("guildDecisions.objectionsRaised")}</p>
               {objections.map((v: any) => <p key={v.id} className="text-xs text-muted-foreground bg-destructive/5 rounded px-2 py-1">"{v.objection_reason}"</p>)}
             </div>
           )}
-          {objectionCount === 0 && totalVotes > 0 && <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs">No objections — consent achieved</Badge>}
+          {objectionCount === 0 && totalVotes > 0 && <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs">{t("guildDecisions.noObjections")}</Badge>}
         </div>
       )}
 
@@ -670,8 +679,8 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
       {decision.quorum_type !== "NONE" && (
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           <BarChart3 className="h-3 w-3" />
-          Quorum: {totalVotes}/{decision.quorum_type === "PERCENT_OF_MEMBERS" ? `${Math.ceil(memberCount * (decision.quorum_value || 0) / 100)} (${decision.quorum_value}%)` : decision.quorum_value}
-          {quorumReached ? <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] ml-1">Met</Badge> : <Badge variant="outline" className="text-[10px] ml-1">Not met</Badge>}
+          {t("guildDecisions.quorumLine", { current: totalVotes, target: decision.quorum_type === "PERCENT_OF_MEMBERS" ? `${Math.ceil(memberCount * (decision.quorum_value || 0) / 100)} (${decision.quorum_value}%)` : decision.quorum_value })}
+          {quorumReached ? <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] ml-1">{t("guildDecisions.met")}</Badge> : <Badge variant="outline" className="text-[10px] ml-1">{t("guildDecisions.notMet")}</Badge>}
         </div>
       )}
     </div>
@@ -682,6 +691,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 function ResultBars({ options, tally, weightedTally, total, totalWeight, isWeighted, passThreshold }: {
   options: Option[]; tally: number[]; weightedTally?: number[]; total: number; totalWeight?: number; isWeighted?: boolean; passThreshold?: number;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1.5">
       {options.map((opt, i) => {
@@ -693,7 +703,7 @@ function ResultBars({ options, tally, weightedTally, total, totalWeight, isWeigh
             <div className="flex items-center justify-between text-sm mb-0.5">
               <span>{opt.label}</span>
               <span className="text-xs text-muted-foreground">
-                {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                {t("guildDecisions.voteCount", { count: tally[i] })}
                 {wPct !== null && ` = ${weightedTally![i].toFixed(1)}w = ${wPct}%`}
                 {wPct === null && ` (${pct}%)`}
               </span>
