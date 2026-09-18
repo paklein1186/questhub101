@@ -3933,5 +3933,59 @@
     "quorumLine": "Quorum: {{current}}/{{target}}",
     "met": "Met",
     "notMet": "Not met"
+  },
+  "guildRituals": {
+    "title": "Rituals",
+    "subtitle": "Periodic collective synchronization — governance, culture, and coordination cadence.",
+    "createRitual": "Create Ritual",
+    "loading": "Loading rituals…",
+    "share": "Share",
+    "shareCallLink": "Share call link",
+    "shareLinkHint": "Anyone with this link can join the call — no account needed.",
+    "impactBadge": "{{value}} impact",
+    "program": "Program",
+    "moreSegments": "+{{count}} more segments",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "scheduleNext": "Schedule Next Occurrence",
+    "emptyNoAdmin": "No rituals have been set up for this guild yet.",
+    "emptyAdmin": "Create your first ritual to establish a collective cadence.",
+    "tabs": {
+      "upcoming": "Upcoming ({{count}})",
+      "archive": "Archive ({{count}})"
+    },
+    "noUpcoming": "No upcoming rituals scheduled.",
+    "noCompleted": "No completed rituals yet.",
+    "ritualFallback": "Ritual",
+    "durationMin": "Duration: {{minutes}} min",
+    "addToCalendar": "Add to calendar (.ics)",
+    "joinCall": "Join Call",
+    "complete": "Complete",
+    "attending": "Attending",
+    "attend": "Attend",
+    "decline": "Decline",
+    "attendingCount": "{{count}} attending",
+    "declinedCount": "{{count}} declined",
+    "attendedCount": "{{count}} attended",
+    "memberFallback": "Member",
+    "occurrenceStatuses": {
+      "completed": "completed",
+      "cancelled": "cancelled",
+      "scheduled": "scheduled",
+      "in_progress": "in progress"
+    },
+    "toast": {
+      "linkCopied": "Call link copied!",
+      "copyFailed": "Failed to copy",
+      "respondFailed": "Failed to respond",
+      "attending": "You're attending!",
+      "declined": "Declined",
+      "selectDateTime": "Please select date and time",
+      "scheduleFailed": "Failed to schedule",
+      "occurrenceScheduled": "Ritual occurrence scheduled",
+      "markedCompleted": "Ritual marked as completed"
+    }
   }
 }

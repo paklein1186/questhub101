@@ -3919,5 +3919,59 @@
     "quorumLine": "Quorum : {{current}}/{{target}}",
     "met": "Atteint",
     "notMet": "Non atteint"
+  },
+  "guildRituals": {
+    "title": "Rituels",
+    "subtitle": "Synchronisation collective périodique — cadence de gouvernance, de culture et de coordination.",
+    "createRitual": "Créer un rituel",
+    "loading": "Chargement des rituels…",
+    "share": "Partager",
+    "shareCallLink": "Partager le lien de l'appel",
+    "shareLinkHint": "Toute personne disposant de ce lien peut rejoindre l'appel — aucun compte nécessaire.",
+    "impactBadge": "Impact : {{value}}",
+    "program": "Programme",
+    "moreSegments": "+{{count}} autres segments",
+    "dateLabel": "Date",
+    "timeLabel": "Heure",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "scheduleNext": "Planifier la prochaine occurrence",
+    "emptyNoAdmin": "Aucun rituel n'a encore été mis en place pour cette guilde.",
+    "emptyAdmin": "Créez votre premier rituel pour établir une cadence collective.",
+    "tabs": {
+      "upcoming": "À venir ({{count}})",
+      "archive": "Archives ({{count}})"
+    },
+    "noUpcoming": "Aucun rituel à venir programmé.",
+    "noCompleted": "Aucun rituel terminé pour le moment.",
+    "ritualFallback": "Rituel",
+    "durationMin": "Durée : {{minutes}} min",
+    "addToCalendar": "Ajouter au calendrier (.ics)",
+    "joinCall": "Rejoindre l'appel",
+    "complete": "Terminer",
+    "attending": "Présent(e)",
+    "attend": "Participer",
+    "decline": "Décliner",
+    "attendingCount": "{{count}} présent(e)s",
+    "declinedCount": "{{count}} décliné(e)s",
+    "attendedCount": "{{count}} participant(e)s",
+    "memberFallback": "Membre",
+    "occurrenceStatuses": {
+      "completed": "terminé",
+      "cancelled": "annulé",
+      "scheduled": "programmé",
+      "in_progress": "en cours"
+    },
+    "toast": {
+      "linkCopied": "Lien de l'appel copié !",
+      "copyFailed": "Échec de la copie",
+      "respondFailed": "Échec de la réponse",
+      "attending": "Vous participez !",
+      "declined": "Décliné",
+      "selectDateTime": "Veuillez sélectionner une date et une heure",
+      "scheduleFailed": "Échec de la planification",
+      "occurrenceScheduled": "Occurrence du rituel planifiée",
+      "markedCompleted": "Rituel marqué comme terminé"
+    }
   }
 }

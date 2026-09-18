@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +75,7 @@ function getJitsiUrl(occurrenceId: string, visioLink?: string): string {
 }
 
 function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceId: string; visioLink?: string; ritualTitle?: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const jitsiUrl = getJitsiUrl(occurrenceId, visioLink);
@@ -82,10 +84,10 @@ function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceI
     try {
       await navigator.clipboard.writeText(jitsiUrl);
       setCopied(true);
-      toast({ title: "Call link copied!", description: "Anyone with this link can join the call — no account needed." });
+      toast({ title: t("guildRituals.toast.linkCopied"), description: t("guildRituals.shareLinkHint") });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: "Failed to copy", variant: "destructive" });
+      toast({ title: t("guildRituals.toast.copyFailed"), variant: "destructive" });
     }
   };
 
@@ -93,15 +95,15 @@ function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceI
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="ghost">
-          <Share2 className="h-3.5 w-3.5 mr-1" /> Share
+          <Share2 className="h-3.5 w-3.5 mr-1" /> {t("guildRituals.share")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
         <div className="space-y-3">
           <div>
-            <p className="text-sm font-medium mb-1">Share call link</p>
+            <p className="text-sm font-medium mb-1">{t("guildRituals.shareCallLink")}</p>
             <p className="text-xs text-muted-foreground">
-              Anyone with this link can join the call — no account needed.
+              {t("guildRituals.shareLinkHint")}
             </p>
           </div>
           <div className="flex gap-2">
@@ -124,6 +126,7 @@ interface Props {
 }
 
 export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) {
+  const { t } = useTranslation();
   const entityId = guildId || questId || "";
   const entityType = questId ? "quest" : "guild";
   const entityFilterCol = questId ? "quest_id" : "guild_id";
@@ -216,17 +219,17 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
         status: rsvpStatus,
       } as any);
       if (error && error.code !== "23505") {
-        toast({ title: "Failed to respond", variant: "destructive" });
+        toast({ title: t("guildRituals.toast.respondFailed"), variant: "destructive" });
         return;
       }
     }
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
-    toast({ title: rsvpStatus === "attending" ? "You're attending!" : "Declined" });
+    toast({ title: rsvpStatus === "attending" ? t("guildRituals.toast.attending") : t("guildRituals.toast.declined") });
   };
 
   const handleCreateOccurrence = async (ritualId: string) => {
     if (!scheduleDate || !scheduleTime) {
-      toast({ title: "Please select date and time", variant: "destructive" });
+      toast({ title: t("guildRituals.toast.selectDateTime"), variant: "destructive" });
       return;
     }
     const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
@@ -241,13 +244,13 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
       status: "scheduled",
     });
     if (error) {
-      toast({ title: "Failed to schedule", variant: "destructive" });
+      toast({ title: t("guildRituals.toast.scheduleFailed"), variant: "destructive" });
       return;
     }
     setScheduleRitualId(null);
     setScheduleDate(""); setScheduleTime("18:00");
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
-    toast({ title: "Ritual occurrence scheduled" });
+    toast({ title: t("guildRituals.toast.occurrenceScheduled") });
   };
 
   const handleCompleteOccurrence = async (occurrenceId: string) => {
@@ -268,10 +271,10 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
     }
 
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
-    toast({ title: "Ritual marked as completed" });
+    toast({ title: t("guildRituals.toast.markedCompleted") });
   };
 
-  if (isLoading) return <p className="text-muted-foreground p-4">Loading rituals…</p>;
+  if (isLoading) return <p className="text-muted-foreground p-4">{t("guildRituals.loading")}</p>;
 
   return (
     <div className="space-y-6">
@@ -279,15 +282,15 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" /> Rituals
+            <Calendar className="h-5 w-5 text-primary" /> {t("guildRituals.title")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Periodic collective synchronization — governance, culture, and coordination cadence.
+            {t("guildRituals.subtitle")}
           </p>
         </div>
         {isAdmin && (
           <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Create Ritual
+            <Plus className="h-4 w-4 mr-1" /> {t("guildRituals.createRitual")}
           </Button>
         )}
       </div>
@@ -315,7 +318,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                       </div>
                     </div>
                     <Badge variant="outline" className={`text-[10px] ${impactClass}`}>
-                      {config?.governanceImpact || "—"} impact
+                      {t("guildRituals.impactBadge", { value: config?.governanceImpact || "—" })}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -342,7 +345,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                   {/* Program segments preview */}
                   {ritual.program_segments && Array.isArray(ritual.program_segments) && (ritual.program_segments as any[]).length > 0 && (
                     <div className="border-t border-border pt-2">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Program</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{t("guildRituals.program")}</p>
                       <div className="space-y-0.5">
                         {(ritual.program_segments as any[]).slice(0, 4).map((seg: any, i: number) => (
                           <div key={i} className="flex items-center justify-between text-xs">
@@ -351,7 +354,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           </div>
                         ))}
                         {(ritual.program_segments as any[]).length > 4 && (
-                          <p className="text-[10px] text-muted-foreground">+{(ritual.program_segments as any[]).length - 4} more segments</p>
+                          <p className="text-[10px] text-muted-foreground">{t("guildRituals.moreSegments", { count: (ritual.program_segments as any[]).length - 4 })}</p>
                         )}
                       </div>
                     </div>
@@ -362,20 +365,20 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                         <div className="space-y-2">
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <Label className="text-xs">Date</Label>
+                              <Label className="text-xs">{t("guildRituals.dateLabel")}</Label>
                               <Input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} className="h-8 text-xs" />
                             </div>
                             <div>
-                              <Label className="text-xs">Time</Label>
+                              <Label className="text-xs">{t("guildRituals.timeLabel")}</Label>
                               <Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="h-8 text-xs" />
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <Button size="sm" className="flex-1 text-xs" onClick={() => handleCreateOccurrence(ritual.id)}>
-                              <CheckCircle className="h-3 w-3 mr-1" /> Confirm
+                              <CheckCircle className="h-3 w-3 mr-1" /> {t("guildRituals.confirm")}
                             </Button>
                             <Button size="sm" variant="ghost" className="text-xs" onClick={() => setScheduleRitualId(null)}>
-                              Cancel
+                              {t("guildRituals.cancel")}
                             </Button>
                           </div>
                         </div>
@@ -386,7 +389,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           className="w-full text-xs"
                           onClick={() => setScheduleRitualId(ritual.id)}
                         >
-                          <Plus className="h-3 w-3 mr-1" /> Schedule Next Occurrence
+                          <Plus className="h-3 w-3 mr-1" /> {t("guildRituals.scheduleNext")}
                         </Button>
                       )}
                     </div>
@@ -401,16 +404,16 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
       {rituals.length === 0 && !isAdmin && (
         <div className="text-center py-12 border border-dashed border-border rounded-xl">
           <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No rituals have been set up for this guild yet.</p>
+          <p className="text-muted-foreground">{t("guildRituals.emptyNoAdmin")}</p>
         </div>
       )}
 
       {rituals.length === 0 && isAdmin && (
         <div className="text-center py-12 border border-dashed border-border rounded-xl">
           <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground mb-3">Create your first ritual to establish a collective cadence.</p>
+          <p className="text-muted-foreground mb-3">{t("guildRituals.emptyAdmin")}</p>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Create Ritual
+            <Plus className="h-4 w-4 mr-1" /> {t("guildRituals.createRitual")}
           </Button>
         </div>
       )}
@@ -420,13 +423,13 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
         <div>
           <Tabs value={subTab} onValueChange={(v) => setSubTab(v as any)}>
             <TabsList>
-              <TabsTrigger value="upcoming">Upcoming ({upcomingOccurrences.length})</TabsTrigger>
-              <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> Archive ({pastOccurrences.length})</TabsTrigger>
+              <TabsTrigger value="upcoming">{t("guildRituals.tabs.upcoming", { count: upcomingOccurrences.length })}</TabsTrigger>
+              <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> {t("guildRituals.tabs.archive", { count: pastOccurrences.length })}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming" className="mt-4 space-y-3">
               {upcomingOccurrences.length === 0 && (
-                <p className="text-sm text-muted-foreground py-4 text-center">No upcoming rituals scheduled.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">{t("guildRituals.noUpcoming")}</p>
               )}
               {upcomingOccurrences.map((occ: any) => {
                 const ritual = rituals.find((r: any) => r.id === occ.ritual_id);
@@ -444,7 +447,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           <Icon className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
+                          <p className="font-medium text-sm">{ritual?.title || t("guildRituals.ritualFallback")}</p>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(occ.scheduled_at), "EEEE, MMMM d · HH:mm")}
                             {" · "}
@@ -452,7 +455,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           </p>
                           {ritual?.duration_minutes && (
                             <p className="text-xs text-muted-foreground">
-                              Duration: {ritual.duration_minutes} min
+                              {t("guildRituals.durationMin", { minutes: ritual.duration_minutes })}
                             </p>
                           )}
                         </div>
@@ -474,12 +477,12 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                                 <CalendarPlus className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Add to calendar (.ics)</TooltipContent>
+                            <TooltipContent>{t("guildRituals.addToCalendar")}</TooltipContent>
                           </Tooltip>
 
                           {/* Join call (internal) */}
                           <Button size="sm" variant="outline" onClick={() => navigate(`/ritual-call/${occ.id}`)}>
-                            <Video className="h-3.5 w-3.5 mr-1" /> Join Call
+                            <Video className="h-3.5 w-3.5 mr-1" /> {t("guildRituals.joinCall")}
                           </Button>
 
                           {/* Share call link for non-members */}
@@ -488,7 +491,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           {/* Admin complete */}
                           {isAdmin && occ.status === "scheduled" && (
                             <Button size="sm" variant="outline" onClick={() => handleCompleteOccurrence(occ.id)}>
-                              <Play className="h-3.5 w-3.5 mr-1" /> Complete
+                              <Play className="h-3.5 w-3.5 mr-1" /> {t("guildRituals.complete")}
                             </Button>
                           )}
                         </div>
@@ -504,7 +507,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                             onClick={() => handleRsvp(occ.id, "attending")}
                           >
                             <ThumbsUp className="h-3.5 w-3.5 mr-1" />
-                            {myStatus === "attending" ? "Attending" : "Attend"}
+                            {myStatus === "attending" ? t("guildRituals.attending") : t("guildRituals.attend")}
                           </Button>
                           <Button
                             size="sm"
@@ -513,7 +516,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                             onClick={() => handleRsvp(occ.id, "declined")}
                           >
                             <ThumbsDown className="h-3.5 w-3.5 mr-1" />
-                            {myStatus === "declined" ? "Declined" : "Decline"}
+                            {myStatus === "declined" ? t("guildRituals.toast.declined") : t("guildRituals.decline")}
                           </Button>
                         </div>
                       )}
@@ -525,7 +528,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           {attending.length > 0 && (
                             <div className="flex items-center gap-2">
                               <UserCheck className="h-3.5 w-3.5 text-primary shrink-0" />
-                              <span className="text-xs text-muted-foreground shrink-0">{attending.length} attending</span>
+                              <span className="text-xs text-muted-foreground shrink-0">{t("guildRituals.attendingCount", { count: attending.length })}</span>
                               <div className="flex -space-x-1.5">
                                 {attending.slice(0, 8).map((a: any) => {
                                   const profile = profileMap[a.user_id];
@@ -539,7 +542,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                                           </AvatarFallback>
                                         </Avatar>
                                       </TooltipTrigger>
-                                      <TooltipContent>{profile?.name || "Member"}</TooltipContent>
+                                      <TooltipContent>{profile?.name || t("guildRituals.memberFallback")}</TooltipContent>
                                     </Tooltip>
                                   );
                                 })}
@@ -553,7 +556,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           {declined.length > 0 && (
                             <div className="flex items-center gap-2">
                               <XCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                              <span className="text-xs text-muted-foreground">{declined.length} declined</span>
+                              <span className="text-xs text-muted-foreground">{t("guildRituals.declinedCount", { count: declined.length })}</span>
                             </div>
                           )}
                         </div>
@@ -566,7 +569,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
 
             <TabsContent value="archive" className="mt-4 space-y-3">
               {pastOccurrences.length === 0 && (
-                <p className="text-sm text-muted-foreground py-4 text-center">No completed rituals yet.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">{t("guildRituals.noCompleted")}</p>
               )}
               {pastOccurrences.map((occ: any) => {
                 const ritual = rituals.find((r: any) => r.id === occ.ritual_id);
@@ -580,16 +583,16 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           <Icon className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
+                          <p className="font-medium text-sm">{ritual?.title || t("guildRituals.ritualFallback")}</p>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(occ.scheduled_at), "MMMM d, yyyy · HH:mm")}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Users className="h-3.5 w-3.5" /> {attendees.length} attended
+                          <Users className="h-3.5 w-3.5" /> {t("guildRituals.attendedCount", { count: attendees.length })}
                         </div>
                         <Badge variant={occ.status === "completed" ? "default" : "destructive"} className="text-xs">
-                          {occ.status}
+                          {t(`guildRituals.occurrenceStatuses.${occ.status}`, { defaultValue: occ.status })}
                         </Badge>
                       </div>
                       {/* Attendee avatars */}
@@ -607,7 +610,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                                     </AvatarFallback>
                                   </Avatar>
                                 </TooltipTrigger>
-                                <TooltipContent>{profile?.name || "Member"}</TooltipContent>
+                                <TooltipContent>{profile?.name || t("guildRituals.memberFallback")}</TooltipContent>
                               </Tooltip>
                             );
                           })}
