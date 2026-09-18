@@ -459,7 +459,12 @@
     "progression": {
       "title": "Comment vous progressez ici",
       "sub": "Chaque {{unit}} rapporte des XP. Les XP débloquent des droits de gouvernance.",
-      "levels": "Niveaux {{levels}}"
+      "levels": "Niveaux {{levels}}",
+      "units": {
+        "mission": "mission",
+        "creation": "création",
+        "contribution": "contribution"
+      }
     },
     "services": {
       "empty": "Aucun service pour le moment — soyez le premier à en proposer !",

@@ -5,16 +5,16 @@ import { ArrowRight } from "lucide-react";
 
 type Persona = "impact" | "creative" | "hybrid" | "browse";
 
-const VOCAB: Record<Persona, { action: string; unit: string }> = {
-  impact: { action: "Complete missions", unit: "missions" },
-  creative: { action: "Publish creations", unit: "creations" },
-  hybrid: { action: "Contribute quests & sessions", unit: "contributions" },
-  browse: { action: "Contribute to quests", unit: "contributions" },
+const UNIT_KEY: Record<Persona, string> = {
+  impact: "mission",
+  creative: "creation",
+  hybrid: "contribution",
+  browse: "contribution",
 };
 
 export function LandingProgressionSection({ persona }: { persona: Persona }) {
   const { t } = useTranslation();
-  const vocab = VOCAB[persona];
+  const unit = t(`landing.progression.units.${UNIT_KEY[persona]}`);
 
   return (
     <section className="py-16 sm:py-24 bg-muted/30">
@@ -35,7 +35,7 @@ export function LandingProgressionSection({ persona }: { persona: Persona }) {
           transition={{ delay: 0.1 }}
           className="text-center text-muted-foreground mb-12 max-w-xl mx-auto"
         >
-          {t("landing.progression.sub", { unit: vocab.unit })}
+          {t("landing.progression.sub", { unit })}
         </motion.p>
 
         <div className="relative">

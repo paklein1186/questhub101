@@ -105,7 +105,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
                     {cTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Users className="h-3.5 w-3.5" /> {isLoggedIn ? memberCount : `~${approxCount(memberCount)}`} members
+                    <Users className="h-3.5 w-3.5" /> {isLoggedIn ? memberCount : approxCount(memberCount)} members
                   </div>
                 </div>
               </Link>
