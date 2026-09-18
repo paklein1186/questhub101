@@ -419,6 +419,11 @@
           "title": "J'explore",
           "subtitle": "Je veux voir ce qu'il y a avant de choisir",
           "tagline": "Parcourez les quêtes, communautés et services"
+        },
+        "mission": {
+          "title": "Je cherche ou je propose une mission",
+          "subtitle": "Consultant·e, freelance, recruteur·se, porteur·se de mission",
+          "tagline": "Missions, emplois, services et formations au même endroit"
         }
       }
     },

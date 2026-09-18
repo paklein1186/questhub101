@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Sparkles, Target, Blend, Compass,
-  Palette, Shield, Feather, ArrowRight, Building2,
+  Palette, Shield, Feather, ArrowRight, Building2, Coins,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -84,6 +84,18 @@ export default function WelcomePage() {
       gradient: "from-sky-500/15 to-blue-500/10",
       accentClass: "text-sky-500",
       borderHover: "hover:border-sky-400/50",
+    },
+    {
+      key: "mission",
+      icon: Coins,
+      emoji: "💼",
+      title: t("landing.welcome.personas.mission.title"),
+      subtitle: t("landing.welcome.personas.mission.subtitle"),
+      tagline: t("landing.welcome.personas.mission.tagline"),
+      path: "/opportunities",
+      gradient: "from-rose-500/15 to-red-500/10",
+      accentClass: "text-rose-500",
+      borderHover: "hover:border-rose-400/50",
     },
   ];
 

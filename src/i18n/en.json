@@ -419,6 +419,11 @@
           "title": "Just Exploring",
           "subtitle": "I want to see what's here before choosing",
           "tagline": "Browse quests, communities, and services"
+        },
+        "mission": {
+          "title": "I'm looking for or posting a mission",
+          "subtitle": "Consultant, freelancer, recruiter, mission owner",
+          "tagline": "Missions, jobs, services and courses in one place"
         }
       }
     },
