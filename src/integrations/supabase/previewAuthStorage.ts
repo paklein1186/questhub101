@@ -35,6 +35,7 @@ export function brokeredPreviewStorage() {
     new Promise((resolve) => {
       const requestId = newId();
       let done = false;
+      // eslint-disable-next-line prefer-const -- assigned once, after `finish` closes over it; `const` can't split declaration from assignment here
       let timer: ReturnType<typeof setTimeout>;
       const finish = (r: { ok: boolean; value?: string | null } | null) => {
         if (done) return;
@@ -76,13 +77,13 @@ export function brokeredPreviewStorage() {
       }
       return localStorage.getItem(key);
     },
-    setItem: (key: string, value: string) => {
+    setItem: (key: string, value: string): Promise<void> => {
       localStorage.setItem(key, value);
-      return request('lovable-preview-auth:set', key, value).then(() => undefined);
+      return request('lovable-preview-auth:set', key, value).then((): void => undefined);
     },
-    removeItem: (key: string) => {
+    removeItem: (key: string): Promise<void> => {
       localStorage.removeItem(key);
-      return request('lovable-preview-auth:remove', key).then(() => undefined);
+      return request('lovable-preview-auth:remove', key).then((): void => undefined);
     },
   };
 }
