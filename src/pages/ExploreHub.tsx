@@ -2,7 +2,7 @@ import { useState, useMemo, createContext, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target, HandHeart } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target, HandHeart } from "lucide-react";
 import { useGridDensity, type GridDensity } from "@/hooks/useGridDensity";
 import { GridDensityToggle } from "@/components/explore/GridDensityToggle";
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
@@ -28,7 +28,6 @@ import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
-import JobsExplore from "./JobsExplore";
 import { AddJobDialog } from "@/components/AddJobDialog";
 import AgentsMarketplace from "./AgentsMarketplace";
 import OpportunitiesExplore from "./OpportunitiesExplore";
@@ -193,7 +192,7 @@ export default function ExploreHub() {
               </Button>
             </div>
           )}
-          <JobsSubTabs />
+          <OpportunitiesExplore bare />
           {!isGuest && <AddJobDialog open={jobDialogOpen} onOpenChange={setJobDialogOpen} />}
         </TabsContent>
         <TabsContent value="courses">
@@ -284,28 +283,3 @@ function QuestsSubTabs() {
   );
 }
 
-function JobsSubTabs() {
-  const [sub, setSub] = useState<"positions" | "opportunities" | "quests" | "ideas">("opportunities");
-  return (
-    <div>
-      <div className="flex gap-2 mb-4">
-        <Button variant={sub === "opportunities" ? "default" : "outline"} size="sm" onClick={() => setSub("opportunities")}>
-          <HandHeart className="h-3.5 w-3.5 mr-1" /> Opportunities
-        </Button>
-        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
-          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
-        </Button>
-        <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>
-          <Swords className="h-3.5 w-3.5 mr-1" /> Quests
-        </Button>
-        <Button variant={sub === "ideas" ? "default" : "outline"} size="sm" onClick={() => setSub("ideas")}>
-          <Lightbulb className="h-3.5 w-3.5 mr-1" /> Ideas
-        </Button>
-      </div>
-      {sub === "positions" && <JobsExplore bare />}
-      {sub === "opportunities" && <OpportunitiesExplore bare />}
-      {sub === "quests" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
-      {sub === "ideas" && <QuestsMarketplace bare natureFilter="IDEA" />}
-    </div>
-  );
-}

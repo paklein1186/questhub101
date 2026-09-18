@@ -1,238 +1,134 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
+import { Compass, Search, Coins, Briefcase, Sparkles, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Lightbulb, Swords, Search } from "lucide-react";
-import { UnitCoverImage } from "@/components/UnitCoverImage";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useOpportunities, type OpportunityType } from "@/hooks/useOpportunities";
+import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
 import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues } from "@/components/ExploreFilters";
-import { useHouseFilter } from "@/hooks/useHouseFilter";
-import { usePersona } from "@/hooks/usePersona";
-import { defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
 
-const CATEGORY_OPTIONS = [
-  { value: "all", label: "All categories" },
-  { value: "SKILLS", label: "Skills" },
-  { value: "PARTNERSHIPS", label: "Partnerships" },
-  { value: "FUNDING", label: "Funding" },
-  { value: "RESOURCES", label: "Resources" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "All statuses" },
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
+const TYPE_TABS: { value: OpportunityType | "all"; icon: typeof Compass }[] = [
+  { value: "all", icon: Compass },
+  { value: "MISSION", icon: Coins },
+  { value: "JOB", icon: Briefcase },
+  { value: "SERVICE", icon: Sparkles },
+  { value: "COURSE", icon: GraduationCap },
 ];
 
 interface Props {
   bare?: boolean;
 }
 
+/**
+ * Unified feed of missions, jobs, services and courses — shared body used
+ * both standalone (OpportunitiesPage, /opportunities) and embedded here in
+ * ExploreHub's "Jobs" tab, replacing what used to be four separate,
+ * overlapping sub-tabs (Open Positions / Opportunities / Quests / Ideas).
+ */
 export default function OpportunitiesExplore({ bare }: Props) {
-  const { data: needs, isLoading } = useQuery({
-    queryKey: ["explore-opportunities"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quest_needs")
-        .select("id, title, description, category, status, quest_id, created_at, quests!quest_needs_quest_id_fkey(title, status, cover_image_url, owner_type, owner_id, quest_topics(topic_id))")
-        .in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"])
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Resolve the main entity attached to each quest (guild / company / pod)
-  const ownerRefs = useMemo(() => {
-    const map: Record<string, Set<string>> = { GUILD: new Set(), COMPANY: new Set(), POD: new Set() };
-    (needs ?? []).forEach((n: any) => {
-      const t = (n.quests?.owner_type ?? "").toUpperCase();
-      if (n.quests?.owner_id && map[t]) map[t].add(n.quests.owner_id);
-    });
-    return { GUILD: [...map.GUILD], COMPANY: [...map.COMPANY], POD: [...map.POD] };
-  }, [needs]);
-
-  const { data: owners } = useQuery({
-    queryKey: ["explore-opportunities-owners", ownerRefs],
-    enabled: ownerRefs.GUILD.length + ownerRefs.COMPANY.length + ownerRefs.POD.length > 0,
-    queryFn: async () => {
-      const result: Record<string, { name: string; logo_url?: string | null; type: string }> = {};
-      const [guilds, companies, pods] = await Promise.all([
-        ownerRefs.GUILD.length
-          ? supabase.from("guilds").select("id, name, logo_url").in("id", ownerRefs.GUILD)
-          : Promise.resolve({ data: [] as any[] }),
-        ownerRefs.COMPANY.length
-          ? supabase.from("companies").select("id, name, logo_url").in("id", ownerRefs.COMPANY)
-          : Promise.resolve({ data: [] as any[] }),
-        ownerRefs.POD.length
-          ? supabase.from("pods").select("id, name").in("id", ownerRefs.POD)
-          : Promise.resolve({ data: [] as any[] }),
-      ]);
-      (guilds.data ?? []).forEach((g: any) => { result[`GUILD:${g.id}`] = { name: g.name, logo_url: g.logo_url, type: "GUILD" }; });
-      (companies.data ?? []).forEach((c: any) => { result[`COMPANY:${c.id}`] = { name: c.name, logo_url: c.logo_url, type: "COMPANY" }; });
-      (pods.data ?? []).forEach((p: any) => { result[`POD:${p.id}`] = { name: p.name, type: "POD" }; });
-      return result;
-    },
-  });
-
-
+  const { t } = useTranslation();
+  const { opportunities, isLoading } = useOpportunities();
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState<OpportunityType | "all">("all");
   const [exploreFilters, setExploreFilters] = useState<ExploreFilterValues>(defaultFilters);
 
-  const { persona } = usePersona();
-  const [universeMode, setUniverseMode] = useState<UniverseMode>(defaultUniverseForPersona(persona));
-  const houseFilter = useHouseFilter();
-
   const filtered = useMemo(() => {
-    if (!needs) return [];
-    let result = needs.filter((need) => {
-      // Search
-      if (search) {
-        const q = search.toLowerCase();
-        if (
-          !need.title.toLowerCase().includes(q) &&
-          !(need.description ?? "").toLowerCase().includes(q) &&
-          !((need.quests as any)?.title ?? "").toLowerCase().includes(q)
-        ) return false;
-      }
-      // Category
-      if (categoryFilter !== "all" && need.category?.toUpperCase() !== categoryFilter) return false;
-      // Status
-      if (statusFilter !== "all") {
-        const s = need.status?.toLowerCase();
-        if (statusFilter === "open" && s !== "open") return false;
-        if (statusFilter === "in_progress" && s !== "in_progress") return false;
-      }
-      // Topic filter from Filters panel
-      if (exploreFilters.topicIds.length > 0) {
-        const questTopics = ((need.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id);
-        if (!questTopics.some((tid: string) => exploreFilters.topicIds.includes(tid))) return false;
-      }
-      return true;
-    });
-    // Apply house/topic filter
-    result = houseFilter.applyHouseFilter(
-      result,
-      (item: any) => ((item.quests as any)?.quest_topics ?? []).map((qt: any) => qt.topic_id),
+    let list = opportunities;
+
+    if (typeFilter !== "all") {
+      list = list.filter((o) => o.type === typeFilter);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((o) =>
+        o.title.toLowerCase().includes(q) ||
+        (o.description ?? "").toLowerCase().includes(q) ||
+        (o.ownerName ?? "").toLowerCase().includes(q)
+      );
+    }
+
+    if (exploreFilters.topicIds.length > 0) {
+      list = list.filter((o) => exploreFilters.topicIds.some((id) => o.topicIds.includes(id)));
+    }
+
+    if (exploreFilters.territoryIds.length > 0) {
+      list = list.filter((o) => exploreFilters.territoryIds.some((id) => o.territoryIds.includes(id)));
+    }
+
+    if (exploreFilters.price === "free") {
+      list = list.filter((o) => o.isFree || !o.priceLabel);
+    } else if (exploreFilters.price === "paid") {
+      list = list.filter((o) => !!o.priceLabel && !o.isFree);
+    }
+
+    return applySortBy(
+      list.map((o) => ({ ...o, created_at: o.createdAt, updated_at: o.updatedAt })),
+      exploreFilters.sortBy
     );
-    return applySortBy(result, exploreFilters.sortBy);
-  }, [needs, search, categoryFilter, statusFilter, exploreFilters, houseFilter.applyHouseFilter]);
+  }, [opportunities, typeFilter, search, exploreFilters]);
+
+  const countByType = useMemo(() => {
+    const counts: Record<string, number> = { all: opportunities.length };
+    for (const o of opportunities) counts[o.type] = (counts[o.type] ?? 0) + 1;
+    return counts;
+  }, [opportunities]);
 
   return (
     <div className="space-y-4">
-      {/* Topic & Territory filters */}
+      {/* Intent tabs */}
+      <div className="flex flex-wrap gap-2">
+        {TYPE_TABS.map(({ value, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => setTypeFilter(value)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all",
+              typeFilter === value
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+            )}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {t(`opportunities.tabs.${value}`)}
+            <span className="opacity-70">({countByType[value] ?? 0})</span>
+          </button>
+        ))}
+      </div>
+
       <ExploreFilters
         filters={exploreFilters}
         onChange={setExploreFilters}
-        config={{ showTopics: true, showTerritories: true }}
-        houseFilter={{
-          active: houseFilter.houseFilterActive,
-          onToggle: houseFilter.setHouseFilterActive,
-          hasHouses: houseFilter.myTopicIds.length > 0,
-          topicNames: houseFilter.topicNames,
-          myTopicIds: houseFilter.myTopicIds,
-        }}
-        universeMode={universeMode}
-        onUniverseModeChange={setUniverseMode}
+        config={{ showTopics: true, showTerritories: true, showPrice: true }}
       />
-      {/* Search & quick filters */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search opportunities…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9"
-          />
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={t("opportunities.searchPlaceholder")}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">{t("opportunities.loading")}</p>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
+          <Compass className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">{t("opportunities.empty")}</p>
+          {(search || typeFilter !== "all") && (
+            <Button variant="link" size="sm" className="mt-2" onClick={() => { setSearch(""); setTypeFilter("all"); }}>
+              {t("opportunities.clearFilters")}
+            </Button>
+          )}
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CATEGORY_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Results count */}
-      <p className="text-xs text-muted-foreground">{filtered.length} opportunit{filtered.length !== 1 ? "ies" : "y"} found</p>
-
-      {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
-
-      {/* Cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((need) => {
-          const quest = need.quests as any;
-          const ownerKey = quest?.owner_type && quest?.owner_id
-            ? `${String(quest.owner_type).toUpperCase()}:${quest.owner_id}`
-            : null;
-          const owner = ownerKey ? owners?.[ownerKey] : undefined;
-          return (
-            <Link
-              key={need.id}
-              to={`/quests/${need.quest_id}?tab=explore`}
-              className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all"
-            >
-              <UnitCoverImage type="QUEST" imageUrl={quest?.cover_image_url} name={quest?.title} height="h-24" />
-              <div className="flex items-start gap-3 p-4">
-                <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{need.title}</p>
-                  {need.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{need.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    {need.category && (
-                      <Badge variant="secondary" className="text-[10px]">{need.category}</Badge>
-                    )}
-                    <Badge variant={need.status?.toLowerCase() === "open" ? "default" : "outline"} className="text-[10px] capitalize">
-                      {need.status}
-                    </Badge>
-                  </div>
-                  {quest?.title && (
-                    <div className="flex items-center gap-1.5 mt-2 text-[11px] text-muted-foreground">
-                      <Swords className="h-3 w-3" />
-                      <span className="truncate">{quest.title}</span>
-                    </div>
-                  )}
-                  {owner && (
-                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-muted-foreground">
-                      <Avatar className="h-4 w-4">
-                        <AvatarImage src={owner.logo_url ?? undefined} alt={owner.name} />
-                        <AvatarFallback className="text-[8px]">{owner.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <span className="truncate">{owner.name}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          );
-
-        })}
-      </div>
-
-      {filtered.length === 0 && !isLoading && (
-        <div className="text-center py-12 text-muted-foreground">
-          <Lightbulb className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">No opportunities match your filters.</p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {filtered.map((opportunity) => (
+            <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+          ))}
         </div>
       )}
     </div>
