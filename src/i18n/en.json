@@ -126,7 +126,30 @@
     "openFullEditor": "Open full editor",
     "viewQuest": "View quest",
     "localAllies": "Local Allies Who Could Help",
-    "otherNextSteps": "Other next steps:"
+    "otherNextSteps": "Other next steps:",
+    "modelOverview": {
+      "title": "Understand the model at a glance",
+      "subtitle": "The living map of territories, and the mechanics that hold cooperation together.",
+      "mapCta": "Explore all territories",
+      "cards": {
+        "economy": {
+          "title": "Five currencies, one job each",
+          "subtitle": "Coins, $CTG, XP, Credits and Shares — never interchangeable."
+        },
+        "trust": {
+          "title": "Trust & governance",
+          "subtitle": "The Trust Graph makes trust and contribution visible, not just money invested."
+        },
+        "vision": {
+          "title": "Vision & manifesto",
+          "subtitle": "Why this commons exists, and what it refuses to be."
+        },
+        "useCases": {
+          "title": "Use cases",
+          "subtitle": "Who uses changethegame, and for what."
+        }
+      }
+    }
   },
   "settings": {
     "title": "My Hub",

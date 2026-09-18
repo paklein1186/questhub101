@@ -29,6 +29,7 @@ import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/Conte
 import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { MilestoneJourney } from "@/components/home/MilestoneJourney";
+import { ModelOverviewSection } from "@/components/home/ModelOverviewSection";
 
 
 /* ───────── Persona-specific config ───────── */
@@ -518,6 +519,7 @@ export default function HomeFeed() {
           )}
           <MilestoneJourney />
           <FollowingActivity />
+          <ModelOverviewSection />
         </div>
       ) : (
         <>
@@ -633,6 +635,7 @@ export default function HomeFeed() {
               </div>
               <MilestoneJourney />
               <FollowingActivity />
+              <ModelOverviewSection />
             </div>
           }
         </>
