@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Globe, Compass, X, ChevronDown, Search, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ function MultiSelectPopover({
   allowCreate?: boolean;
   onCreateItem?: (name: string) => Promise<string | null>;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
@@ -102,8 +104,8 @@ function MultiSelectPopover({
             className="h-8 text-xs justify-between w-full font-normal"
           >
             {selectedIds.length > 0
-              ? `${selectedIds.length} selected`
-              : `Select ${label.toLowerCase()}…`}
+              ? t("ontologyPicker.selectedCount", { count: selectedIds.length })
+              : t("ontologyPicker.selectLabel", { label })}
             <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -113,14 +115,14 @@ function MultiSelectPopover({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${label.toLowerCase()}…`}
+              placeholder={t("ontologyPicker.searchLabel", { label })}
               className="h-8 text-xs pl-7"
             />
           </div>
           <ScrollArea className="h-48 overflow-y-auto">
             {filtered.length === 0 && !allowCreate ? (
               <p className="text-xs text-muted-foreground text-center py-3">
-                No {label.toLowerCase()} found
+                {t("ontologyPicker.noneFound", { label })}
               </p>
             ) : (
               <div className="space-y-0.5">
@@ -156,7 +158,7 @@ function MultiSelectPopover({
                     className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-accent transition-colors flex items-center gap-2 text-primary"
                   >
                     {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-                    <span>Create "{search.trim()}"</span>
+                    <span>{t("ontologyPicker.createItem", { name: search.trim() })}</span>
                   </button>
                 )}
               </div>
@@ -193,6 +195,7 @@ export function OntologyPicker({
   onTerritoriesChange,
   onTopicsChange,
 }: OntologyPickerProps) {
+  const { t } = useTranslation();
   const { data: territories = [] } = useAllTerritories();
   const { data: topics = [] } = useAllTopics();
   const qc = useQueryClient();
@@ -213,10 +216,10 @@ export function OntologyPicker({
       .select("id")
       .single();
     if (error) {
-      toast.error("Failed to create territory");
+      toast.error(t("ontologyPicker.toast.createTerritoryFailed"));
       return null;
     }
-    toast.success(`Territory "${name}" created`);
+    toast.success(t("ontologyPicker.toast.territoryCreated", { name }));
     qc.invalidateQueries({ queryKey: ["all-territories"] });
     return data.id;
   };
@@ -228,7 +231,7 @@ export function OntologyPicker({
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         <Globe className="h-3.5 w-3.5" />
-        <span>Attach to Network</span>
+        <span>{t("ontologyPicker.attachToNetwork")}</span>
         <ChevronDown
           className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`}
         />
@@ -242,7 +245,7 @@ export function OntologyPicker({
       {expanded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-5">
           <MultiSelectPopover
-            label="Territories"
+            label={t("ontologyPicker.territories")}
             icon={Globe}
             items={territories}
             selectedIds={selectedTerritoryIds}
@@ -251,7 +254,7 @@ export function OntologyPicker({
             onCreateItem={handleCreateTerritory}
           />
           <MultiSelectPopover
-            label="Topics"
+            label={t("ontologyPicker.topics")}
             icon={Compass}
             items={topics}
             selectedIds={selectedTopicIds}

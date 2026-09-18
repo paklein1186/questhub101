@@ -3,6 +3,7 @@
  * Returns { entityType, entityId, label, logoUrl } or null for personal posting.
  */
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +25,7 @@ interface PostAsSelectorProps {
 }
 
 export function PostAsSelector({ value, onChange, questId }: PostAsSelectorProps) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
 
   const { data: entities = [] } = useQuery({
@@ -78,7 +80,7 @@ export function PostAsSelector({ value, onChange, questId }: PostAsSelectorProps
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Post as</span>
+      <span className="text-xs text-muted-foreground whitespace-nowrap">{t("postAsSelector.postAs")}</span>
       <Select
         value={selectedKey}
         onValueChange={(key) => {
@@ -100,7 +102,7 @@ export function PostAsSelector({ value, onChange, questId }: PostAsSelectorProps
                 <AvatarImage src={(currentUser as any).avatar_url ?? undefined} />
                 <AvatarFallback className="text-[7px]"><User className="h-3 w-3" /></AvatarFallback>
               </Avatar>
-              <span>{(currentUser as any).name || "Personal"}</span>
+              <span>{(currentUser as any).name || t("postAsSelector.personal")}</span>
             </div>
           </SelectItem>
           {entities.map((e) => (

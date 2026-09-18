@@ -3789,5 +3789,68 @@
       "deleteFailed": "Failed to delete room",
       "deleted": "Room deleted"
     }
+  },
+  "postComposer": {
+    "toast": {
+      "fileTooLarge": "{{name}} exceeds 50 MB limit",
+      "maxFilesPerPost": "Max {{max}} files per post",
+      "invalidUrl": "Please enter a valid URL",
+      "published": "Post published!",
+      "publishFailed": "Failed to publish post"
+    },
+    "placeholder": "Share an update, idea, or creation… (type @ to mention)",
+    "fetchingPreview": "Fetching preview…",
+    "videoFromProvider": "{{provider}} video",
+    "add": "Add",
+    "image": "Image",
+    "document": "Document",
+    "link": "Link",
+    "visibilityPublic": "Public",
+    "visibilityMembers": "Members",
+    "visibilityAdmins": "Admins",
+    "post": "Post"
+  },
+  "postAsSelector": {
+    "postAs": "Post as",
+    "personal": "Personal"
+  },
+  "ontologyPicker": {
+    "attachToNetwork": "Attach to Network",
+    "territories": "Territories",
+    "topics": "Topics",
+    "selectedCount": "{{count}} selected",
+    "selectLabel": "Select {{label}}…",
+    "searchLabel": "Search {{label}}…",
+    "noneFound": "No {{label}} found",
+    "createItem": "Create \"{{name}}\"",
+    "toast": {
+      "createTerritoryFailed": "Failed to create territory",
+      "territoryCreated": "Territory \"{{name}}\" created"
+    }
+  },
+  "guildDocs": {
+    "toast": {
+      "createFailed": "Failed to create page",
+      "created": "Page created",
+      "deleted": "Page deleted"
+    },
+    "joinToView": "Join the guild to view documents.",
+    "loading": "Loading docs…",
+    "back": "Back",
+    "editingCount": "{{count}} editing",
+    "save": "Save",
+    "cancel": "Cancel",
+    "byAuthorUpdated": "By {{author}} · Updated {{time}}",
+    "savingIndicator": "• Saving…",
+    "writeTogetherPlaceholder": "Start writing together…",
+    "wikiCount": "Wiki ({{count}})",
+    "newPage": "New Page",
+    "byAuthorTime": "By {{author}} · {{time}}",
+    "noPagesYet": "No pages yet. Create the first one!",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Page title",
+    "contentLabel": "Content",
+    "startWritingPlaceholder": "Start writing…",
+    "createPage": "Create Page"
   }
 }

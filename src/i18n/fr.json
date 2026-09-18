@@ -3775,5 +3775,68 @@
       "deleteFailed": "Échec de la suppression du salon",
       "deleted": "Salon supprimé"
     }
+  },
+  "postComposer": {
+    "toast": {
+      "fileTooLarge": "{{name}} dépasse la limite de 50 Mo",
+      "maxFilesPerPost": "Maximum {{max}} fichiers par publication",
+      "invalidUrl": "Veuillez saisir une URL valide",
+      "published": "Publication publiée !",
+      "publishFailed": "Échec de la publication"
+    },
+    "placeholder": "Partagez une actualité, une idée ou une création… (tapez @ pour mentionner)",
+    "fetchingPreview": "Récupération de l'aperçu…",
+    "videoFromProvider": "Vidéo {{provider}}",
+    "add": "Ajouter",
+    "image": "Image",
+    "document": "Document",
+    "link": "Lien",
+    "visibilityPublic": "Public",
+    "visibilityMembers": "Membres",
+    "visibilityAdmins": "Admins",
+    "post": "Publier"
+  },
+  "postAsSelector": {
+    "postAs": "Publier en tant que",
+    "personal": "Personnel"
+  },
+  "ontologyPicker": {
+    "attachToNetwork": "Rattacher au réseau",
+    "territories": "Territoires",
+    "topics": "Sujets",
+    "selectedCount": "{{count}} sélectionné(s)",
+    "selectLabel": "Sélectionner : {{label}}",
+    "searchLabel": "Rechercher : {{label}}",
+    "noneFound": "Aucun résultat pour {{label}}",
+    "createItem": "Créer « {{name}} »",
+    "toast": {
+      "createTerritoryFailed": "Échec de la création du territoire",
+      "territoryCreated": "Territoire « {{name}} » créé"
+    }
+  },
+  "guildDocs": {
+    "toast": {
+      "createFailed": "Échec de la création de la page",
+      "created": "Page créée",
+      "deleted": "Page supprimée"
+    },
+    "joinToView": "Rejoignez la guilde pour consulter les documents.",
+    "loading": "Chargement des documents…",
+    "back": "Retour",
+    "editingCount": "{{count}} en train d'éditer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "byAuthorUpdated": "Par {{author}} · Mis à jour {{time}}",
+    "savingIndicator": "• Enregistrement…",
+    "writeTogetherPlaceholder": "Commencez à écrire ensemble…",
+    "wikiCount": "Wiki ({{count}})",
+    "newPage": "Nouvelle page",
+    "byAuthorTime": "Par {{author}} · {{time}}",
+    "noPagesYet": "Aucune page pour l'instant. Créez la première !",
+    "titleLabel": "Titre",
+    "titlePlaceholder": "Titre de la page",
+    "contentLabel": "Contenu",
+    "startWritingPlaceholder": "Commencez à écrire…",
+    "createPage": "Créer la page"
   }
 }

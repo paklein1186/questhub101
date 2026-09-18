@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { compressImage } from "@/lib/compressImage";
 import { MentionTextarea, extractMentionIds, extractAllMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
@@ -60,6 +61,7 @@ interface PostComposerProps {
 }
 
 export function PostComposer({ contextType, contextId, showVisibilityPicker = false, initialTerritoryIds, initialTopicIds, roomId }: PostComposerProps) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
 
   // Derive entity context for @members/@followers in the mention dropdown
@@ -96,11 +98,11 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
     const newFiles: PendingFile[] = [];
     for (const file of Array.from(fileList)) {
       if (file.size > MAX_FILE_SIZE) {
-        toast.error(`${file.name} exceeds 50 MB limit`);
+        toast.error(t("postComposer.toast.fileTooLarge", { name: file.name }));
         continue;
       }
       if (files.length + newFiles.length >= MAX_ATTACHMENTS_PER_POST) {
-        toast.error(`Max ${MAX_ATTACHMENTS_PER_POST} files per post`);
+        toast.error(t("postComposer.toast.maxFilesPerPost", { max: MAX_ATTACHMENTS_PER_POST }));
         break;
       }
       const type = forceType || (isImageFile(file.type) ? "IMAGE" : "DOCUMENT");
@@ -158,7 +160,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
     try {
       new URL(linkUrl.trim());
     } catch {
-      toast.error("Please enter a valid URL");
+      toast.error(t("postComposer.toast.invalidUrl"));
       return;
     }
     fetchLinkPreview(linkUrl.trim());
@@ -335,9 +337,9 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
       setSelectedTerritoryIds([]);
       setSelectedTopicIds([]);
       setVisibility("public");
-      toast.success("Post published!");
+      toast.success(t("postComposer.toast.published"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to publish post");
+      toast.error(err.message || t("postComposer.toast.publishFailed"));
     } finally {
       setUploading(false);
     }
@@ -365,7 +367,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             value={content}
             onChange={setContent}
             onMentionsChange={setPendingMentions}
-            placeholder="Share an update, idea, or creation… (type @ to mention)"
+            placeholder={t("postComposer.placeholder")}
             className="min-h-[80px] resize-none text-sm border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none"
             maxLength={5000}
             entityContext={entityContext}
@@ -420,7 +422,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             <div className="relative rounded-lg border border-border bg-muted/30 overflow-hidden">
               {link.loading ? (
                 <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Fetching preview…
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t("postComposer.fetchingPreview")}
                 </div>
               ) : link.type === "VIDEO_LINK" ? (
                 <div className="space-y-1">
@@ -433,7 +435,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
                     </div>
                   )}
                   <div className="px-3 py-2">
-                    <p className="text-xs text-muted-foreground">{link.meta?.provider} video</p>
+                    <p className="text-xs text-muted-foreground">{t("postComposer.videoFromProvider", { provider: link.meta?.provider })}</p>
                     <p className="text-sm truncate">{link.url}</p>
                   </div>
                 </div>
@@ -476,7 +478,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
                 className="flex-1"
                 onKeyDown={(e) => e.key === "Enter" && handleAddLink()}
               />
-              <Button size="sm" onClick={handleAddLink}>Add</Button>
+              <Button size="sm" onClick={handleAddLink}>{t("postComposer.add")}</Button>
               <Button size="sm" variant="ghost" onClick={() => { setShowLinkInput(false); setLinkUrl(""); }}>
                 <X className="h-4 w-4" />
               </Button>
@@ -495,7 +497,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             onClick={() => imgRef.current?.click()}
             disabled={files.length >= MAX_ATTACHMENTS_PER_POST}
           >
-            <ImagePlus className="h-4 w-4 mr-1" /> Image
+            <ImagePlus className="h-4 w-4 mr-1" /> {t("postComposer.image")}
           </Button>
           <Button
             variant="ghost"
@@ -504,7 +506,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             onClick={() => docRef.current?.click()}
             disabled={files.length >= MAX_ATTACHMENTS_PER_POST}
           >
-            <Paperclip className="h-4 w-4 mr-1" /> Document
+            <Paperclip className="h-4 w-4 mr-1" /> {t("postComposer.document")}
           </Button>
           <Button
             variant="ghost"
@@ -513,7 +515,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             onClick={() => setShowLinkInput(true)}
             disabled={!!link}
           >
-            <Link2 className="h-4 w-4 mr-1" /> Link
+            <Link2 className="h-4 w-4 mr-1" /> {t("postComposer.link")}
           </Button>
         </div>
         <div className="flex items-center gap-2">
@@ -523,9 +525,9 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="public"><span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Public</span></SelectItem>
-                <SelectItem value="members"><span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Members</span></SelectItem>
-                <SelectItem value="admins"><span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Admins</span></SelectItem>
+                <SelectItem value="public"><span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> {t("postComposer.visibilityPublic")}</span></SelectItem>
+                <SelectItem value="members"><span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> {t("postComposer.visibilityMembers")}</span></SelectItem>
+                <SelectItem value="admins"><span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> {t("postComposer.visibilityAdmins")}</span></SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -535,7 +537,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             onClick={handleSubmit}
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-            Post
+            {t("postComposer.post")}
           </Button>
         </div>
       </div>

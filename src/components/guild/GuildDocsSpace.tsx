@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -20,6 +21,7 @@ interface GuildDocsSpaceProps {
 }
 
 export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpaceProps) {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -128,10 +130,10 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
       content: docContent,
       created_by_user_id: currentUser.id,
     } as any);
-    if (error) { toast({ title: "Failed to create page", variant: "destructive" }); return; }
+    if (error) { toast({ title: t("guildDocs.toast.createFailed"), variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
     setDocTitle(""); setDocContent(""); setCreateOpen(false);
-    toast({ title: "Page created" });
+    toast({ title: t("guildDocs.toast.created") });
 
     // Emit $CTG for documentation contribution
     try {
@@ -156,7 +158,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     await supabase.from("guild_docs" as any).delete().eq("id", docId);
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
     setViewingDoc(null);
-    toast({ title: "Page deleted" });
+    toast({ title: t("guildDocs.toast.deleted") });
   };
 
   const saveTitle = async () => {
@@ -181,8 +183,8 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     setEditingTitle(false);
   };
 
-  if (!isMember) return <p className="text-sm text-muted-foreground">Join the guild to view documents.</p>;
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading docs…</p>;
+  if (!isMember) return <p className="text-sm text-muted-foreground">{t("guildDocs.joinToView")}</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">{t("guildDocs.loading")}</p>;
 
   // ── Doc detail view (always-editable collaborative pad) ──
   if (viewingDoc) {
@@ -190,7 +192,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => { saveDoc(); setViewingDoc(null); qc.invalidateQueries({ queryKey: ["guild-docs", guildId] }); }}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            <ArrowLeft className="h-4 w-4 mr-1" /> {t("guildDocs.back")}
           </Button>
           <div className="flex-1" />
           {/* Active collaborators */}
@@ -206,7 +208,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
                   </Avatar>
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground">{activeUsers.length} editing</span>
+              <span className="text-xs text-muted-foreground">{t("guildDocs.editingCount", { count: activeUsers.length })}</span>
             </div>
           )}
         </div>
@@ -216,8 +218,8 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
           {editingTitle ? (
             <div className="flex items-center gap-2 flex-1">
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="text-xl font-bold font-display" onKeyDown={(e) => e.key === "Enter" && saveTitle()} />
-              <Button size="sm" onClick={saveTitle}>Save</Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
+              <Button size="sm" onClick={saveTitle}>{t("guildDocs.save")}</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>{t("guildDocs.cancel")}</Button>
             </div>
           ) : (
             <h2 className="font-display text-xl font-bold flex items-center gap-2 cursor-pointer group flex-1" onClick={() => isMember && setEditingTitle(true)}>
@@ -241,8 +243,8 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         </div>
 
         <p className="text-xs text-muted-foreground">
-          By {viewingDoc.author?.name} · Updated {formatDistanceToNow(new Date(viewingDoc.updated_at), { addSuffix: true })}
-          {isSaving && <span className="ml-2 text-primary">• Saving…</span>}
+          {t("guildDocs.byAuthorUpdated", { author: viewingDoc.author?.name, time: formatDistanceToNow(new Date(viewingDoc.updated_at), { addSuffix: true }) })}
+          {isSaving && <span className="ml-2 text-primary">{t("guildDocs.savingIndicator")}</span>}
         </p>
 
         {/* Always-editable collaborative editor */}
@@ -251,7 +253,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
           onChange={handleEditorChange}
           onSave={saveDoc}
           editable={isMember}
-          placeholder="Start writing together…"
+          placeholder={t("guildDocs.writeTogetherPlaceholder")}
           ydoc={ydoc}
           activeUsers={activeUsers}
           isSaving={isSaving}
@@ -267,10 +269,10 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-semibold">Wiki ({docs.length})</h3>
+          <h3 className="font-display font-semibold">{t("guildDocs.wikiCount", { count: docs.length })}</h3>
           {isMember && (
             <Button size="sm" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> New Page
+              <Plus className="h-4 w-4 mr-1" /> {t("guildDocs.newPage")}
             </Button>
           )}
         </div>
@@ -289,28 +291,28 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
                   <p className="text-sm font-medium truncate">{doc.title}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  By {doc.author?.name} · {formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true })}
+                  {t("guildDocs.byAuthorTime", { author: doc.author?.name, time: formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true }) })}
                 </p>
               </div>
             </div>
           ))}
-          {docs.length === 0 && <p className="text-muted-foreground text-sm">No pages yet. Create the first one!</p>}
+          {docs.length === 0 && <p className="text-muted-foreground text-sm">{t("guildDocs.noPagesYet")}</p>}
         </div>
       </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>New Page</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("guildDocs.newPage")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
-              <label className="text-sm font-medium mb-1 block">Title</label>
-              <Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="Page title" maxLength={200} />
+              <label className="text-sm font-medium mb-1 block">{t("guildDocs.titleLabel")}</label>
+              <Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder={t("guildDocs.titlePlaceholder")} maxLength={200} />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Content</label>
-              <NotionEditor content={docContent} onChange={setDocContent} editable placeholder="Start writing…" />
+              <label className="text-sm font-medium mb-1 block">{t("guildDocs.contentLabel")}</label>
+              <NotionEditor content={docContent} onChange={setDocContent} editable placeholder={t("guildDocs.startWritingPlaceholder")} />
             </div>
-            <Button onClick={createDoc} disabled={!docTitle.trim()} className="w-full">Create Page</Button>
+            <Button onClick={createDoc} disabled={!docTitle.trim()} className="w-full">{t("guildDocs.createPage")}</Button>
           </div>
         </DialogContent>
       </Dialog>
