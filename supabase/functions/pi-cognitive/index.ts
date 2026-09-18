@@ -307,6 +307,31 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "list_my_active_agents",
+      description: "List the AI agents currently active (attached) in the user's guilds, quests and pods. Use this to know what specialized help is already available to the user before answering yourself, or to point them to the right agent.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "consult_agent",
+      description: "Send a single question to one of the user's active unit agents (from list_my_active_agents) and return its answer, so you can relay or build on it instead of answering yourself.",
+      parameters: {
+        type: "object",
+        properties: {
+          agent_id: { type: "string" },
+          unit_type: { type: "string", enum: ["guild", "pod", "quest"] },
+          unit_id: { type: "string" },
+          question: { type: "string", description: "The question to ask the agent" },
+        },
+        required: ["agent_id", "unit_type", "unit_id", "question"],
+      },
+    },
+  },
 ];
 
 // =====================================================================
@@ -316,7 +341,8 @@ async function executeToolCall(
   toolName: string,
   params: any,
   userId: string,
-  sb: any
+  sb: any,
+  authHeader?: string
 ): Promise<any> {
   switch (toolName) {
     case "get_user_profile": {
@@ -767,6 +793,90 @@ async function executeToolCall(
         };
       } catch (e: any) {
         return { error: `Web search error: ${e?.message || e}` };
+      }
+    }
+
+    case "list_my_active_agents": {
+      const [guildMemberships, podMemberships, questMemberships] = await Promise.all([
+        sb.from("guild_members").select("guild_id, guilds(id, name)").eq("user_id", userId),
+        sb.from("pod_members").select("pod_id, pods(id, name)").eq("user_id", userId),
+        sb.from("quest_participants").select("quest_id, quests(id, title)").eq("user_id", userId),
+      ]);
+
+      const units: { unit_type: string; unit_id: string; unit_name: string }[] = [
+        ...((guildMemberships.data || []) as any[])
+          .filter((m) => m.guilds)
+          .map((m) => ({ unit_type: "guild", unit_id: m.guild_id, unit_name: m.guilds.name })),
+        ...((podMemberships.data || []) as any[])
+          .filter((m) => m.pods)
+          .map((m) => ({ unit_type: "pod", unit_id: m.pod_id, unit_name: m.pods.name })),
+        ...((questMemberships.data || []) as any[])
+          .filter((m) => m.quests)
+          .map((m) => ({ unit_type: "quest", unit_id: m.quest_id, unit_name: m.quests.title })),
+      ];
+      if (units.length === 0) return [];
+
+      const byType: Record<string, string[]> = {};
+      for (const u of units) (byType[u.unit_type] ??= []).push(u.unit_id);
+
+      const results = await Promise.all(
+        Object.entries(byType).map(([unitType, unitIds]) =>
+          sb.from("unit_agents").select("agent_id, unit_type, unit_id, agents(id, name, description, category)")
+            .eq("unit_type", unitType).in("unit_id", unitIds).eq("is_active", true)
+        )
+      );
+
+      const unitNameByKey = new Map(units.map((u) => [`${u.unit_type}:${u.unit_id}`, u.unit_name]));
+
+      return results.flatMap((r) => (r.data || []) as any[]).map((ua: any) => ({
+        agent_id: ua.agent_id,
+        agent_name: ua.agents?.name,
+        description: ua.agents?.description,
+        category: ua.agents?.category,
+        unit_type: ua.unit_type,
+        unit_id: ua.unit_id,
+        unit_name: unitNameByKey.get(`${ua.unit_type}:${ua.unit_id}`) || null,
+      }));
+    }
+
+    case "consult_agent": {
+      const { agent_id, unit_type, unit_id, question } = params;
+      if (!agent_id || !unit_type || !unit_id || !question) {
+        return { error: "agent_id, unit_type, unit_id and question are required" };
+      }
+      if (!authHeader) return { error: "Cannot consult agent: missing auth context" };
+
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const res = await fetch(`${supabaseUrl}/functions/v1/unit-agent-chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: authHeader },
+          body: JSON.stringify({
+            agentId: agent_id,
+            unitType: unit_type,
+            unitId: unit_id,
+            messages: [{ role: "user", content: question }],
+          }),
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("text/event-stream")) {
+          const text = await res.text();
+          const content = text
+            .split("\n")
+            .filter((l) => l.startsWith("data: ") && !l.includes("[DONE]"))
+            .map((l) => {
+              try { return JSON.parse(l.slice(6))?.choices?.[0]?.delta?.content || ""; } catch { return ""; }
+            })
+            .join("");
+          return { answer: content || null };
+        }
+
+        const data = await res.json();
+        if (!res.ok) return { error: data?.error || `Agent chat failed (${res.status})` };
+        return { answer: data.content || data.answer || null };
+      } catch (e: any) {
+        return { error: `Failed to consult agent: ${e?.message || e}` };
       }
     }
 
@@ -1434,7 +1544,7 @@ serve(async (req) => {
           const toolName = tc.function.name;
           let toolParams: any = {};
           try { toolParams = JSON.parse(tc.function.arguments || "{}"); } catch {}
-          const result = await executeToolCall(toolName, toolParams, userId, sb);
+          const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader);
           toolResults.push({ tool: toolName, result });
           if (result?.action) actions.push(result);
         }
@@ -1631,7 +1741,7 @@ serve(async (req) => {
           toolParams = JSON.parse(tc.function.arguments || "{}");
         } catch {}
 
-        const result = await executeToolCall(toolName, toolParams, userId, sb);
+        const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader);
         toolResults.push({ tool: toolName, result });
 
         await sb.from("pi_tool_logs").insert({
