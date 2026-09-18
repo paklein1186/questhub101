@@ -3779,5 +3779,15 @@
     "saveChanges": "Save Changes",
     "deleteConfirm": "Delete room \"{{name}}\"? All posts in this room will lose their room association.",
     "deleteRoom": "Delete Room"
+  },
+  "discussionRooms": {
+    "toast": {
+      "createFailed": "Failed to create room",
+      "created": "Room created!",
+      "updateFailed": "Failed to update room",
+      "cannotDeleteDefault": "Cannot delete the default room",
+      "deleteFailed": "Failed to delete room",
+      "deleted": "Room deleted"
+    }
   }
 }

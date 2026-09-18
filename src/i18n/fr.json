@@ -3765,5 +3765,15 @@
     "saveChanges": "Enregistrer les modifications",
     "deleteConfirm": "Supprimer le salon « {{name}} » ? Toutes les publications de ce salon perdront leur association au salon.",
     "deleteRoom": "Supprimer le salon"
+  },
+  "discussionRooms": {
+    "toast": {
+      "createFailed": "Échec de la création du salon",
+      "created": "Salon créé !",
+      "updateFailed": "Échec de la mise à jour du salon",
+      "cannotDeleteDefault": "Impossible de supprimer le salon par défaut",
+      "deleteFailed": "Échec de la suppression du salon",
+      "deleted": "Salon supprimé"
+    }
   }
 }

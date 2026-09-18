@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ export interface DiscussionRoom {
 }
 
 export function useDiscussionRooms(scopeType: "GUILD" | "QUEST", scopeId: string | undefined) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -74,11 +76,11 @@ export function useDiscussionRooms(scopeType: "GUILD" | "QUEST", scopeId: string
       sort_order: maxSort + 1,
     } as any);
     if (error) {
-      toast({ title: "Failed to create room", variant: "destructive" });
+      toast({ title: t("discussionRooms.toast.createFailed"), variant: "destructive" });
       return;
     }
     invalidate();
-    toast({ title: "Room created!" });
+    toast({ title: t("discussionRooms.toast.created") });
   };
 
   const updateRoom = async (roomId: string, updates: Partial<DiscussionRoom>) => {
@@ -87,7 +89,7 @@ export function useDiscussionRooms(scopeType: "GUILD" | "QUEST", scopeId: string
       .update(updates as any)
       .eq("id", roomId);
     if (error) {
-      toast({ title: "Failed to update room", variant: "destructive" });
+      toast({ title: t("discussionRooms.toast.updateFailed"), variant: "destructive" });
       return;
     }
     invalidate();
@@ -96,16 +98,16 @@ export function useDiscussionRooms(scopeType: "GUILD" | "QUEST", scopeId: string
   const deleteRoom = async (roomId: string) => {
     const room = roomsQuery.data?.find((r) => r.id === roomId);
     if (room?.is_default) {
-      toast({ title: "Cannot delete the default room", variant: "destructive" });
+      toast({ title: t("discussionRooms.toast.cannotDeleteDefault"), variant: "destructive" });
       return;
     }
     const { error } = await supabase.from("discussion_rooms").delete().eq("id", roomId);
     if (error) {
-      toast({ title: "Failed to delete room", variant: "destructive" });
+      toast({ title: t("discussionRooms.toast.deleteFailed"), variant: "destructive" });
       return;
     }
     invalidate();
-    toast({ title: "Room deleted" });
+    toast({ title: t("discussionRooms.toast.deleted") });
   };
 
   const ensureDefaultRoom = async (creatorUserId: string) => {
