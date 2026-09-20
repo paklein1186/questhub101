@@ -36,13 +36,6 @@ function describeLieu(lieu: any, agentName: string): string {
   ];
   const detail = lines.filter(([, v]) => fmt(v)).map(([k, v]) => `${k} : ${fmt(v)}`);
   if (detail.length) parts.push(detail.join("\n"));
-  const lat = Number(lieu.latitude), lon = Number(lieu.longitude);
-  const address = [fmt(lieu.adresse), fmt(lieu.code_postal), fmt(lieu.commune)].filter(Boolean).join(" ");
-  if (lieu.latitude != null && lieu.longitude != null && Number.isFinite(lat) && Number.isFinite(lon)) {
-    parts.push(`Localisation : ${address ? address + " — " : ""}${lat.toFixed(5)}, ${lon.toFixed(5)} (https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon})`);
-  } else if (address) {
-    parts.push(`Localisation : ${address}`);
-  }
   parts.push(`Source : ${agentName}.`);
   return parts.join("\n\n").slice(0, 4000);
 }
@@ -215,7 +208,12 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       if (hit) topicIds.add(hit.id); else note(summary.unmatched_terms, term);
       if (topicIds.size >= 6) break;
     }
-    const region = lieu.region ? findByName(String(lieu.region), territoryPool, TERRITORY_ALIASES) : null;
+    // « Liège » (province) correspond chez nous à la VILLE de Liège : on ne l'accepte que si le lieu y est vraiment.
+    const lat = Number(lieu.latitude), lon = Number(lieu.longitude);
+    const hasCoords = lieu.latitude != null && lieu.longitude != null && Number.isFinite(lat) && Number.isFinite(lon);
+    const farTown = (t: any) => !!t && t.level === "TOWN" && !(t.latitude != null && t.longitude != null && hasCoords && km(Number(t.latitude), Number(t.longitude), lat, lon) < 8);
+    let region = lieu.region ? findByName(String(lieu.region), territoryPool, TERRITORY_ALIASES) : null;
+    if (region && farTown(region)) region = null;
     const country = lieu.pays ? findByName(String(lieu.pays), territoryPool, TERRITORY_ALIASES) : null;
     if (lieu.region && !region) note(summary.unmatched_places, String(lieu.region));
     if (lieu.pays && !country) note(summary.unmatched_places, String(lieu.pays));
@@ -314,16 +312,29 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     return null;
   };
 
-  // Guilde déjà créée sans commune rattachée : la rattrape (commune principale, région/pays ensuite).
-  const ensureTown = async (guildId: string, lieu: any, tax: { region: any; country: any }) => {
-    const { data: rows } = await sb.from("guild_territories").select("territory_id").eq("guild_id", guildId);
-    const attached = new Set((rows ?? []).map((r: any) => r.territory_id));
-    if (territoryPool.some((t: any) => attached.has(t.id) && t.level === "TOWN")) return;
-    const town = await locateTown(lieu, tax.region, tax.country);
+  // Guilde créée par l'agent et pas encore revendiquée : ses territoires suivent la synchro
+  // (commune principale, puis région et pays). Une fois revendiquée, on n'y touche plus.
+  const reconcileTerritories = async (guildId: string, lieu: any, tax: { territoryIds: string[]; region: any; country: any }) => {
+    const { data: rows } = await sb.from("guild_territories").select("territory_id, is_primary").eq("guild_id", guildId);
+    const current: any[] = rows ?? [];
+    const attached = new Set(current.map((r) => r.territory_id));
+    const lat = Number(lieu.latitude), lon = Number(lieu.longitude);
+    const hasCoords = lieu.latitude != null && lieu.longitude != null && Number.isFinite(lat) && Number.isFinite(lon);
+
+    let town: Town | null | "budget";
+    const near = !fmt(lieu.commune ?? lieu.ville) && hasCoords
+      ? territoryPool.find((t: any) => attached.has(t.id) && t.level === "TOWN" && t.latitude != null && t.longitude != null && km(Number(t.latitude), Number(t.longitude), lat, lon) < 8)
+      : null;
+    if (near) town = { id: near.id, name: near.name, created: false };
+    else town = await locateTown(lieu, tax.region, tax.country);
     if (town === "budget") { summary.geocode_remaining++; cursorBlocked = true; return; }
-    if (!town?.id || attached.has(town.id)) return;
-    await sb.from("guild_territories").update({ is_primary: false }).eq("guild_id", guildId);
-    await sb.from("guild_territories").insert({ guild_id: guildId, territory_id: town.id, is_primary: true });
+
+    const desired = [town?.id, ...tax.territoryIds].filter((id, i, a): id is string => !!id && a.indexOf(id) === i);
+    if (!desired.length) return;
+    const primary = current.find((r) => r.is_primary)?.territory_id;
+    if (desired.length === attached.size && desired.every((id) => attached.has(id)) && primary === desired[0]) return;
+    await sb.from("guild_territories").delete().eq("guild_id", guildId);
+    await sb.from("guild_territories").insert(desired.map((territory_id, i) => ({ guild_id: guildId, territory_id, is_primary: i === 0 })));
   };
 
   // Photo du lieu → logo de la guilde (copie dans notre stockage, plafonnée par passage).
@@ -406,8 +417,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         if (guild && !guild.claimed_at && guild.auto_created_by_agent_id === agent.id && !guild.is_deleted) {
           await sb.from("guilds").update({ description: describeLieu(lieu, agent.name) }).eq("id", guild.id);
           const tax = taxonomyFor(lieu);
-          await applyTaxonomy(guild.id, tax, true);
-          await ensureTown(guild.id, lieu, tax);
+          await applyTaxonomy(guild.id, { topicIds: tax.topicIds, territoryIds: [] }, true);
+          await reconcileTerritories(guild.id, lieu, tax);
           if (!guild.logo_url) await applyPhoto(guild.id, lieu);
           summary.updated++;
         }
