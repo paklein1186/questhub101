@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MapContainer, TileLayer, GeoJSON, Circle, CircleMarker, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Circle, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { TerritoryLeaderboardItem } from "@/hooks/useNetworkLeaderboardData";
@@ -49,6 +49,90 @@ const metersPerPixel = (lat: number, zoom: number) => (156543.03392 * Math.cos((
 const townRadiusPx = (lat: number, zoom: number) => Math.min(45, Math.max(5, (TOWN_KM * 1000) / metersPerPixel(lat, zoom)));
 /** Levels whose real contour is worth fetching from OpenStreetMap. */
 const BOUNDARY_LEVELS = new Set(["TOWN", "LOCAL", "BIOREGION", "REGION", "PROVINCE", "OTHER"]);
+
+interface MapItem { t: TerritoryLeaderboardItem; geo: TerritoryGeoData; st: LevelStyle }
+
+const boxCache = new WeakMap<object, [number, number, number, number]>();
+/** [minLng, minLat, maxLng, maxLat] of a GeoJSON geometry / feature. */
+function geoBox(geo: any): [number, number, number, number] {
+  const cached = boxCache.get(geo);
+  if (cached) return cached;
+  const box: [number, number, number, number] = [180, 90, -180, -90];
+  const walk = (c: any) => {
+    if (Array.isArray(c) && typeof c[0] === "number") {
+      box[0] = Math.min(box[0], c[0]); box[1] = Math.min(box[1], c[1]); box[2] = Math.max(box[2], c[0]); box[3] = Math.max(box[3], c[1]);
+    } else if (Array.isArray(c)) c.forEach(walk);
+  };
+  walk((geo.geometry ?? geo).coordinates);
+  boxCache.set(geo, box);
+  return box;
+}
+
+function ringContains(ring: number[][], lng: number, lat: number): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** Point-in-polygon for Polygon / MultiPolygon (holes respected). */
+function pointInGeo(lat: number, lng: number, geo: any): boolean {
+  const g = geo.geometry ?? geo;
+  const [minX, minY, maxX, maxY] = geoBox(geo);
+  if (lng < minX || lng > maxX || lat < minY || lat > maxY) return false;
+  const polys: number[][][][] = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+  return polys.some((rings) => ringContains(rings[0], lng, lat) && !rings.slice(1).some((h) => ringContains(h, lng, lat)));
+}
+
+/** The territory under the pointer: the most local level wins over the wider ones that contain it. */
+function hitTest(map: L.Map, ll: L.LatLng, items: MapItem[], zoom: number): MapItem | null {
+  const cursor = map.latLngToContainerPoint(ll);
+  let best: { item: MapItem; size: number } | null = null;
+  for (const it of items) {
+    const { geo, st } = it;
+    const centre = map.latLngToContainerPoint([geo.lat, geo.lng]);
+    const dPx = cursor.distanceTo(centre);
+    let size: number | null = null;
+    if (st.rank >= 4) {
+      if (geo.geojson && zoom >= 10) {
+        if (pointInGeo(ll.lat, ll.lng, geo.geojson)) size = dPx;
+      } else if (dPx <= townRadiusPx(geo.lat, zoom) + 3) size = dPx;
+    } else if (dPx <= 9) {
+      size = 0;
+    } else if (geo.geojson) {
+      if (pointInGeo(ll.lat, ll.lng, geo.geojson)) { const b = geoBox(geo.geojson); size = (b[2] - b[0]) * (b[3] - b[1]) * 1e4; }
+    } else if (map.distance(ll, [geo.lat, geo.lng]) <= st.km * 1000) {
+      size = st.km * st.km;
+    }
+    if (size === null) continue;
+    if (!best || st.rank > best.item.st.rank || (st.rank === best.item.st.rank && size < best.size)) best = { item: it, size };
+  }
+  return best?.item ?? null;
+}
+
+/** Hover label + click popup are computed from the pointer position, not from each layer. */
+function HoverPicker({ items, zoom, onHover, onPick }: {
+  items: MapItem[]; zoom: number;
+  onHover: (item: MapItem | null, x: number, y: number) => void;
+  onPick: (item: MapItem, latlng: L.LatLng) => void;
+}): null {
+  const map = useMapEvents({
+    mousemove: (e) => {
+      const hit = hitTest(map, e.latlng, items, zoom);
+      map.getContainer().style.cursor = hit ? "pointer" : "";
+      onHover(hit, e.containerPoint.x, e.containerPoint.y);
+    },
+    mouseout: () => { map.getContainer().style.cursor = ""; onHover(null, 0, 0); },
+    zoomstart: () => onHover(null, 0, 0),
+    click: (e) => {
+      const hit = hitTest(map, e.latlng, items, zoom);
+      if (hit) onPick(hit, e.latlng);
+    },
+  });
+  return null;
+}
 
 function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }): null {
   const map = useMapEvents({ zoomend: () => onZoom(map.getZoom()) });
@@ -109,6 +193,9 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
   const qc = useQueryClient();
   const [zoom, setZoom] = useState(2);
   const [boundaryTick, setBoundaryTick] = useState(0);
+  const [hovered, setHovered] = useState<MapItem | null>(null);
+  const [picked, setPicked] = useState<{ item: MapItem; latlng: L.LatLng } | null>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
   const requestedBoundaries = useRef(new Set<string>());
   const boundaryUnavailable = useRef(false);
 
@@ -181,6 +268,15 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
       .catch(() => { boundaryUnavailable.current = true; });
   }, [mappedTerritories, geoData, boundaryTick, qc]);
 
+  // What is drawn at this zoom, wide levels first so the most local ones end up on top.
+  const items: MapItem[] = useMemo(
+    () => mappedTerritories
+      .map((t) => ({ t, geo: geoData[t.id], st: styleForLevel(geoData[t.id].level) }))
+      .filter((i) => zoom <= i.st.hideAfterZoom)
+      .sort((a, b) => a.st.rank - b.st.rank),
+    [mappedTerritories, geoData, zoom],
+  );
+
   const unmappedCount = territories.length - mappedTerritories.length;
   const levelsPresent = useMemo(() => {
     const seen = new Map<string, LevelStyle>();
@@ -209,79 +305,86 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
           {positions.length > 0 && <FitBounds positions={positions} />}
 
           <ZoomWatcher onZoom={setZoom} />
+          <HoverPicker
+            items={items}
+            zoom={zoom}
+            onHover={(item, x, y) => {
+              if (labelRef.current) labelRef.current.style.transform = `translate(${x + 14}px, ${y + 14}px)`;
+              setHovered((prev) => (prev?.t.id === item?.t.id ? prev : item));
+            }}
+            onPick={(item, latlng) => setPicked({ item, latlng })}
+          />
 
-          {/* Meta levels first so towns are drawn on top and stay clickable. */}
-          {[...mappedTerritories]
-            .sort((x, y) => styleForLevel(geoData[x.id].level).rank - styleForLevel(geoData[y.id].level).rank)
-            .map((t) => {
-              const geo = geoData[t.id];
-              const st = styleForLevel(geo.level);
-              if (zoom > st.hideAfterZoom) return null;
+          {/* Layers are purely visual: hover and click are resolved by HoverPicker. */}
+          {items.map(({ t, geo, st }) => {
+            const on = hovered?.t.id === t.id;
 
-              const popup = (
-                <Popup>
-                  <div style={{ minWidth: 160 }}>
-                    <h4 style={{ fontWeight: 600, fontSize: 13, margin: "0 0 4px" }}>{t.name}</h4>
-                    {t.parent_name && <p style={{ fontSize: 11, color: "#888", margin: "0 0 4px" }}>{t.parent_name}</p>}
-                    <div style={{ fontSize: 11, display: "flex", gap: 8 }}>
-                      <span>{t.quests} quests</span>
-                      <span>{t.entities} entities</span>
-                    </div>
-                    <a href={`/territories/${t.id}`} style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none", marginTop: 4, display: "block" }}>
-                      {tr("territoryMap.view")}
-                    </a>
-                  </div>
-                </Popup>
-              );
-              const label = <Tooltip sticky direction="top">{t.name}</Tooltip>;
-
-              // Towns: the real contour when known and zoomed in, otherwise a disc slightly larger than the commune.
-              if (st.rank >= 4) {
-                if (geo.geojson && zoom >= 10) {
-                  return (
-                    <GeoJSON key={`geo-${t.id}`} data={geo.geojson}
-                      style={{ color: st.color, weight: 2, fillColor: st.color, fillOpacity: 0.22, opacity: 0.9 }}>
-                      {label}{popup}
-                    </GeoJSON>
-                  );
-                }
+            // Towns: the real contour when known and zoomed in, otherwise a disc slightly larger than the commune.
+            if (st.rank >= 4) {
+              if (geo.geojson && zoom >= 10) {
                 return (
-                  <CircleMarker key={`dot-${t.id}`} center={[geo.lat, geo.lng]} radius={townRadiusPx(geo.lat, zoom)}
-                    pathOptions={{ color: "#fff", weight: 1.5, fillColor: st.color, fillOpacity: zoom < 9 ? 0.85 : 0.3 }}>
-                    {label}{popup}
-                  </CircleMarker>
+                  <GeoJSON key={`geo-${t.id}-${on}`} data={geo.geojson} interactive={false}
+                    style={{ color: st.color, weight: on ? 3.5 : 2, fillColor: st.color, fillOpacity: on ? 0.4 : 0.22, opacity: 0.95 }} />
                 );
               }
-
-              // Meta levels: a light tint and a white casing (both ignore clicks) under a coloured outline, so the
-              // area stands out from the map and still lets clicks through to what is inside it.
-              const fade = Math.min(1, Math.max(0.3, (st.hideAfterZoom - zoom + 1) / 3));
-              const tint = { stroke: false, fillColor: st.color, fillOpacity: 0.09 * fade };
-              const casing = { color: "#ffffff", weight: 6, fill: false, opacity: 0.85 * fade };
-              const outline = { color: st.color, weight: 3, fill: false, opacity: 0.95 * fade, dashArray: geo.geojson ? undefined : "8 5" };
               return (
-                <Fragment key={`area-${t.id}`}>
-                  {geo.geojson ? (
-                    <>
-                      <GeoJSON data={geo.geojson} style={tint} interactive={false} />
-                      <GeoJSON data={geo.geojson} style={casing} interactive={false} />
-                      <GeoJSON data={geo.geojson} style={outline}>{label}</GeoJSON>
-                    </>
-                  ) : (
-                    <>
-                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={tint} interactive={false} />
-                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={casing} interactive={false} />
-                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={outline}>{label}</Circle>
-                    </>
-                  )}
-                  <CircleMarker center={[geo.lat, geo.lng]} radius={6}
-                    pathOptions={{ color: "#fff", weight: 2, fillColor: st.color, fillOpacity: 0.9 * fade, opacity: fade }}>
-                    {label}{popup}
-                  </CircleMarker>
-                </Fragment>
+                <CircleMarker key={`dot-${t.id}`} center={[geo.lat, geo.lng]} radius={townRadiusPx(geo.lat, zoom) + (on ? 2 : 0)} interactive={false}
+                  pathOptions={{ color: "#fff", weight: on ? 2.5 : 1.5, fillColor: st.color, fillOpacity: (zoom < 9 ? 0.85 : 0.3) + (on ? 0.25 : 0) }} />
               );
-            })}
+            }
+
+            // Meta levels: light tint and white casing under a coloured outline, fading as we zoom in.
+            const fade = Math.min(1, Math.max(0.3, (st.hideAfterZoom - zoom + 1) / 3));
+            const tint = { stroke: false, fillColor: st.color, fillOpacity: (on ? 0.16 : 0.09) * fade };
+            const casing = { color: "#ffffff", weight: on ? 7 : 6, fill: false, opacity: 0.85 * fade };
+            const outline = { color: st.color, weight: on ? 4.5 : 3, fill: false, opacity: (on ? 1 : 0.95) * fade, dashArray: geo.geojson ? undefined : "8 5" };
+            return (
+              <Fragment key={`area-${t.id}-${on}`}>
+                {geo.geojson ? (
+                  <>
+                    <GeoJSON data={geo.geojson} style={tint} interactive={false} />
+                    <GeoJSON data={geo.geojson} style={casing} interactive={false} />
+                    <GeoJSON data={geo.geojson} style={outline} interactive={false} />
+                  </>
+                ) : (
+                  <>
+                    <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={tint} interactive={false} />
+                    <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={casing} interactive={false} />
+                    <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={outline} interactive={false} />
+                  </>
+                )}
+                <CircleMarker center={[geo.lat, geo.lng]} radius={on ? 8 : 6} interactive={false}
+                  pathOptions={{ color: "#fff", weight: 2, fillColor: st.color, fillOpacity: 0.9 * fade, opacity: fade }} />
+              </Fragment>
+            );
+          })}
+
+          {picked && (
+            <Popup position={picked.latlng} eventHandlers={{ remove: () => setPicked(null) }}>
+              <div style={{ minWidth: 160 }}>
+                <h4 style={{ fontWeight: 600, fontSize: 13, margin: "0 0 4px" }}>{picked.item.t.name}</h4>
+                {picked.item.t.parent_name && <p style={{ fontSize: 11, color: "#888", margin: "0 0 4px" }}>{picked.item.t.parent_name}</p>}
+                <div style={{ fontSize: 11, display: "flex", gap: 8 }}>
+                  <span>{picked.item.t.quests} quests</span>
+                  <span>{picked.item.t.entities} entities</span>
+                </div>
+                <a href={`/territories/${picked.item.t.id}`} style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none", marginTop: 4, display: "block" }}>
+                  {tr("territoryMap.view")}
+                </a>
+              </div>
+            </Popup>
+          )}
         </MapContainer>
+        <div ref={labelRef} className="pointer-events-none absolute left-0 top-0 z-[500]" style={{ transform: "translate(-999px, -999px)" }}>
+          {hovered && (
+            <div className="rounded-md bg-background/95 backdrop-blur px-2.5 py-1.5 shadow border border-border text-xs leading-tight">
+              <p className="font-semibold text-foreground">{hovered.t.name}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {tr(`territoryMap.levels.${hovered.st.key}`)}{hovered.t.parent_name ? ` · ${hovered.t.parent_name}` : ""}
+              </p>
+            </div>
+          )}
+        </div>
         {levelsPresent.length > 1 && (
           <div className="absolute bottom-3 left-3 z-[400] rounded-lg bg-background/90 backdrop-blur px-2.5 py-2 text-[11px] shadow border border-border space-y-1">
             {levelsPresent.map((l) => (
