@@ -4064,7 +4064,9 @@
       "quest": "Via quest {{name}}"
     },
     "shareEmail": "Share my email with this agent (for access and quotas)",
-    "consentFailed": "Couldn't save your choice."
+    "consentFailed": "Couldn't save your choice.",
+    "empty": "No agent available to you yet. Browse the marketplace, or join a guild that uses one.",
+    "hiredBadge": "Hired"
   },
   "agentForm": {
     "publishAs": "Publish on behalf of",

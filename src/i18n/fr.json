@@ -4050,7 +4050,9 @@
       "quest": "Via la quête {{name}}"
     },
     "shareEmail": "Partager mon email avec cet agent (accès et quotas)",
-    "consentFailed": "Impossible d'enregistrer votre choix."
+    "consentFailed": "Impossible d'enregistrer votre choix.",
+    "empty": "Aucun agent disponible pour l'instant. Parcourez la marketplace, ou rejoignez une guilde qui en utilise un.",
+    "hiredBadge": "Loué"
   },
   "agentForm": {
     "publishAs": "Publier au nom de",

@@ -135,6 +135,23 @@ function AgentRow({ agent, children }: { agent: any; children?: React.ReactNode 
   );
 }
 
+interface AgentEntry { agent: any; hired: boolean; places: UnitAccess[] }
+
+/** One entry per agent: hired or not, with every place where it is available listed under it. */
+function mergeAgents(hired: any[], viaUnits: UnitAccess[]): AgentEntry[] {
+  const byId = new Map<string, AgentEntry>();
+  const entryFor = (agent: any) => {
+    if (!byId.has(agent.id)) byId.set(agent.id, { agent, hired: false, places: [] });
+    return byId.get(agent.id)!;
+  };
+  for (const agent of hired) entryFor(agent).hired = true;
+  for (const a of viaUnits) {
+    const e = entryFor(a.agent);
+    if (!e.places.some((p) => p.unitType === a.unitType && p.unitId === a.unitId)) e.places.push(a);
+  }
+  return [...byId.values()].sort((x, y) => Number(y.hired) - Number(x.hired) || y.places.length - x.places.length || String(x.agent.name).localeCompare(String(y.agent.name)));
+}
+
 export function ProfileAgentsTab({ userId }: { userId: string }) {
   const { t } = useTranslation();
   const { data, isLoading } = useAgentAccess(userId);
@@ -147,11 +164,10 @@ export function ProfileAgentsTab({ userId }: { userId: string }) {
     );
   }
 
-  const hired = data?.hired ?? [];
-  const viaUnits = data?.viaUnits ?? [];
+  const agents = mergeAgents(data?.hired ?? [], data?.viaUnits ?? []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <p className="text-sm text-muted-foreground max-w-xl">{t("profileAgents.intro")}</p>
         <div className="flex gap-2">
@@ -160,41 +176,29 @@ export function ProfileAgentsTab({ userId }: { userId: string }) {
         </div>
       </div>
 
-      <section className="space-y-3">
-        <h3 className="font-display font-semibold">{t("profileAgents.hiredTitle")}</h3>
-        {hired.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("profileAgents.hiredEmpty")}</p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {hired.map((agent: any) => (
-              <AgentRow key={agent.id} agent={agent}>
-                {agent.sync_enabled && <ConsentToggle agentId={agent.id} userId={userId} />}
-              </AgentRow>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <h3 className="font-display font-semibold">{t("profileAgents.viaUnitsTitle")}</h3>
-        {viaUnits.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("profileAgents.viaUnitsEmpty")}</p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {viaUnits.map((a) => (
-              <AgentRow key={`${a.agent.id}-${a.unitType}-${a.unitId}`} agent={a.agent}>
-                <Link
-                  to={UNIT_HREF[a.unitType](a.unitId)}
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
-                >
-                  {t(`profileAgents.via.${a.unitType}`, { name: a.unitName })} <ArrowRight className="h-3 w-3" />
-                </Link>
-                {a.agent.sync_enabled && <ConsentToggle agentId={a.agent.id} userId={userId} />}
-              </AgentRow>
-            ))}
-          </div>
-        )}
-      </section>
+      {agents.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("profileAgents.empty")}</p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {agents.map(({ agent, hired, places }) => (
+            <AgentRow key={agent.id} agent={agent}>
+              {hired && <Badge variant="secondary" className="text-[10px] mt-2">{t("profileAgents.hiredBadge")}</Badge>}
+              {places.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {places.map((a) => (
+                    <li key={`${a.unitType}-${a.unitId}`}>
+                      <Link to={UNIT_HREF[a.unitType](a.unitId)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        {t(`profileAgents.via.${a.unitType}`, { name: a.unitName })} <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {agent.sync_enabled && <ConsentToggle agentId={agent.id} userId={userId} />}
+            </AgentRow>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
