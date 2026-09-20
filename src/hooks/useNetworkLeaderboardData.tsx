@@ -12,6 +12,7 @@ export interface TerritoryLeaderboardItem {
   topTopics: string[];
   synthesis: string;
   cover_url: string | null;
+  cover_credit?: import("@/lib/coverCredit").CoverCredit | null;
   logo_url: string | null;
 }
 
@@ -145,6 +146,7 @@ export function useTerritoryLeaderboard() {
           memoryContributions: memoryCount[t.id] ?? 0,
           topTopics,
           cover_url: ((t as any).stats as any)?.cover_url ?? null,
+          cover_credit: ((t as any).stats as any)?.cover_credit ?? null,
           logo_url: (t as any).logo_url ?? null,
         };
 

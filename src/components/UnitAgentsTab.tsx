@@ -276,7 +276,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
 }
 
 /** Agent-level free usage: members/admins of the guild or company that owns the agent. */
-function useOwnerFree(agent: any, userId?: string): boolean {
+export function useOwnerFree(agent: any, userId?: string): boolean {
   const rule: string = agent?.free_scope ?? "nobody";
   const ownerType: string | undefined = agent?.owner_type;
   const { data } = useQuery({
@@ -347,7 +347,7 @@ function AgentManageBar({ ua, unitType, userId, onEdit, onSync, onFreeFor }: {
   );
 }
 
-function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
+export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
   agent: any; unitType: string; unitId: string; unitName: string; freeForMe: boolean | "maybe";
 }) {
   const { user } = useAuth();

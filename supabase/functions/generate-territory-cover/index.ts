@@ -1,9 +1,11 @@
-// Bannière d'un territoire : une photo réaliste et représentative du lieu, pas un paysage générique.
+// Bannière d'un territoire : une VRAIE photo du lieu quand il en existe une libre de droits,
+// sinon une image générée à partir d'une description réaliste.
 //
-// 1. Un modèle de texte décrit d'abord la scène réelle la plus caractéristique du lieu (pays, région,
-//    niveau, coordonnées, thèmes des guildes qui y sont actives).
-// 2. Le modèle d'image génère la bannière à partir de cette description — sans aucun texte dans l'image
-//    (le nom est affiché par l'interface, il est traduisible et ne se déforme pas).
+// 1. Photo réelle : Wikimedia Commons (photos proches des coordonnées et recherche par nom), licences
+//    libres seulement (CC0, domaine public, CC BY, CC BY-SA), format paysage, hors cartes/logos/drapeaux.
+//    Le crédit (auteur, licence, page source) est conservé dans stats.cover_credit et affiché.
+// 2. À défaut : un modèle de texte décrit la scène réelle la plus caractéristique du lieu, puis le
+//    modèle d'image la génère — sans aucun texte dans l'image.
 //
 // Modes : { territory_id, force? } (une bannière) ; { status: true } et { batch: true, limit? }
 // (administrateurs : régénération par lots, territoires les plus denses d'abord).
@@ -17,9 +19,12 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const COVER_VERSION = 2;
+const COVER_VERSION = 3;
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MAX_BATCH = 4;
+const MAX_BATCH = 10;
+const BATCH_BUDGET_MS = 110_000;
+const COMMONS = "https://commons.wikimedia.org/w/api.php";
+const UA = "changethegame-territory-cover/1.0 (https://changethegame.xyz)";
 
 /** What kind of picture suits each level. */
 const LEVEL_GUIDE: Record<string, string> = {
@@ -58,6 +63,76 @@ async function ecosystemTopics(sb: any, territoryId: string): Promise<string[]> 
   return [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n]) => n);
 }
 
+interface Photo { url: string; width: number; height: number; title: string; credit: { author: string | null; license: string; license_url: string | null; source_url: string } }
+
+const stripHtml = (v: unknown) => String(v ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+const ALLOWED_LICENSE = /^(cc0|cc[- ]by(?![- ]?(nc|nd))|cc[- ]by[- ]sa|public domain|pd)/i;
+const BAD_TITLE = /(map|carte|plan\b|logo|flag|drapeau|blason|coat[ _]of|armoiries|schema|diagram|poster|affiche|manifestation|concert|match\b|portrait|interior|intérieur|interieur|screenshot|locator|location[ _]map|icon|stamp|timbre|panneau|sign\b)/i;
+const GOOD_TITLE = /(panorama|vue|view|aerial|aérien|aerien|skyline|paysage|landscape|centre|center|grand[- ]place|place\b|église|eglise|church|château|chateau|castle|rue\b|street|village|ville|town|hdr)/i;
+
+const km = (aLat: number, aLon: number, bLat: number, bLon: number) => {
+  const r = (x: number) => (x * Math.PI) / 180;
+  const h = Math.sin(r(bLat - aLat) / 2) ** 2 + Math.cos(r(aLat)) * Math.cos(r(bLat)) * Math.sin(r(bLon - aLon) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+};
+
+async function commonsQuery(params: Record<string, string>): Promise<any[]> {
+  const url = `${COMMONS}?${new URLSearchParams({ action: "query", format: "json", prop: "imageinfo", iiprop: "url|size|mime|extmetadata", iiurlwidth: "1600", origin: "*", ...params })}`;
+  const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(12_000) });
+  if (!res.ok) return [];
+  const j = await res.json();
+  return Object.values(j?.query?.pages ?? {}) as any[];
+}
+
+/** Best free landscape photo of the place, or null. */
+async function findRealPhoto(t: { name: string; level: string; latitude: number | null; longitude: number | null }, chain: string[]): Promise<Photo | null> {
+  const big = ["GLOBAL", "CONTINENT", "NATIONAL"].includes(t.level);
+  const hasCoords = t.latitude != null && t.longitude != null;
+  const pages: any[] = [];
+  try {
+    if (hasCoords && !big) {
+      const radius = t.level === "TOWN" || t.level === "LOCALITY" ? 6000 : t.level === "REGION" || t.level === "PROVINCE" || t.level === "BIOREGION" ? 10000 : 8000;
+      pages.push(...await commonsQuery({ generator: "geosearch", ggscoord: `${t.latitude}|${t.longitude}`, ggsradius: String(radius), ggsnamespace: "6", ggslimit: "50" }));
+    }
+    const q = [t.name, big ? "landscape" : chain[0]].filter(Boolean).join(" ");
+    pages.push(...await commonsQuery({ generator: "search", gsrsearch: `${q} filetype:bitmap`, gsrnamespace: "6", gsrlimit: "40" }));
+  } catch { /* réseau : repli sur l'image générée */ }
+
+  const nameToken = t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let best: { photo: Photo; score: number } | null = null;
+  const seen = new Set<string>();
+  for (const pg of pages) {
+    const ii = pg.imageinfo?.[0];
+    if (!ii || seen.has(pg.title)) continue;
+    seen.add(pg.title);
+    const meta = ii.extmetadata ?? {};
+    const license = stripHtml(meta.LicenseShortName?.value);
+    if (!ALLOWED_LICENSE.test(license)) continue;
+    if (!/^image\/(jpeg|jpg)$/i.test(ii.mime ?? "")) continue;
+    const w = Number(ii.width), h = Number(ii.height), ratio = w / h;
+    if (!w || !h || w < 1600 || ratio < 1.35 || ratio > 2.8) continue;
+    const title = String(pg.title).replace(/^File:/, "");
+    if (BAD_TITLE.test(title)) continue;
+
+    let score = 0;
+    if (ratio >= 1.5 && ratio <= 2.1) score += 2;
+    if (w >= 3000) score += 1;
+    if (GOOD_TITLE.test(title)) score += 2;
+    if (title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(nameToken)) score += 3;
+    if (hasCoords && pg.coordinates?.[0]) score += Math.max(0, 3 - km(Number(t.latitude), Number(t.longitude), pg.coordinates[0].lat, pg.coordinates[0].lon) / 2);
+    if (!best || score > best.score) {
+      best = {
+        score,
+        photo: {
+          url: ii.thumburl || ii.url, width: w, height: h, title,
+          credit: { author: stripHtml(meta.Artist?.value) || null, license, license_url: stripHtml(meta.LicenseUrl?.value) || null, source_url: ii.descriptionurl },
+        },
+      };
+    }
+  }
+  return best && best.score >= 2 ? best.photo : null;
+}
+
 async function generateCover(sb: any, apiKey: string, territoryId: string, hint?: { name?: string; level?: string }) {
   const { data: t } = await sb.from("territories").select("id, name, level, parent_id, latitude, longitude, stats").eq("id", territoryId).maybeSingle();
   if (!t) throw Object.assign(new Error("territory not found"), { status: 404 });
@@ -74,6 +149,28 @@ async function generateCover(sb: any, apiKey: string, territoryId: string, hint?
     parentId = p.parent_id;
   }
   const topics = await ecosystemTopics(sb, territoryId);
+
+  // 0. A real, freely licensed photograph of the place comes first.
+  const photo = await findRealPhoto({ name, level, latitude: t.latitude, longitude: t.longitude }, chain);
+  if (photo) {
+    const imgRes = await fetch(photo.url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20_000) });
+    if (imgRes.ok) {
+      const buf = new Uint8Array(await imgRes.arrayBuffer());
+      if (buf.length > 20_000 && buf.length < 9_000_000) {
+        await sb.storage.createBucket("territory-covers", { public: true, fileSizeLimit: 10485760 }).catch(() => {});
+        const filePath = `territory-covers/${territoryId}-v${COVER_VERSION}.jpg`;
+        const { error: upErr } = await sb.storage.from("territory-covers").upload(filePath, buf, { contentType: "image/jpeg", upsert: true });
+        if (!upErr) {
+          const coverUrl = sb.storage.from("territory-covers").getPublicUrl(filePath).data.publicUrl;
+          const stats = { ...((t.stats as Record<string, unknown>) ?? {}), cover_url: coverUrl, cover_version: COVER_VERSION, cover_generated_at: new Date().toISOString(), cover_source: "commons", cover_credit: photo.credit };
+          delete (stats as any).cover_urls;
+          delete (stats as any).cover_brief;
+          await sb.from("territories").update({ stats }).eq("id", territoryId);
+          return { cover_url: coverUrl, brief: `photo: ${photo.title}` };
+        }
+      }
+    }
+  }
 
   // 1. Photo brief grounded in the real place.
   const facts = [
@@ -124,7 +221,8 @@ async function generateCover(sb: any, apiKey: string, territoryId: string, hint?
   if (uploadError) throw new Error(`upload: ${uploadError.message}`);
   const coverUrl = sb.storage.from("territory-covers").getPublicUrl(filePath).data.publicUrl;
 
-  const stats = { ...((t.stats as Record<string, unknown>) ?? {}), cover_url: coverUrl, cover_version: COVER_VERSION, cover_generated_at: new Date().toISOString(), cover_brief: brief };
+  const stats = { ...((t.stats as Record<string, unknown>) ?? {}), cover_url: coverUrl, cover_version: COVER_VERSION, cover_generated_at: new Date().toISOString(), cover_brief: brief, cover_source: "ai" };
+  delete (stats as any).cover_credit;
   delete (stats as any).cover_urls;
   await sb.from("territories").update({ stats }).eq("id", territoryId);
   return { cover_url: coverUrl, brief };
@@ -168,11 +266,13 @@ Deno.serve(async (req) => {
         return json({ total: ranking.length, done: ranking.length - pending.length, remaining: pending.length, next: pending.slice(0, 8).map((r: any) => ({ name: r.name, level: r.level, score: r.score })) });
       }
       const limit = Math.min(Math.max(parseInt(body.limit) || 3, 1), MAX_BATCH);
-      const processed: { name: string; ok: boolean; error?: string }[] = [];
+      const processed: { name: string; ok: boolean; error?: string; source?: string }[] = [];
+      const startedAt = Date.now();
       for (const r of pending.slice(0, limit)) {
+        if (Date.now() - startedAt > BATCH_BUDGET_MS) break;
         try {
-          await generateCover(sb, apiKey, r.id, { name: r.name, level: r.level });
-          processed.push({ name: r.name, ok: true });
+          const res = await generateCover(sb, apiKey, r.id, { name: r.name, level: r.level });
+          processed.push({ name: r.name, ok: true, source: res.brief.startsWith("photo:") ? "photo" : "ai" });
         } catch (e: any) {
           processed.push({ name: r.name, ok: false, error: e?.status === 429 ? "rate limit" : e?.status === 402 ? "credits exhausted" : String(e?.message ?? e) });
           if (e?.status === 429 || e?.status === 402) break;

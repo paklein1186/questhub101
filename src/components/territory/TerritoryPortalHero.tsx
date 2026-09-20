@@ -3,6 +3,7 @@
  * Hero section for the Territory Portal with single AI cover, breadcrumb, stats.
  */
 
+import { coverCreditText, type CoverCredit } from "@/lib/coverCredit";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -143,6 +144,7 @@ export function TerritoryPortalHero({
   );
 
   const coverImage = statsCoverUrl ?? aiCoverUrl ?? getFallback(territory.level);
+  const coverCredit = (territory.stats as any)?.cover_credit as CoverCredit | undefined;
 
   const LevelIcon = LEVEL_ICON[territory.level?.toUpperCase()] ?? MapPin;
 
@@ -162,6 +164,12 @@ export function TerritoryPortalHero({
               Generating landscape…
             </div>
           </div>
+        )}
+        {coverCredit && statsCoverUrl && (
+          <a href={coverCredit.source_url} target="_blank" rel="noopener noreferrer"
+            className="absolute bottom-2 right-3 z-10 text-[10px] text-white/80 hover:text-white bg-black/30 backdrop-blur-sm rounded px-2 py-0.5">
+            {coverCreditText(coverCredit)}
+          </a>
         )}
         <button
           onClick={onBack}

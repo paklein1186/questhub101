@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { coverCreditText } from "@/lib/coverCredit";
 import { Link } from "react-router-dom";
 import { MapPin, Hash, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,7 +75,7 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
         {/* Gradient header */}
         <div className={`h-20 bg-gradient-to-br ${getGradient(index)} relative`}>
           {item.cover_url ? (
-            <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={item.cover_url} alt={item.name} title={coverCreditText(item.cover_credit)} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
           )}

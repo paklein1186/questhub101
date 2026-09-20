@@ -4350,5 +4350,15 @@
     "cost": "Each cover uses AI credits (a text brief plus an image). The run stops by itself if the AI service refuses.",
     "loadFailed": "Couldn't load the status (admins only, and the function must be deployed)",
     "batchFailed": "The batch failed"
+  },
+  "agentAccess": {
+    "usingIn": "Using it in:",
+    "noHire": "No hire needed — you already have access.",
+    "available": "Available to you through {{space}}",
+    "unit": {
+      "guild": "Guild",
+      "pod": "Pod",
+      "quest": "Quest"
+    }
   }
 }

@@ -570,7 +570,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         if (!p.content) continue;
         if (p.context_type === "GUILD" && agentGuildIds.has(p.context_id)) continue; // déjà remonté par les événements
         objects.push({
-          ctg_id: `post:${p.id}`, kind: "post", is_place: false, name: null, description: cut(p.content, 1500),
+          ctg_id: `post:${p.id}`, kind: "post", is_place: false, name: cut(String(p.content).replace(/\s+/g, " "), 100), description: cut(p.content, 1500),
           url: p.context_type === "GUILD" ? `${SITE_URL}/guilds/${p.context_id}` : SITE_URL,
           parent_ctg_id: p.context_type === "GUILD" && p.context_id ? `guild:${p.context_id}` : null,
           topics: topicNames(p.post_topics), updated_at: p.updated_at ?? p.created_at,
@@ -578,6 +578,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       }
     }
 
+    // Space2 refuse un objet sans nom (422) : jamais de nom vide.
+    for (const o of objects) if (!o.name) o.name = o.ctg_id;
     summary.objects_found = objects.length;
     summary.objects_preview = objects.slice(0, 80).map((o) => ({ kind: o.kind, name: o.name ?? o.description?.slice(0, 60) ?? o.ctg_id, commune: o.commune ?? null }));
     if (!send) return;
@@ -587,7 +589,12 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     for (const batch of chunks(toSend)) {
       const r = await callAgent(base, secret, "/ctg/objects", { method: "PUT", body: JSON.stringify({ objects: batch }) });
       if (r.status === 404 || r.status === 405 || r.status === 501) { unsupported = true; break; }
-      if (r.ok) summary.objects_sent = (summary.objects_sent ?? 0) + batch.length; else objErr(`PUT /ctg/objects → ${r.status}`);
+      if (r.ok) summary.objects_sent = (summary.objects_sent ?? 0) + batch.length;
+      else {
+        // Le détail de validation renvoyé par l'agent (422) dit quel champ pose problème.
+        const detail = (await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+        objErr(`PUT /ctg/objects → ${r.status}${detail ? ` : ${detail}` : ""}`);
+      }
     }
     if (unsupported) summary.objects_unsupported = true;
     if (!unsupported && !objectsFailed && !summary.objects_remaining) {

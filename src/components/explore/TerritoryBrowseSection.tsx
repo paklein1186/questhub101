@@ -1,4 +1,5 @@
 import { useState, useMemo, useContext } from "react";
+import { coverCreditText } from "@/lib/coverCredit";
 import { useTranslation } from "react-i18next";
 import { GridDensityContext } from "@/pages/ExploreHub";
 import { Link } from "react-router-dom";
@@ -62,7 +63,7 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
       >
         <div className={`h-20 bg-gradient-to-br ${gradient} relative`}>
           {item.cover_url ? (
-            <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={item.cover_url} alt={item.name} title={coverCreditText(item.cover_credit)} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
           )}

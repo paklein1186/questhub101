@@ -4336,5 +4336,15 @@
     "cost": "Chaque bannière consomme des crédits IA (une description puis une image). Le lot s'arrête de lui-même si le service IA refuse.",
     "loadFailed": "Impossible de charger l'état (réservé aux admins, et la fonction doit être déployée)",
     "batchFailed": "Le lot a échoué"
+  },
+  "agentAccess": {
+    "usingIn": "Utilisé dans :",
+    "noHire": "Pas besoin de le louer : vous y avez déjà accès.",
+    "available": "Disponible pour vous via {{space}}",
+    "unit": {
+      "guild": "Guilde",
+      "pod": "Pod",
+      "quest": "Quête"
+    }
   }
 }

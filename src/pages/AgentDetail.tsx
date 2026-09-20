@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import AgentBillingTab from "@/components/agent/AgentBillingTab";
 import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
+import { AgentSpaceChat, useAgentSpaces } from "@/components/agent/AgentSpaceChat";
+import { useTranslation } from "react-i18next";
 import AgentOverviewTab from "@/components/agent/AgentOverviewTab";
 import AgentPermissionsTab from "@/components/agent/AgentPermissionsTab";
 import AgentActivityTab from "@/components/agent/AgentActivityTab";
@@ -109,6 +111,7 @@ function getContextualPages(messages: Msg[], agentCategory: string, agentSkills:
 }
 
 export default function AgentDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -157,6 +160,8 @@ export default function AgentDetail() {
     onError: (e: any) => toast.error(e.message || "Failed to hire agent"),
   });
 
+  const { data: spaces = [] } = useAgentSpaces(id, user?.id);
+  const hasSpaceAccess = spaces.length > 0;
   const isHired = !!hire;
   const isOwner = !!user && agent?.creator_user_id === user.id;
   const canManage = isOwner || isAdmin;
@@ -236,7 +241,7 @@ export default function AgentDetail() {
                 <div className="text-xs text-muted-foreground">{agent.usage_count} interactions</div>
               </Card>
 
-              {!isHired && user && (
+              {!isHired && !hasSpaceAccess && user && (
                 <>
                   <Button
                     onClick={() => {
@@ -279,12 +284,19 @@ export default function AgentDetail() {
                   <CheckCircle className="h-4 w-4" /> You've hired this agent
                 </div>
               )}
+              {!isHired && hasSpaceAccess && (
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <CheckCircle className="h-4 w-4" /> {t("agentAccess.available", { space: spaces.map((s) => s.unitName).join(", ") })}
+                </div>
+              )}
               {!user && <Button onClick={() => navigate("/login")} className="w-full">Log in to hire</Button>}
             </div>
 
             <div className="lg:col-span-2">
               {isHired ? (
                 <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={Number((agent as any).usage_price ?? agent.cost_per_use)} billingCurrency={"credits"} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
+              ) : hasSpaceAccess ? (
+                <AgentSpaceChat agent={agent} spaces={spaces} userId={user!.id} />
               ) : (
                 <Card className="p-12 text-center">
                   <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
