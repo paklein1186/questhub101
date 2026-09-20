@@ -282,7 +282,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "search_site",
-      description: "Search across the whole platform — quests, guilds, territories, services and courses — not just the entity currently being viewed. Use this when the user asks a broad 'where can I find...' / 'is there anything about...' question rather than a single-entity lookup.",
+      description: "Search across the whole platform — quests, guilds, territories, services, courses and published AI agents — not just the entity currently being viewed. Use this when the user asks a broad 'where can I find...' / 'is there anything about...' question rather than a single-entity lookup.",
       parameters: {
         type: "object",
         properties: {
@@ -319,16 +319,17 @@ const TOOLS = [
     type: "function",
     function: {
       name: "consult_agent",
-      description: "Send a single question to one of the user's active unit agents (from list_my_active_agents) and return its answer, so you can relay or build on it instead of answering yourself.",
+      description: "Ask one of the user's active agents a question and get its answer, so you can relay it instead of answering yourself. Give the agent's NAME (e.g. \"Space2\") — you do not need ids; the current page's space is used when the agent is available there. Write the question so it stands alone (the agent does not see this conversation).",
       parameters: {
         type: "object",
         properties: {
-          agent_id: { type: "string" },
-          unit_type: { type: "string", enum: ["guild", "pod", "quest"] },
-          unit_id: { type: "string" },
-          question: { type: "string", description: "The question to ask the agent" },
+          agent_name: { type: "string", description: "Name (or part of the name) of the agent, e.g. Space2" },
+          question: { type: "string", description: "Self-contained question to ask the agent" },
+          agent_id: { type: "string", description: "Optional, from list_my_active_agents" },
+          unit_type: { type: "string", enum: ["guild", "pod", "quest"], description: "Optional, from list_my_active_agents" },
+          unit_id: { type: "string", description: "Optional, from list_my_active_agents" },
         },
-        required: ["agent_id", "unit_type", "unit_id", "question"],
+        required: ["question"],
       },
     },
   },
@@ -337,12 +338,52 @@ const TOOLS = [
 // =====================================================================
 // Tool execution
 // =====================================================================
+/** Agents active in the guilds, pods and quests the user belongs to. */
+async function listActiveAgents(sb: any, userId: string) {
+  const [guildMemberships, podMemberships, questMemberships] = await Promise.all([
+    sb.from("guild_members").select("guild_id, guilds(id, name)").eq("user_id", userId),
+    sb.from("pod_members").select("pod_id, pods(id, name)").eq("user_id", userId),
+    sb.from("quest_participants").select("quest_id, quests(id, title)").eq("user_id", userId),
+  ]);
+
+  const units: { unit_type: string; unit_id: string; unit_name: string }[] = [
+    ...((guildMemberships.data || []) as any[]).filter((m) => m.guilds).map((m) => ({ unit_type: "guild", unit_id: m.guild_id, unit_name: m.guilds.name })),
+    ...((podMemberships.data || []) as any[]).filter((m) => m.pods).map((m) => ({ unit_type: "pod", unit_id: m.pod_id, unit_name: m.pods.name })),
+    ...((questMemberships.data || []) as any[]).filter((m) => m.quests).map((m) => ({ unit_type: "quest", unit_id: m.quest_id, unit_name: m.quests.title })),
+  ];
+  if (units.length === 0) return [];
+
+  const byType: Record<string, string[]> = {};
+  for (const u of units) (byType[u.unit_type] ??= []).push(u.unit_id);
+
+  const results = await Promise.all(
+    Object.entries(byType).map(([unitType, unitIds]) =>
+      sb.from("unit_agents").select("agent_id, unit_type, unit_id, agents(id, name, description, category)")
+        .eq("unit_type", unitType).in("unit_id", unitIds).eq("is_active", true)
+    )
+  );
+  const unitNameByKey = new Map(units.map((u) => [`${u.unit_type}:${u.unit_id}`, u.unit_name]));
+
+  return results.flatMap((r: any) => (r.data || []) as any[]).map((ua: any) => ({
+    agent_id: ua.agent_id,
+    agent_name: ua.agents?.name as string | undefined,
+    description: ua.agents?.description,
+    category: ua.agents?.category,
+    unit_type: ua.unit_type as string,
+    unit_id: ua.unit_id as string,
+    unit_name: unitNameByKey.get(`${ua.unit_type}:${ua.unit_id}`) || null,
+  }));
+}
+
+const normAgentName = (v: string) => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+
 async function executeToolCall(
   toolName: string,
   params: any,
   userId: string,
   sb: any,
-  authHeader?: string
+  authHeader?: string,
+  pageCtx?: { type?: string; id?: string }
 ): Promise<any> {
   switch (toolName) {
     case "get_user_profile": {
@@ -745,7 +786,7 @@ async function executeToolCall(
       const limit = params.limit || 5;
       const like = `%${q}%`;
 
-      const [quests, guilds, territories, services, courses] = await Promise.all([
+      const [quests, guilds, territories, services, courses, agents] = await Promise.all([
         sb.from("quests").select("id, title, description")
           .eq("is_deleted", false).eq("is_draft", false)
           .or(`title.ilike.${like},description.ilike.${like}`).limit(limit),
@@ -760,6 +801,9 @@ async function executeToolCall(
         sb.from("courses").select("id, title, description")
           .eq("is_deleted", false).eq("is_published", true)
           .or(`title.ilike.${like},description.ilike.${like}`).limit(limit),
+        sb.from("agents").select("id, name, description, category, purpose")
+          .eq("is_published", true)
+          .or(`name.ilike.${like},description.ilike.${like},purpose.ilike.${like}`).limit(limit),
       ]);
 
       return {
@@ -768,6 +812,7 @@ async function executeToolCall(
         territories: territories.data || [],
         services: services.data || [],
         courses: courses.data || [],
+        agents: agents.data || [],
       };
     }
 
@@ -797,87 +842,66 @@ async function executeToolCall(
     }
 
     case "list_my_active_agents": {
-      const [guildMemberships, podMemberships, questMemberships] = await Promise.all([
-        sb.from("guild_members").select("guild_id, guilds(id, name)").eq("user_id", userId),
-        sb.from("pod_members").select("pod_id, pods(id, name)").eq("user_id", userId),
-        sb.from("quest_participants").select("quest_id, quests(id, title)").eq("user_id", userId),
-      ]);
-
-      const units: { unit_type: string; unit_id: string; unit_name: string }[] = [
-        ...((guildMemberships.data || []) as any[])
-          .filter((m) => m.guilds)
-          .map((m) => ({ unit_type: "guild", unit_id: m.guild_id, unit_name: m.guilds.name })),
-        ...((podMemberships.data || []) as any[])
-          .filter((m) => m.pods)
-          .map((m) => ({ unit_type: "pod", unit_id: m.pod_id, unit_name: m.pods.name })),
-        ...((questMemberships.data || []) as any[])
-          .filter((m) => m.quests)
-          .map((m) => ({ unit_type: "quest", unit_id: m.quest_id, unit_name: m.quests.title })),
-      ];
-      if (units.length === 0) return [];
-
-      const byType: Record<string, string[]> = {};
-      for (const u of units) (byType[u.unit_type] ??= []).push(u.unit_id);
-
-      const results = await Promise.all(
-        Object.entries(byType).map(([unitType, unitIds]) =>
-          sb.from("unit_agents").select("agent_id, unit_type, unit_id, agents(id, name, description, category)")
-            .eq("unit_type", unitType).in("unit_id", unitIds).eq("is_active", true)
-        )
-      );
-
-      const unitNameByKey = new Map(units.map((u) => [`${u.unit_type}:${u.unit_id}`, u.unit_name]));
-
-      return results.flatMap((r) => (r.data || []) as any[]).map((ua: any) => ({
-        agent_id: ua.agent_id,
-        agent_name: ua.agents?.name,
-        description: ua.agents?.description,
-        category: ua.agents?.category,
-        unit_type: ua.unit_type,
-        unit_id: ua.unit_id,
-        unit_name: unitNameByKey.get(`${ua.unit_type}:${ua.unit_id}`) || null,
-      }));
+      return await listActiveAgents(sb, userId);
     }
 
     case "consult_agent": {
-      const { agent_id, unit_type, unit_id, question } = params;
-      if (!agent_id || !unit_type || !unit_id || !question) {
-        return { error: "agent_id, unit_type, unit_id and question are required" };
-      }
+      const question = String(params.question ?? "").trim();
+      if (!question) return { error: "question is required" };
       if (!authHeader) return { error: "Cannot consult agent: missing auth context" };
 
-      try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const res = await fetch(`${supabaseUrl}/functions/v1/unit-agent-chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: authHeader },
-          body: JSON.stringify({
-            agentId: agent_id,
-            unitType: unit_type,
-            unitId: unit_id,
-            messages: [{ role: "user", content: question }],
-          }),
-        });
-
-        const contentType = res.headers.get("content-type") || "";
-        if (contentType.includes("text/event-stream")) {
-          const text = await res.text();
-          const content = text
-            .split("\n")
-            .filter((l) => l.startsWith("data: ") && !l.includes("[DONE]"))
-            .map((l) => {
-              try { return JSON.parse(l.slice(6))?.choices?.[0]?.delta?.content || ""; } catch { return ""; }
-            })
-            .join("");
-          return { answer: content || null };
-        }
-
-        const data = await res.json();
-        if (!res.ok) return { error: data?.error || `Agent chat failed (${res.status})` };
-        return { answer: data.content || data.answer || null };
-      } catch (e: any) {
-        return { error: `Failed to consult agent: ${e?.message || e}` };
+      const available = await listActiveAgents(sb, userId);
+      const wanted = normAgentName(String(params.agent_name ?? ""));
+      let matches = available.filter((a) =>
+        params.agent_id ? a.agent_id === params.agent_id && (!params.unit_id || a.unit_id === params.unit_id)
+          : wanted ? normAgentName(a.agent_name ?? "").includes(wanted) : false);
+      if (!matches.length) {
+        return {
+          error: "No active agent matches. The agent must be attached to a guild, pod or quest the user belongs to.",
+          available_agents: [...new Set(available.map((a) => a.agent_name).filter(Boolean))],
+        };
       }
+      // Prefer the space the user is looking at, then guild, quest, pod.
+      const rank = (a: any) => (pageCtx?.id && pageCtx.id === a.unit_id ? 0 : a.unit_type === "guild" ? 1 : a.unit_type === "quest" ? 2 : 3);
+      matches = [...matches].sort((x, y) => rank(x) - rank(y));
+      const target = matches[0];
+
+      // On a quest page, ask in the quest's own context when the agent comes from its guild.
+      const attempts: { unit_type: string; unit_id: string }[] = [];
+      if (pageCtx?.type === "quest" && pageCtx.id && target.unit_type === "guild") {
+        const { data: q } = await sb.from("quests").select("guild_id").eq("id", pageCtx.id).maybeSingle();
+        if (q?.guild_id === target.unit_id) attempts.push({ unit_type: "quest", unit_id: pageCtx.id });
+      }
+      attempts.push({ unit_type: target.unit_type, unit_id: target.unit_id });
+
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      let lastError = "Agent chat failed";
+      for (const at of attempts) {
+        try {
+          const res = await fetch(`${supabaseUrl}/functions/v1/unit-agent-chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: authHeader },
+            body: JSON.stringify({ agentId: target.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }] }),
+            signal: AbortSignal.timeout(50_000),
+          });
+          const contentType = res.headers.get("content-type") || "";
+          if (res.ok && contentType.includes("text/event-stream")) {
+            const text = await res.text();
+            const content = text.split("\n")
+              .filter((l) => l.startsWith("data: ") && !l.includes("[DONE]"))
+              .map((l) => { try { return JSON.parse(l.slice(6))?.choices?.[0]?.delta?.content || ""; } catch { return ""; } })
+              .join("");
+            return { agent: target.agent_name, space: target.unit_name, answer: content || null };
+          }
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) return { agent: target.agent_name, space: target.unit_name, answer: data.content || data.answer || null };
+          if (res.status === 402) return { error: "The user does not have enough credits for this agent.", needs_top_up: true, top_up_path: "/me/credit-shop" };
+          lastError = data?.error || `Agent chat failed (${res.status})`;
+        } catch (e: any) {
+          lastError = `Failed to consult agent: ${e?.message || e}`;
+        }
+      }
+      return { error: lastError };
     }
 
     default:
@@ -969,6 +993,17 @@ MULTILINGUAL RULES:
 - Keep proper nouns, entity names, quest titles, file names and mention tokens of the form @[Name](type:id) verbatim — never translate or alter them.
 - If a term has no good equivalent, keep the original and add a short gloss in ${name} in parentheses.`;
 }
+
+const ROUTING_PROMPT = `
+
+## AGENTS AND KNOWLEDGE — HOW TO ROUTE A QUESTION
+You are the front door to the platform's specialised AI agents, and you can chain several tool calls in a row.
+- NEVER say "I have no information" or "I cannot interact with agents" before trying: search_site (it covers guilds, quests, territories, services, courses AND published agents), then list_my_active_agents.
+- If the user names an agent (for example "Space2") or asks about a domain an agent covers (for example third places / tiers-lieux, which Space2 knows), call consult_agent with agent_name and a self-contained question, then relay its answer faithfully. Say which agent answered and keep the sources it cites. Do not invent anything beyond what it returned.
+- If the user asks what an agent is, describe it from search_site (name, description, purpose) and offer to ask it something.
+- If consult_agent returns needs_top_up, tell the user they need more credits and link /me/credit-shop. If no agent matches, say which agents are available (available_agents) instead of guessing.
+- Follow-ups such as "an agent…" or "yes, that one" refer to the previous messages: resolve them from the conversation before asking the user to repeat.
+- Answer in the user's language, keep it concise, and still return the JSON format described above.`;
 
 const BASE_SYSTEM_PROMPT = `You are Pi, the AI assistant of ChangeTheGame — a regenerative ecosystem
 platform where humans collaborate to restore territories, build guilds,
@@ -1694,6 +1729,7 @@ serve(async (req) => {
 
     const pageContext2 = await buildPageContext(sb, contextType, contextId);
     systemPrompt += pageContext2;
+    systemPrompt += ROUTING_PROMPT;
 
     // Build messages for AI
     const aiMessages = [
@@ -1702,46 +1738,53 @@ serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: aiMessages,
-        tools: TOOLS,
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errText);
-      if (aiResponse.status === 429) return jsonRes({ error: "Rate limit exceeded. Please try again shortly." }, 429);
-      if (aiResponse.status === 402) return jsonRes({ error: "AI credits exhausted. Please top up." }, 402);
-      return jsonRes({ error: "AI service error" }, 500);
-    }
-
-    const aiData = await aiResponse.json();
-    let choice = aiData.choices?.[0];
-
-    // Process tool calls if any
+    // Agentic loop: the model can chain tool calls (search → list agents → consult an agent …).
+    const PI_MODEL = "google/gemini-3-flash-preview";
+    const MAX_TOOL_ROUNDS = 5;
+    const convo: any[] = [...aiMessages];
     const toolResults: any[] = [];
     const actions: any[] = [];
+    let choice: any = null;
 
-    if (choice?.message?.tool_calls?.length) {
-      for (const tc of choice.message.tool_calls) {
+    for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+      // The last round has no tools, so the model must answer with what it gathered.
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: PI_MODEL,
+          messages: convo,
+          ...(round < MAX_TOOL_ROUNDS ? { tools: TOOLS } : {}),
+          temperature: 0.4,
+          max_tokens: 2000,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errText = await aiResponse.text();
+        console.error("AI gateway error:", aiResponse.status, errText);
+        if (aiResponse.status === 429) return jsonRes({ error: "Rate limit exceeded. Please try again shortly." }, 429);
+        if (aiResponse.status === 402) return jsonRes({ error: "AI credits exhausted. Please top up." }, 402);
+        return jsonRes({ error: "AI service error" }, 500);
+      }
+
+      const aiData = await aiResponse.json();
+      choice = aiData.choices?.[0];
+      const calls = choice?.message?.tool_calls ?? [];
+      if (!calls.length) break;
+
+      convo.push(choice.message);
+      for (const tc of calls) {
         const toolName = tc.function.name;
         let toolParams: any = {};
         try {
           toolParams = JSON.parse(tc.function.arguments || "{}");
         } catch {}
 
-        const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader);
+        const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader, { type: contextType, id: contextId });
         toolResults.push({ tool: toolName, result });
 
         await sb.from("pi_tool_logs").insert({
@@ -1752,36 +1795,7 @@ serve(async (req) => {
         });
 
         if (result?.action) actions.push(result);
-      }
-
-      // Send tool results back to AI for final response
-      const toolMessages = [
-        ...aiMessages,
-        choice.message,
-        ...choice.message.tool_calls.map((tc: any, i: number) => ({
-          role: "tool",
-          tool_call_id: tc.id,
-          content: JSON.stringify(toolResults[i]?.result || {}),
-        })),
-      ];
-
-      const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: toolMessages,
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-      });
-
-      if (finalResponse.ok) {
-        const finalData = await finalResponse.json();
-        choice = finalData.choices?.[0];
+        convo.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result ?? {}).slice(0, 12000) });
       }
     }
 
