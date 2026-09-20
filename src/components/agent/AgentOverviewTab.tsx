@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Bot, Shield, Zap, TrendingUp, Activity, Star, Copy, RefreshCw, XCircle } from "lucide-react";
+import { useState } from "react";
+import { Bot, Shield, Zap, TrendingUp, Activity, Star, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -12,6 +13,10 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { AgentFiche } from "@/components/agent/AgentFiche";
 import { WebhookSecretPanel } from "@/components/agent/WebhookSecretPanel";
+import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog";
+import { useCanManageAgent } from "@/hooks/useCanManageAgent";
+import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   agent: any;
@@ -33,6 +38,10 @@ function getTrustLevel(score: number) {
 
 export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const canManage = useCanManageAgent(agent.id, user?.id);
+  const [editOpen, setEditOpen] = useState(false);
   const { data: trustScore } = useQuery({
     queryKey: ["agent-trust-score", agent.id],
     queryFn: async () => {
@@ -89,6 +98,11 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
                 <Badge variant={agent.is_published ? "default" : "secondary"}>
                   {agent.is_published ? t("agentOverview.published") : t("agentOverview.draft")}
                 </Badge>
+                {canManage && (
+                  <Button size="sm" variant="outline" className="ml-auto h-8" onClick={() => setEditOpen(true)}>
+                    <Pencil className="h-3.5 w-3.5 mr-1.5" /> {t("agentsUi.edit")}
+                  </Button>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mt-1">{agent.description}</p>
 
@@ -119,7 +133,8 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
 
       <AgentFiche agent={agent} />
 
-      {isOwner && agent.agent_source === "webhook" && <WebhookSecretPanel agentId={agent.id} />}
+      {canManage && agent.agent_source === "webhook" && <WebhookSecretPanel agentId={agent.id} />}
+
 
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -184,6 +199,16 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {canManage && user && (
+        <CreateAgentDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          userId={user.id}
+          editAgent={agent}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["agent", agent.id] })}
+        />
       )}
 
       {/* Recent Actions */}

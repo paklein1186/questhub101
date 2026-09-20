@@ -81,6 +81,92 @@ const str = (v: unknown, max: number): string | null => {
 const strList = (v: unknown, max: number, item: number): string[] =>
   Array.isArray(v) ? v.map((x) => str(x, item)).filter((x): x is string => !!x).slice(0, max) : [];
 
+// ── rapprochement avec les territoires et thèmes de changethegame ─────────
+// Les agents externes parlent français ou dans la langue locale (« Belgique »,
+// « tiers-lieux ») alors que la base est en anglais (« Belgium », « Third Spaces »).
+// Même bloc dans agent-manifest et agent-sync : à garder identique.
+const normTax = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[’'`]/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+
+const TERRITORY_ALIASES: Record<string, string> = {
+  "belgique": "belgium", "belgie": "belgium", "wallonie": "wallonia", "region wallonne": "wallonia",
+  "bruxelles": "brussels", "brussel": "brussels", "bruxelles capitale": "brussels",
+  "region de bruxelles capitale": "brussels", "region bruxelloise": "brussels",
+  "flandre": "flanders", "vlaanderen": "flanders", "suisse": "switzerland", "allemagne": "germany",
+  "espagne": "spain", "royaume uni": "uk", "united kingdom": "uk", "angleterre": "uk", "greece": "grece",
+  "lisbonne": "lisbon", "londres": "london", "geneve": "geneva", "bourgogne": "burgundy",
+  "la reunion": "reunion", "luik": "liege", "barcelone": "barcelona", "pays bas": "netherlands",
+  "italie": "italy", "irlande": "ireland", "etats unis": "usa", "australie": "australia",
+};
+
+const TOPIC_ALIASES: Record<string, string> = {
+  "tiers lieu": "third spaces", "tiers lieux": "third spaces", "third place": "third spaces", "third places": "third spaces",
+  "culture": "arts culture", "arts": "arts culture", "art et culture": "arts culture", "culturel": "arts culture",
+  "agriculture": "new agriculture", "agroecologie": "new agriculture", "energie": "energy",
+  "education": "transformative education", "formation": "transformative education",
+  "sante": "healthcare", "gouvernance": "governance", "numerique": "open data technology", "technologie": "open data technology",
+  "commun": "commons dao", "communs": "commons dao", "eau": "water soils", "sols": "water soils",
+  "innovation territoriale": "territorial innovation", "medias": "journalism medias", "journalisme": "journalism medias",
+  "immobilier": "impact real estate", "lowtech": "low tech", "economie sociale et solidaire": "new economic models",
+  "economie circulaire": "new economic models", "hospitalite": "hosting facilitation", "facilitation": "hosting facilitation",
+  "recit": "narratives storytelling", "narration": "narratives storytelling",
+};
+
+function findByName<T extends { name: string; slug?: string | null }>(word: string, rows: T[], aliases: Record<string, string>): T | null {
+  const n = normTax(word);
+  if (!n) return null;
+  const byKey = new Map<string, T>();
+  for (const r of rows) {
+    byKey.set(normTax(r.name), r);
+    if (r.slug) byKey.set(normTax(r.slug), r);
+  }
+  const direct = byKey.get(n) ?? byKey.get(aliases[n] ?? "");
+  if (direct) return direct;
+  // Un mot significatif qui n'apparaît que dans un seul nom (« governance » → « Governance »).
+  if (n.length >= 5 && !n.includes(" ")) {
+    const hits = rows.filter((r) => normTax(r.name).split(" ").includes(n));
+    if (hits.length === 1) return hits[0];
+  }
+  return null;
+}
+
+/** Découpe une valeur libre (texte, liste, objet) en mots-clés propres. */
+function splitTerms(v: unknown): string[] {
+  const raw = v == null ? [] : Array.isArray(v) ? v : typeof v === "object" ? Object.values(v as object) : [v];
+  return raw.flatMap((x) => String(x ?? "").split(/[,;|/·\n]+/)).map((s) => s.trim()).filter((s) => s.length > 1 && s.length < 60);
+}
+
+type Variable = { name: string; description: string; kind: "input" | "data"; columns?: string[] };
+
+/** Paramètres d'entrée et jeux de données de l'agent, quelle que soit la forme choisie pour les décrire. */
+function readVariables(raw: any): Variable[] {
+  const out: Variable[] = [];
+  const asList = (v: unknown): any[] =>
+    Array.isArray(v) ? v : v && typeof v === "object" ? Object.entries(v).map(([name, d]) => (typeof d === "object" && d ? { name, ...(d as object) } : { name, description: d })) : [];
+
+  for (const v of asList(raw.variables ?? raw.inputs ?? raw.parameters)) {
+    const name = typeof v === "string" ? str(v, 80) : str(v?.name ?? v?.key, 80);
+    if (name) out.push({ name, description: (typeof v === "string" ? "" : str(v?.description ?? v?.desc, 400)) ?? "", kind: "input" });
+  }
+
+  for (const d of asList(raw.datasets ?? raw.data)) {
+    const name = typeof d === "string" ? str(d, 80) : str(d?.name ?? d?.key, 80);
+    if (!name) continue;
+    let description = (typeof d === "string" ? "" : str(d?.description ?? d?.desc, 600)) ?? "";
+    let columns: string[] = asList(d?.columns ?? d?.fields)
+      .map((c) => (typeof c === "string" ? str(c, 60) : str(c?.name ?? c?.key, 60)))
+      .filter((c): c is string => !!c);
+    if (columns.length === 0) {
+      // Repli : la liste de colonnes écrite entre parenthèses dans la description.
+      const m = description.match(/\(([^()]{12,})\)/);
+      const parts = m ? m[1].split(",").map((x) => x.trim()).filter((x) => /^[\p{L}0-9_./ -]{1,60}$/u.test(x)) : [];
+      if (m && parts.length >= 3) { columns = parts; description = description.replace(m[0], "").replace(/\s+([.,;])/g, "$1").trim(); }
+    }
+    out.push({ name, description, kind: "data", ...(columns.length ? { columns: columns.slice(0, 60) } : {}) });
+  }
+  return out.slice(0, 40);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -104,28 +190,25 @@ serve(async (req) => {
       return json({ error: "Cet agent n'expose pas de fiche (GET /manifest). Remplissez les champs à la main." });
     }
 
-    const variables = (Array.isArray(raw.variables) ? raw.variables : [])
-      .map((v: any) => ({ name: str(v?.name, 80), description: str(v?.description, 400) ?? "" }))
-      .filter((v: any) => v.name)
-      .slice(0, 30);
+    const variables = readVariables(raw);
 
     const topicWanted = strList(raw.topics, 20, 80);
     const territoryWanted = strList(raw.territories, 20, 80);
     const [topics, territories] = await Promise.all([
       topicWanted.length ? sb.from("topics").select("id, name, slug") : Promise.resolve({ data: [] as any[] }),
-      territoryWanted.length ? sb.from("territories").select("id, name") : Promise.resolve({ data: [] as any[] }),
+      territoryWanted.length ? sb.from("territories").select("id, name, slug") : Promise.resolve({ data: [] as any[] }),
     ]);
-    const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
     const topicIds: string[] = [];
     const territoryIds: string[] = [];
     const unmatched: string[] = [];
+    const matches: { wanted: string; name: string }[] = [];
     for (const w of topicWanted) {
-      const hit = (topics.data ?? []).find((t: any) => norm(t.slug ?? "") === norm(w) || norm(t.name) === norm(w));
-      if (hit) topicIds.push(hit.id); else unmatched.push(w);
+      const hit = findByName(w, topics.data ?? [], TOPIC_ALIASES);
+      if (hit) { topicIds.push(hit.id); matches.push({ wanted: w, name: hit.name }); } else unmatched.push(w);
     }
     for (const w of territoryWanted) {
-      const hit = (territories.data ?? []).find((t: any) => norm(t.name) === norm(w));
-      if (hit) territoryIds.push(hit.id); else unmatched.push(w);
+      const hit = findByName(w, territories.data ?? [], TERRITORY_ALIASES);
+      if (hit) { territoryIds.push(hit.id); matches.push({ wanted: w, name: hit.name }); } else unmatched.push(w);
     }
 
     return json({
@@ -140,6 +223,7 @@ serve(async (req) => {
         topic_ids: topicIds,
         territory_ids: territoryIds,
         unmatched,
+        matches,
       },
     });
   } catch (e: any) {

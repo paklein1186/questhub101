@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, Plus, Trash2, Send, Loader2, Sparkles, Search, Zap, ArrowLeft, Info } from "lucide-react";
+import { Bot, Plus, Trash2, Send, Loader2, Sparkles, Search, Zap, ArrowLeft, Info, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { useAgentQuota } from "@/hooks/useAgentQuota";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCanManageAgent } from "@/hooks/useCanManageAgent";
 import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -39,6 +40,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [editAgent, setEditAgent] = useState<any>(null);
   const [activeChatAgentId, setActiveChatAgentId] = useState<string | null>(null);
 
   // Fetch admitted agents for this unit
@@ -98,7 +100,8 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
     const r = data?.results?.[0];
     toast.message(dryRun ? t("agentsUi.syncSimulation") : t("agentsUi.syncDone"), {
       description: r
-        ? t("agentsUi.syncSummary", { fetched: r.fetched ?? 0, created: r.created ?? 0, updated: r.updated ?? 0, events: r.events_sent ?? 0, errors: r.errors?.length ?? 0 })
+        ? t("agentsUi.syncSummary", { fetched: r.fetched ?? 0, created: r.created ?? 0, updated: r.updated ?? 0, events: r.events_sent ?? 0, errors: r.errors?.length ?? 0 }) +
+          (r.unmatched_places?.length ? ` ${t("agentsUi.syncUnmatched", { list: r.unmatched_places.join(", ") })}` : "")
         : JSON.stringify(data),
     });
   };
@@ -226,24 +229,15 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
                   </Button>
                 )}
               </div>
-              {ua.agents?.sync_enabled && ua.agents?.creator_user_id === user?.id && (
-                <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, true)}>{t("agentsUi.simulateSync")}</Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, false)}>{t("agentsUi.syncNow")}</Button>
-                </div>
-              )}
-              {ua.agents?.creator_user_id === user?.id && !ua.inherited && ua.agents?.billing_currency !== "free" && (
-                <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                  <span className="text-xs text-muted-foreground">{t("agentsUi.freeForLabel")}</span>
-                  <Select value={ua.free_for ?? "nobody"} onValueChange={(v) => setFreeFor.mutate({ id: ua.id, value: v })}>
-                    <SelectTrigger className="h-7 w-auto text-xs gap-1"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nobody">{t("agentForm.freeForNobody")}</SelectItem>
-                      <SelectItem value="admins">{t("agentForm.freeForAdmins", { unit: t(`agentForm.unit.${unitType}`) })}</SelectItem>
-                      <SelectItem value="members">{t("agentForm.freeForMembers", { unit: t(`agentForm.unit.${unitType}`) })}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {user && (
+                <AgentManageBar
+                  ua={ua}
+                  unitType={unitType}
+                  userId={user.id}
+                  onEdit={() => setEditAgent(ua.agents)}
+                  onSync={runSync}
+                  onFreeFor={(value) => setFreeFor.mutate({ id: ua.id, value })}
+                />
               )}
               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                 <Zap className="h-3 w-3" /> {t("agentsUi.creditsPerMsg", { count: ua.agents?.cost_per_use })}
@@ -265,6 +259,16 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
         />
       )}
 
+      {user && editAgent && (
+        <CreateAgentDialog
+          open={!!editAgent}
+          onOpenChange={(v) => { if (!v) setEditAgent(null); }}
+          userId={user.id}
+          editAgent={editAgent}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["unit-agents"] })}
+        />
+      )}
+
       {isAdmin && user && (
         <AdmitAgentDialog
           open={addOpen}
@@ -274,6 +278,44 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
           userId={user.id}
           existingAgentIds={(unitAgents || []).map((ua: any) => ua.agent_id)}
         />
+      )}
+    </div>
+  );
+}
+
+function AgentManageBar({ ua, unitType, userId, onEdit, onSync, onFreeFor }: {
+  ua: any; unitType: string; userId: string;
+  onEdit: () => void; onSync: (agentId: string, dryRun: boolean) => void; onFreeFor: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+  const canManage = useCanManageAgent(ua.agent_id, userId);
+  if (!canManage) return null;
+  const unit = t(`agentForm.unit.${unitType}`);
+  return (
+    <div className="mt-2 space-y-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={onEdit}>
+          <Pencil className="h-3 w-3 mr-1" /> {t("agentsUi.edit")}
+        </Button>
+        {ua.agents?.sync_enabled && (
+          <>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onSync(ua.agent_id, true)}>{t("agentsUi.simulateSync")}</Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onSync(ua.agent_id, false)}>{t("agentsUi.syncNow")}</Button>
+          </>
+        )}
+      </div>
+      {!ua.inherited && ua.agents?.billing_currency !== "free" && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{t("agentsUi.freeForLabel")}</span>
+          <Select value={ua.free_for ?? "nobody"} onValueChange={onFreeFor}>
+            <SelectTrigger className="h-7 w-auto text-xs gap-1"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nobody">{t("agentForm.freeForNobody")}</SelectItem>
+              <SelectItem value="admins">{t("agentForm.freeForAdmins", { unit })}</SelectItem>
+              <SelectItem value="members">{t("agentForm.freeForMembers", { unit })}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       )}
     </div>
   );

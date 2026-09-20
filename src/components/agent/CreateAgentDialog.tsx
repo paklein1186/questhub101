@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation, Trans } from "react-i18next";
 import { AlertTriangle, Eye, EyeOff, CircleDollarSign, Gift, Plus, Trash2, Copy, Check, Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { WebhookSecretPanel } from "@/components/agent/WebhookSecretPanel";
 import { toast } from "sonner";
 
 type AgentSource = "platform" | "custom_llm" | "webhook";
@@ -67,6 +68,8 @@ function generateSecret(): string {
 
 const isHttpsUrl = (u: string) => /^https:\/\/[^\s/]+\.[^\s/]+/.test(u);
 
+type AgentVariable = { name: string; description: string; kind?: "input" | "data"; columns?: string[] };
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -76,10 +79,14 @@ interface Props {
   /** Also attaches the new agent to this unit once created. */
   attachTo?: { unitType: "guild" | "pod" | "quest"; unitId: string };
   onCreated?: (agentId: string) => void;
+  /** Edit an existing agent instead of registering a new one. */
+  editAgent?: any;
 }
 
-export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, attachTo, onCreated }: Props) {
+export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, attachTo, onCreated, editAgent }: Props) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
+  const isEdit = !!editAgent;
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
 
@@ -87,7 +94,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [description, setDescription] = useState("");
   const [purpose, setPurpose] = useState("");
   const [longDescription, setLongDescription] = useState("");
-  const [variables, setVariables] = useState<{ name: string; description: string }[]>([]);
+  const [variables, setVariables] = useState<AgentVariable[]>([]);
   const [topicIds, setTopicIds] = useState<string[]>([]);
   const [territoryIds, setTerritoryIds] = useState<string[]>([]);
   const [isListed, setIsListed] = useState(true);
@@ -158,6 +165,33 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const toggle = (list: string[], set: (v: string[]) => void, id: string) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
+  // Edit mode: load the agent and its scope into the form each time the dialog opens.
+  useEffect(() => {
+    if (!open || !editAgent) return;
+    const a = editAgent;
+    setName(a.name ?? ""); setDescription(a.description ?? ""); setPurpose(a.purpose ?? ""); setLongDescription(a.long_description ?? "");
+    setVariables(Array.isArray(a.variables) ? a.variables.map((v: any) => ({
+      name: v.name ?? "", description: v.description ?? "", ...(v.kind ? { kind: v.kind } : {}), ...(Array.isArray(v.columns) ? { columns: v.columns } : {}),
+    })) : []);
+    setIsListed(a.is_published ?? true); setSystemPrompt(a.system_prompt ?? ""); setSkills((a.skills ?? []).join(", "));
+    setCategory(a.category ?? "general");
+    setAgentSource((a.agent_source ?? "platform") as AgentSource);
+    setLlmProvider(a.external_llm_config?.provider ?? ""); setLlmModel(a.external_llm_config?.model ?? ""); setLlmApiKey("");
+    setWebhookUrl(a.external_webhook_url ?? ""); setSyncEnabled(!!a.sync_enabled); setSyncBaseUrl(a.sync_base_url ?? "");
+    setPricingMode((a.pricing_mode ?? (a.billing_currency === "free" ? "free" : "paid")) === "free" ? "free" : "paid");
+    setHirePrice(String(a.hire_price ?? 0)); setUsagePrice(String(a.usage_price ?? a.cost_per_use ?? 5));
+    setFreeCallsLimit(a.free_calls_limit != null ? String(a.free_calls_limit) : "");
+    setImportStatus(null); lastImported.current = a.external_webhook_url ?? "";
+    (async () => {
+      const [tp, tr] = await Promise.all([
+        supabase.from("agent_topics" as any).select("topic_id").eq("agent_id", a.id),
+        supabase.from("agent_territories" as any).select("territory_id").eq("agent_id", a.id),
+      ]);
+      setTopicIds(((tp.data ?? []) as any[]).map((r) => r.topic_id));
+      setTerritoryIds(((tr.data ?? []) as any[]).map((r) => r.territory_id));
+    })();
+  }, [open, editAgent?.id]);
+
   const resetForm = () => {
     setName(""); setDescription(""); setPurpose(""); setLongDescription(""); setVariables([]);
     setTopicIds([]); setTerritoryIds([]); setIsListed(true); setSystemPrompt(""); setSkills("");
@@ -193,12 +227,14 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     if ((m.territory_ids ?? []).length && (overwrite || territoryIds.length === 0)) setTerritoryIds(m.territory_ids);
 
     const unmatched = m.unmatched?.length ? ` ${t("agentForm.importUnmatched", { list: m.unmatched.join(", ") })}` : "";
-    setImportStatus({ kind: "ok", text: t("agentForm.imported", { count: (m.variables ?? []).length }) + unmatched });
+    const bridged = (m.matches ?? []).filter((x: any) => x.wanted.trim().toLowerCase() !== x.name.trim().toLowerCase());
+    const bridge = bridged.length ? ` ${t("agentForm.importBridged", { list: bridged.map((x: any) => `${x.wanted} → ${x.name}`).join(", ") })}` : "";
+    setImportStatus({ kind: "ok", text: t("agentForm.imported", { count: (m.variables ?? []).length }) + bridge + unmatched });
   };
 
   // "URL first": as soon as a valid https URL is entered, the agent's details are pulled.
   useEffect(() => {
-    if (!open || agentSource !== "webhook") return;
+    if (!open || isEdit || agentSource !== "webhook") return;
     const u = webhookUrl.trim();
     if (!isHttpsUrl(u) || u === lastImported.current) return;
     const handle = setTimeout(() => importManifest(false, u), 800);
@@ -206,7 +242,67 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webhookUrl, agentSource, open]);
 
+  const cleanVariables = () =>
+    variables.filter((v) => v.name.trim()).map((v) => ({
+      name: v.name.trim(),
+      description: v.description.trim(),
+      ...(v.kind ? { kind: v.kind } : {}),
+      ...(v.columns?.length ? { columns: v.columns } : {}),
+    }));
+
+  const handleSave = async () => {
+    if (!name.trim()) { toast.error(t("agents.nameRequired")); return; }
+    if (agentSource === "platform" && !systemPrompt.trim()) { toast.error(t("agents.nameRequired")); return; }
+    if (agentSource === "webhook" && !webhookUrl.trim()) { toast.error(t("agentForm.webhookUrlRequired")); return; }
+    if (agentSource === "webhook" && syncEnabled && !syncBaseUrl.trim()) { toast.error(t("agentForm.syncBaseUrlRequired")); return; }
+    if (agentSource === "custom_llm" && (!llmProvider || !llmModel)) { toast.error(t("agentForm.llmRequired")); return; }
+
+    setSaving(true);
+    const isFree = pricingMode === "free";
+    const patch: any = {
+      name: name.trim(),
+      description: description.trim() || null,
+      purpose: purpose.trim() || null,
+      long_description: longDescription.trim() || null,
+      variables: cleanVariables(),
+      skills: skills.split(",").map((x) => x.trim()).filter(Boolean),
+      cost_per_use: isFree ? 0 : (parseInt(usagePrice) || 0),
+      category,
+      is_published: isListed,
+      billing_currency: isFree ? "free" : "credits",
+      pricing_mode: pricingMode,
+      hire_price: isFree ? 0 : (parseInt(hirePrice) || 0),
+      usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
+      free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
+    };
+    if (agentSource === "platform") patch.system_prompt = systemPrompt.trim();
+    if (agentSource === "webhook") {
+      patch.external_webhook_url = webhookUrl.trim();
+      patch.sync_enabled = syncEnabled;
+      patch.sync_base_url = syncEnabled ? syncBaseUrl.trim() : null;
+    }
+    if (agentSource === "custom_llm") patch.external_llm_config = { ...(editAgent.external_llm_config ?? {}), provider: llmProvider, model: llmModel };
+
+    const { error } = await supabase.from("agents").update(patch).eq("id", editAgent.id);
+    if (error) { setSaving(false); toast.error(t("agentForm.saveFailed")); return; }
+
+    await supabase.from("agent_topics" as any).delete().eq("agent_id", editAgent.id);
+    await supabase.from("agent_territories" as any).delete().eq("agent_id", editAgent.id);
+    if (topicIds.length) await supabase.from("agent_topics" as any).insert(topicIds.map((topic_id) => ({ agent_id: editAgent.id, topic_id })) as any);
+    if (territoryIds.length) await supabase.from("agent_territories" as any).insert(territoryIds.map((territory_id) => ({ agent_id: editAgent.id, territory_id })) as any);
+    if (agentSource === "custom_llm" && llmApiKey.trim()) {
+      await supabase.from("agent_secrets" as any).upsert({ agent_id: editAgent.id, llm_api_key: llmApiKey.trim() } as any, { onConflict: "agent_id" });
+    }
+
+    setSaving(false);
+    toast.success(t("agentForm.saved"));
+    for (const key of [["agent", editAgent.id], ["agent-scope", editAgent.id], ["unit-agents"], ["agents"]]) qc.invalidateQueries({ queryKey: key });
+    onOpenChange(false);
+    onCreated?.(editAgent.id);
+  };
+
   const handleCreate = async () => {
+    if (isEdit) { await handleSave(); return; }
     if (!name.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "platform" && !systemPrompt.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "webhook" && !webhookUrl.trim()) { toast.error(t("agentForm.webhookUrlRequired")); return; }
@@ -225,7 +321,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
       description: description.trim() || null,
       purpose: purpose.trim() || null,
       long_description: longDescription.trim() || null,
-      variables: variables.filter((v) => v.name.trim()).map((v) => ({ name: v.name.trim(), description: v.description.trim() })),
+      variables: cleanVariables(),
       system_prompt: agentSource === "platform" ? systemPrompt.trim() : `External agent (${agentSource})`,
       skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
       cost_per_use: isFree ? 0 : (parseInt(usagePrice) || 0),
@@ -299,9 +395,9 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{t("agents.createAgent")}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{isEdit ? t("agentForm.editTitle") : t("agents.createAgent")}</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
+            {!isEdit && <div className="grid grid-cols-3 gap-2">
               {SOURCE_MODES.map((m) => (
                 <button
                   key={m.value}
@@ -316,7 +412,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{t(`agentForm.${m.key}Desc`)}</p>
                 </button>
               ))}
-            </div>
+            </div>}
 
             {isExternal && (
               <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700/50 p-3">
@@ -345,14 +441,16 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.urlFirstNote")}</p>
                 </div>
-                <div>
+                {!isEdit && <div>
                   <Label>{t("agentForm.secretField")}</Label>
                   <Input value={customSecret} onChange={(e) => setCustomSecret(e.target.value)} placeholder={t("agentForm.secretFieldPlaceholder")} className="font-mono text-xs" autoComplete="off" />
-                </div>
+                </div>}
               </div>
             )}
 
-            {ownerOptions.length > 0 && (
+            {isEdit && agentSource === "webhook" && <WebhookSecretPanel agentId={editAgent.id} />}
+
+            {!isEdit && ownerOptions.length > 0 && (
               <div>
                 <Label>{t("agentForm.publishAs")}</Label>
                 <Select value={ownerKey} onValueChange={setOwnerKey}>
@@ -391,25 +489,49 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
             </div>
             <div>
               <Label>{t("agentForm.longDescription")}</Label>
-              <Textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} placeholder={t("agentForm.longDescriptionPlaceholder")} rows={4} />
+              <Textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} placeholder={t("agentForm.longDescriptionPlaceholder")} rows={10} className="font-mono text-xs leading-relaxed" />
+              <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.markdownHint")}</p>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <Label>{t("agentForm.variables")}</Label>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setVariables([...variables, { name: "", description: "" }])}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> {t("agentForm.addVariable")}
-                </Button>
-              </div>
-              {variables.map((v, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <Input value={v.name} onChange={(e) => setVariables(variables.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder={t("agentForm.variableName")} className="w-1/3" />
-                  <Input value={v.description} onChange={(e) => setVariables(variables.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} placeholder={t("agentForm.variableDescription")} />
-                  <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => setVariables(variables.filter((_, j) => j !== i))}>
-                    <Trash2 className="h-3.5 w-3.5" />
+                <div className="flex gap-1">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setVariables([...variables, { name: "", description: "", kind: "input" }])}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> {t("agentForm.addVariable")}
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setVariables([...variables, { name: "", description: "", kind: "data", columns: [] }])}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> {t("agentForm.addDataset")}
                   </Button>
                 </div>
-              ))}
+              </div>
+              {variables.map((v, i) => {
+                const patch = (p: Partial<AgentVariable>) => setVariables(variables.map((x, j) => (j === i ? { ...x, ...p } : x)));
+                return (
+                  <div key={i} className="rounded-lg border border-border p-2.5 space-y-2">
+                    <div className="flex gap-2 items-center">
+                      <Badge variant={v.kind === "data" ? "secondary" : "outline"} className="text-[10px] shrink-0">
+                        {v.kind === "data" ? t("agentForm.kindData") : t("agentForm.kindInput")}
+                      </Badge>
+                      <Input value={v.name} onChange={(e) => patch({ name: e.target.value })} placeholder={t("agentForm.variableName")} className="font-mono text-xs" />
+                      <Button type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setVariables(variables.filter((_, j) => j !== i))}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <Textarea value={v.description} onChange={(e) => patch({ description: e.target.value })} placeholder={t("agentForm.variableDescription")} rows={2} className="text-xs" />
+                    {v.kind === "data" && (
+                      <div>
+                        <Input
+                          value={(v.columns ?? []).join(", ")}
+                          onChange={(e) => patch({ columns: e.target.value.split(",").map((c) => c.trim()).filter(Boolean) })}
+                          placeholder={t("agentForm.columnsPlaceholder")}
+                          className="font-mono text-xs"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div>
@@ -618,7 +740,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
             </div>
 
             <Button onClick={handleCreate} disabled={saving} className="w-full">
-              {saving ? t("agents.creating") : t("agents.createAgent")}
+              {saving ? t("agents.creating") : isEdit ? t("agentForm.saveChanges") : t("agents.createAgent")}
             </Button>
           </div>
         </DialogContent>

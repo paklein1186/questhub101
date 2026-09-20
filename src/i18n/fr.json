@@ -4129,7 +4129,17 @@
     "freeForMembers": "Tous les membres de {{unit}}",
     "freeForNote": "Réglé par le propriétaire de l'agent ; modifiable plus tard depuis la carte de l'agent.",
     "skillsPlaceholder": "rédaction, stratégie, analyse",
-    "unit": {"guild": "cette guilde", "pod": "ce pod", "quest": "cette quête"}
+    "unit": {"guild": "cette guilde", "pod": "ce pod", "quest": "cette quête"},
+    "importBridged": "Rapproché de changethegame : {{list}}.",
+    "saved": "Agent mis à jour",
+    "saveFailed": "Impossible d'enregistrer l'agent",
+    "editTitle": "Modifier l'agent",
+    "saveChanges": "Enregistrer les modifications",
+    "markdownHint": "Le Markdown est pris en charge (# titres, - listes, **gras**).",
+    "addDataset": "Ajouter un jeu de données",
+    "kindData": "Données",
+    "kindInput": "Entrée",
+    "columnsPlaceholder": "Colonnes, séparées par des virgules"
   },
   "autoGuild": {
     "notice": "Cette fiche a été créée automatiquement à partir de {{agent}}. Si c'est votre lieu, revendiquez-la pour la gérer.",
@@ -4146,7 +4156,8 @@
     "variables": "Variables",
     "scope": "Thématiques et territoires couverts",
     "usedIn": "Utilisé dans",
-    "podsQuests": "+ {{pods}} pods, {{quests}} quêtes"
+    "podsQuests": "+ {{pods}} pods, {{quests}} quêtes",
+    "datasets": "Données consultées"
   },
   "agentsUi": {
     "removed": "Agent retiré",
@@ -4202,7 +4213,9 @@
     },
     "searchTarget": "Rechercher : {{target}}…",
     "noTargets": "Aucun résultat pour {{target}} dont vous êtes administrateur.",
-    "attachBadge": "Attacher"
+    "attachBadge": "Attacher",
+    "edit": "Modifier",
+    "syncUnmatched": "Lieux sans équivalent dans changethegame : {{list}}."
   },
   "agentOverview": {
     "published": "Publié",

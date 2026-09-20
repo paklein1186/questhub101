@@ -6,10 +6,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+// No typography plugin in the project: style the markdown elements directly.
+const MARKDOWN_CLASSES = [
+  "text-sm leading-relaxed space-y-2 break-words",
+  "[&_h1]:text-base [&_h1]:font-semibold [&_h1]:mt-1",
+  "[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-4 [&_h2]:pt-3 [&_h2]:border-t [&_h2]:border-border/60",
+  "[&_h3]:text-sm [&_h3]:font-medium [&_h3]:mt-3",
+  "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1",
+  "[&_a]:text-primary [&_a]:underline [&_code]:bg-muted [&_code]:px-1 [&_code]:rounded [&_code]:text-xs",
+  "[&_strong]:font-semibold [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground",
+].join(" ");
+
 /** Public "fiche" of an agent: purpose, detailed description, variables, scope and where it is used. */
 export function AgentFiche({ agent }: { agent: any }) {
   const { t } = useTranslation();
-  const variables: { name: string; description?: string }[] = Array.isArray(agent.variables) ? agent.variables : [];
+  const allVariables: { name: string; description?: string; kind?: string; columns?: string[] }[] = Array.isArray(agent.variables) ? agent.variables : [];
+  const variables = allVariables.filter((v) => v.kind !== "data");
+  const datasets = allVariables.filter((v) => v.kind === "data");
 
   const { data: scope } = useQuery({
     queryKey: ["agent-scope", agent.id],
@@ -44,7 +57,7 @@ export function AgentFiche({ agent }: { agent: any }) {
 
   const hasScope = (scope?.topics.length ?? 0) + (scope?.territories.length ?? 0) > 0;
   const hasUsage = (usage?.guilds.length ?? 0) + (usage?.pods ?? 0) + (usage?.quests ?? 0) > 0;
-  if (!agent.purpose && !agent.long_description && variables.length === 0 && !hasScope && !hasUsage) return null;
+  if (!agent.purpose && !agent.long_description && allVariables.length === 0 && !hasScope && !hasUsage) return null;
 
   return (
     <Card>
@@ -60,7 +73,7 @@ export function AgentFiche({ agent }: { agent: any }) {
         {agent.long_description && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.about")}</p>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className={MARKDOWN_CLASSES}>
               <ReactMarkdown>{agent.long_description}</ReactMarkdown>
             </div>
           </div>
@@ -74,6 +87,25 @@ export function AgentFiche({ agent }: { agent: any }) {
                 <div key={v.name} className="flex gap-3 px-3 py-2 border-b border-border/50 last:border-0">
                   <code className="text-xs bg-muted px-1.5 py-0.5 rounded h-fit shrink-0">{v.name}</code>
                   <span className="text-xs text-muted-foreground">{v.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {datasets.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.datasets")}</p>
+            <div className="space-y-2">
+              {datasets.map((d) => (
+                <div key={d.name} className="rounded-lg border border-border p-3 space-y-1.5">
+                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{d.name}</code>
+                  {d.description && <p className="text-xs text-muted-foreground">{d.description}</p>}
+                  {(d.columns?.length ?? 0) > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {d.columns!.map((c) => <Badge key={c} variant="outline" className="text-[10px] font-mono font-normal">{c}</Badge>)}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

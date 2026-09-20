@@ -4143,7 +4143,17 @@
     "freeForMembers": "All members of {{unit}}",
     "freeForNote": "Set by the agent's owner; can be changed later from the agent's card.",
     "skillsPlaceholder": "copywriting, strategy, analysis",
-    "unit": {"guild": "this guild", "pod": "this pod", "quest": "this quest"}
+    "unit": {"guild": "this guild", "pod": "this pod", "quest": "this quest"},
+    "importBridged": "Matched to changethegame: {{list}}.",
+    "saved": "Agent updated",
+    "saveFailed": "Couldn't save the agent",
+    "editTitle": "Edit the agent",
+    "saveChanges": "Save changes",
+    "markdownHint": "Markdown is supported (# titles, - lists, **bold**).",
+    "addDataset": "Add a dataset",
+    "kindData": "Data",
+    "kindInput": "Input",
+    "columnsPlaceholder": "Columns, separated by commas"
   },
   "autoGuild": {
     "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
@@ -4160,7 +4170,8 @@
     "variables": "Variables",
     "scope": "Topics and territories covered",
     "usedIn": "Used in",
-    "podsQuests": "+ {{pods}} pods, {{quests}} quests"
+    "podsQuests": "+ {{pods}} pods, {{quests}} quests",
+    "datasets": "Data it reads"
   },
   "agentsUi": {
     "removed": "Agent removed",
@@ -4216,7 +4227,9 @@
     },
     "searchTarget": "Search {{target}}…",
     "noTargets": "No {{target}} found where you have admin access.",
-    "attachBadge": "Attach"
+    "attachBadge": "Attach",
+    "edit": "Edit",
+    "syncUnmatched": "Places with no match in changethegame: {{list}}."
   },
   "agentOverview": {
     "published": "Published",
