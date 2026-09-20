@@ -30,7 +30,7 @@ export function EvidenceUploader({ onUpload, questId, accept = "image/*,applicat
 
     const file = await compressImage(rawFile);
     const ext = file.name.split(".").pop() ?? "bin";
-    const path = `${questId}/${crypto.randomUUID()}.${ext}`;
+    const path = `${currentUser.id}/${questId}/${crypto.randomUUID()}.${ext}`;
 
     const { error: uploadErr } = await supabase.storage
       .from("contribution-evidence")
