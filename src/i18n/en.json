@@ -4172,7 +4172,11 @@
     "freeScopeLabel": "Free everywhere for",
     "freeScopeAdmins": "Admins of {{owner}}",
     "freeScopeMembers": "All members of {{owner}}",
-    "freeScopeNote": "Applies wherever the agent is used (guild, pods, quests), without setting it space by space."
+    "freeScopeNote": "Applies wherever the agent is used (guild, pods, quests), without setting it space by space.",
+    "deepTitle": "In-depth mode",
+    "deepNote": "Lets users choose a costlier, more thorough answer (bigger model). The default answer stays fast and cheap.",
+    "deepPrice": "In-depth price (credits per message)",
+    "deepPriceHelp": "Suggested: real model cost + 50% margin. A deep answer costs roughly $0.05–0.15 in model fees, i.e. about 4–6 credits (1 credit ≈ €0.04). Never free, whatever the free-usage settings."
   },
   "autoGuild": {
     "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
@@ -4251,7 +4255,10 @@
     "syncUnmatched": "Places with no match in changethegame: {{list}}.",
     "syncRemaining": "{{count}} more to process: run the sync again.",
     "detach": "Remove from this space (the agent stays in the catalogue)",
-    "syncNewTerritories": "New territories: {{list}}."
+    "syncNewTerritories": "New territories: {{list}}.",
+    "deepMode": "In-depth answer",
+    "deepOn": "bigger model, longer analysis · {{price}} credits",
+    "deepOff": "+ {{price}} credits per message"
   },
   "agentOverview": {
     "published": "Published",

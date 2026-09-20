@@ -325,6 +325,7 @@ const TOOLS = [
         properties: {
           agent_name: { type: "string", description: "Name (or part of the name) of the agent, e.g. Space2" },
           question: { type: "string", description: "Self-contained question to ask the agent" },
+          deep: { type: "boolean", description: "true ONLY when the user explicitly asks for an in-depth, thorough analysis: the agent then uses a bigger model and costs more credits. Default: false." },
           agent_id: { type: "string", description: "Optional, from list_my_active_agents" },
           unit_type: { type: "string", enum: ["guild", "pod", "quest"], description: "Optional, from list_my_active_agents" },
           unit_id: { type: "string", description: "Optional, from list_my_active_agents" },
@@ -881,7 +882,7 @@ async function executeToolCall(
           const res = await fetch(`${supabaseUrl}/functions/v1/unit-agent-chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: authHeader },
-            body: JSON.stringify({ agentId: target.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }], language: pageCtx?.language }),
+            body: JSON.stringify({ agentId: target.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }], language: pageCtx?.language, depth: params.deep === true ? "deep" : "fast" }),
             signal: AbortSignal.timeout(65_000),
           });
           const contentType = res.headers.get("content-type") || "";

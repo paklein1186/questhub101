@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -368,6 +369,11 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
     },
   });
   const usagePrice = freeForMe ? 0 : Number(agent.usage_price ?? agent.cost_per_use ?? 0);
+  // Deep mode: a costlier answer from a bigger model, opted into per message; never free.
+  const deepPrice = Number(agent.deep_price ?? 0);
+  const [deep, setDeep] = useState(false);
+  const deepOn = deep && deepPrice > 0;
+  const shownPrice = deepOn ? deepPrice : usagePrice;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -405,6 +411,7 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
           unitId,
           messages: allMessages,
           language: i18n.language,
+          depth: deepOn ? "deep" : "fast",
         }),
       });
 
@@ -457,7 +464,7 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, messages, agent.id, unitType, unitId, usagePrice, user, t]);
+  }, [input, streaming, messages, agent.id, unitType, unitId, usagePrice, deepOn, user, t]);
 
   return (
     <Card className="flex flex-col h-[500px]">
@@ -471,13 +478,13 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {/* Cost banner */}
-        {usagePrice > 0 && (
+        {shownPrice > 0 && (
           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
             <Info className="h-3.5 w-3.5 shrink-0" />
-            {agentQuota.remaining > 0 ? (
+            {!deepOn && agentQuota.remaining > 0 ? (
               <span>{t("agentsUi.quotaLeft", { count: agentQuota.remaining })}</span>
             ) : (
-              <span>{t("agentsUi.costPerMessage", { price: usagePrice })}</span>
+              <span>{t("agentsUi.costPerMessage", { price: shownPrice })}</span>
             )}
           </div>
         )}
@@ -514,6 +521,13 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
             <span>{t("agentsUi.needsTopUp")}</span>
             <Button size="sm" className="h-7 text-xs" asChild><Link to="/me/credit-shop">{t("agentsUi.topUp")}</Link></Button>
           </div>
+        )}
+        {deepPrice > 0 && (
+          <label className="flex items-center gap-2 mb-2 text-xs cursor-pointer">
+            <Switch checked={deep} onCheckedChange={setDeep} />
+            <span className="font-medium">{t("agentsUi.deepMode")}</span>
+            <span className="text-muted-foreground">{t(deep ? "agentsUi.deepOn" : "agentsUi.deepOff", { price: deepPrice })}</span>
+          </label>
         )}
         <div className="flex gap-2">
           <Textarea

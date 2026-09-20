@@ -117,6 +117,8 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [freeCallsLimit, setFreeCallsLimit] = useState("");
   const [freeFor, setFreeFor] = useState<FreeFor>("nobody");
   const [freeScope, setFreeScope] = useState<FreeScope>("nobody");
+  const [deepEnabled, setDeepEnabled] = useState(false);
+  const [deepPrice, setDeepPrice] = useState("6");
 
   const [agentSource, setAgentSource] = useState<AgentSource>(CREATABLE_SOURCES[0]);
   const [llmProvider, setLlmProvider] = useState("");
@@ -190,6 +192,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     setHirePrice(String(a.hire_price ?? 0)); setUsagePrice(String(a.usage_price ?? a.cost_per_use ?? 5));
     setFreeCallsLimit(a.free_calls_limit != null ? String(a.free_calls_limit) : "");
     setFreeScope((a.free_scope ?? "nobody") as FreeScope);
+    setDeepEnabled(Number(a.deep_price ?? 0) > 0); setDeepPrice(String(a.deep_price ?? 6));
     setImportStatus(null); lastImported.current = a.external_webhook_url ?? "";
     (async () => {
       const [tp, tr] = await Promise.all([
@@ -206,7 +209,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     setTopicIds([]); setTerritoryIds([]); setIsListed(true); setSystemPrompt(""); setSkills("");
     setAgentSource(CREATABLE_SOURCES[0]); setLlmProvider(""); setLlmModel("");
     setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false); setSyncEnabled(false); setSyncBaseUrl(""); setCustomSecret("");
-    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit(""); setFreeFor("nobody"); setFreeScope("nobody");
+    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit(""); setFreeFor("nobody"); setFreeScope("nobody"); setDeepEnabled(false); setDeepPrice("6");
     setOwnerKey(defaultOwner ? `${defaultOwner.type}:${defaultOwner.id}` : "user");
     setImportStatus(null); lastImported.current = "";
   };
@@ -291,6 +294,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
       usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
       free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
       free_scope: isFree ? "nobody" : freeScope,
+      deep_price: agentSource === "webhook" && deepEnabled ? Math.max(1, parseInt(deepPrice) || 6) : null,
     };
     if (agentSource === "platform") patch.system_prompt = systemPrompt.trim();
     if (agentSource === "webhook") {
@@ -377,6 +381,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
       usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
       free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
       free_scope: isFree || ownerType === "user" ? "nobody" : freeScope,
+      deep_price: agentSource === "webhook" && deepEnabled ? Math.max(1, parseInt(deepPrice) || 6) : null,
     };
 
     if (agentSource === "webhook") insertPayload.external_webhook_url = webhookUrl.trim();
@@ -789,6 +794,25 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                       </SelectContent>
                     </Select>
                     <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.freeForNote")}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {agentSource === "webhook" && (
+              <div className="space-y-2 rounded-lg border border-border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{t("agentForm.deepTitle")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("agentForm.deepNote")}</p>
+                  </div>
+                  <Switch checked={deepEnabled} onCheckedChange={setDeepEnabled} />
+                </div>
+                {deepEnabled && (
+                  <div>
+                    <Label>{t("agentForm.deepPrice")}</Label>
+                    <Input type="number" min="1" value={deepPrice} onChange={(e) => setDeepPrice(e.target.value)} />
+                    <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.deepPriceHelp")}</p>
                   </div>
                 )}
               </div>

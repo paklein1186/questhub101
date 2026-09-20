@@ -6,6 +6,45 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Converts an agent's own SSE events ({type: "delta" | "done" | "error" | "status" | "start"}, as Space2 sends
+ * them) into OpenAI-style chunks. Streams that already use `choices` pass through unchanged.
+ */
+function fromAgentEvents(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  let buf = "";
+  let streamed = false;
+  let finished = false;
+  const text = (c: TransformStreamDefaultController<Uint8Array>, t: string) =>
+    c.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: t } }] })}\n\n`));
+  const done = (c: TransformStreamDefaultController<Uint8Array>) => { finished = true; c.enqueue(enc.encode("data: [DONE]\n\n")); };
+
+  return body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, c) {
+      buf += dec.decode(chunk, { stream: true });
+      let i: number;
+      while ((i = buf.indexOf("\n\n")) !== -1) {
+        const block = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        for (const line of block.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const raw = line.slice(5).trim();
+          if (!raw) continue;
+          if (raw === "[DONE]") { done(c); continue; }
+          let ev: any;
+          try { ev = JSON.parse(raw); } catch { continue; }
+          if (ev.choices) { c.enqueue(enc.encode(`data: ${raw}\n\n`)); streamed = true; }
+          else if (ev.type === "delta" && ev.text) { text(c, String(ev.text)); streamed = true; }
+          else if (ev.type === "done") { if (!streamed && ev.content) text(c, String(ev.content)); done(c); }
+          else if (ev.type === "error") { text(c, `⚠️ ${ev.message ?? "The agent hit an error."}`); done(c); }
+        }
+      }
+    },
+    flush(c) { if (!finished) c.enqueue(enc.encode("data: [DONE]\n\n")); },
+  }));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -228,12 +267,17 @@ Respond helpfully based on this context. If you don't know something specific ab
       }
     }
 
+    // ─── Deep mode: a costlier answer (bigger model) the user opts into, always paid in credits ───
+    const deepPrice = Number((agent as any).deep_price ?? 0);
+    const isDeep = body.depth === "deep" && agent.agent_source === "webhook" && deepPrice > 0;
+    const unitPrice = isDeep ? deepPrice : agent.cost_per_use;
+
     // ─── Hybrid billing ───────────────────────────────────────────
     const billingCurrency = agent.billing_currency || "credits";
     let chargedAmount = 0;
     let paymentType = "free";
 
-    if (billingCurrency !== "free" && !freeByUnit && !freeByOwner) {
+    if (isDeep || (billingCurrency !== "free" && !freeByUnit && !freeByOwner)) {
       let usedPlan = false;
 
       const { data: profile } = await adminClient
@@ -264,7 +308,7 @@ Respond helpfully based on this context. If you don't know something specific ab
 
         const planQuota = (sub as any)?.subscription_plans?.monthly_agent_interactions || 0;
 
-        if (planQuota > 0 && currentCount < planQuota) {
+        if (!isDeep && planQuota > 0 && currentCount < planQuota) {
           await adminClient.from("profiles")
             .update({ agent_interactions_this_month: currentCount + 1 })
             .eq("id", user.id);
@@ -274,11 +318,11 @@ Respond helpfully based on this context. If you don't know something specific ab
       }
 
       if (!usedPlan) {
-        chargedAmount = agent.cost_per_use;
+        chargedAmount = unitPrice;
         if (billingCurrency === "coins") {
           paymentType = "coins";
           const { error: spendErr } = await adminClient.rpc("spend_user_coins", {
-            _amount: agent.cost_per_use,
+            _amount: unitPrice,
             _type: "AGENT_USE",
             _source: `Unit Agent: ${agent.name} (${unitType})`,
             _related_entity_type: "agent",
@@ -286,13 +330,13 @@ Respond helpfully based on this context. If you don't know something specific ab
           });
           if (spendErr) {
             return new Response(JSON.stringify({
-              error: `Insufficient coins. This agent costs ${agent.cost_per_use} coins per interaction.`,
+              error: `Insufficient coins. This agent costs ${unitPrice} coins per interaction.`,
             }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         } else {
           paymentType = "credits";
           const { error: spendErr } = await adminClient.rpc("spend_user_credits", {
-            _amount: agent.cost_per_use,
+            _amount: unitPrice,
             _type: "AGENT_USE",
             _source: `Unit Agent: ${agent.name} (${unitType})`,
             _related_entity_type: "agent",
@@ -300,7 +344,7 @@ Respond helpfully based on this context. If you don't know something specific ab
           });
           if (spendErr) {
             return new Response(JSON.stringify({
-              error: `Insufficient credits. This agent costs ${agent.cost_per_use} credits per interaction.`,
+              error: `Insufficient credits. This agent costs ${unitPrice} credits per interaction.`,
             }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         }
@@ -371,7 +415,7 @@ Respond helpfully based on this context. If you don't know something specific ab
 
     if (agent.agent_source === "webhook" && agent.external_webhook_url) {
       // ── Webhook agent ──
-      const webhookHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      const webhookHeaders: Record<string, string> = { "Content-Type": "application/json", Accept: "text/event-stream, application/json;q=0.9" };
       if (agentSecrets?.webhook_secret) webhookHeaders["X-Webhook-Secret"] = agentSecrets.webhook_secret;
 
       try {
@@ -380,7 +424,7 @@ Respond helpfully based on this context. If you don't know something specific ab
           headers: webhookHeaders,
           body: JSON.stringify({
             messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
-            context: { unit_type: unitType, unit_id: unitId, unit_context: headerContext, agent_id: agentId, user_id: user.id, language: reqLanguage, channel: "changethegame" },
+            context: { unit_type: unitType, unit_id: unitId, unit_context: headerContext, agent_id: agentId, user_id: user.id, language: reqLanguage, channel: "changethegame", depth: isDeep ? "deep" : "fast" },
           }),
           signal: AbortSignal.timeout(55_000),
         });
@@ -400,7 +444,8 @@ Respond helpfully based on this context. If you don't know something specific ab
         // Check if SSE or JSON
         const ct = aiResponse.headers.get("content-type") || "";
         if (ct.includes("text/event-stream")) {
-          // Pipe SSE through directly
+          // Stream the agent's events as OpenAI-style deltas, so the answer appears as it is written.
+          aiResponse = new Response(fromAgentEvents(aiResponse.body!), { status: 200, headers: { "Content-Type": "text/event-stream" } });
         } else {
           // JSON response → wrap as SSE
           const json = await aiResponse.json();
