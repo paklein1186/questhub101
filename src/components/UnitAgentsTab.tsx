@@ -88,6 +88,17 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
     onError: () => toast.error("Failed to remove agent"),
   });
 
+  const runSync = async (agentId: string, dryRun: boolean) => {
+    const { data, error } = await supabase.functions.invoke("agent-sync", { body: { agent_id: agentId, dry_run: dryRun } });
+    if (error) { toast.error("Sync failed"); return; }
+    const r = data?.results?.[0];
+    toast.message(dryRun ? "Sync simulation" : "Sync done", {
+      description: r
+        ? `fetched ${r.fetched ?? 0}, created ${r.created ?? 0}, updated ${r.updated ?? 0}, events ${r.events_sent ?? 0}, errors ${r.errors?.length ?? 0}`
+        : JSON.stringify(data),
+    });
+  };
+
   const activeChatAgent = unitAgents?.find((ua: any) => ua.agent_id === activeChatAgentId);
 
   if (activeChatAgentId && activeChatAgent) {
@@ -184,6 +195,12 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
                   </Button>
                 )}
               </div>
+              {ua.agents?.sync_enabled && ua.agents?.creator_user_id === user?.id && (
+                <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, true)}>Simulate sync</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, false)}>Sync now</Button>
+                </div>
+              )}
               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                 <Zap className="h-3 w-3" /> {ua.agents?.cost_per_use} credits/msg
                 <span className="ml-auto">Chat →</span>

@@ -526,6 +526,12 @@ export type Database = {
           purpose: string | null
           long_description: string | null
           variables: Json
+          agent_user_id: string | null
+          sync_enabled: boolean
+          sync_base_url: string | null
+          sync_cursor: string | null
+          last_sync_at: string | null
+          last_sync_summary: Json | null
         }
         Insert: {
           agent_source?: string
@@ -558,6 +564,12 @@ export type Database = {
           purpose?: string | null
           long_description?: string | null
           variables?: Json
+          agent_user_id?: string | null
+          sync_enabled?: boolean
+          sync_base_url?: string | null
+          sync_cursor?: string | null
+          last_sync_at?: string | null
+          last_sync_summary?: Json | null
         }
         Update: {
           agent_source?: string
@@ -590,6 +602,12 @@ export type Database = {
           purpose?: string | null
           long_description?: string | null
           variables?: Json
+          agent_user_id?: string | null
+          sync_enabled?: boolean
+          sync_base_url?: string | null
+          sync_cursor?: string | null
+          last_sync_at?: string | null
+          last_sync_summary?: Json | null
         }
         Relationships: [
           {
@@ -4939,6 +4957,9 @@ export type Database = {
           web_tags: string[] | null
           web_visibility_override: string
           website_url: string | null
+          auto_created_by_agent_id: string | null
+          claimed_at: string | null
+          claimed_by: string | null
         }
         Insert: {
           abandonment_threshold_days?: number
@@ -5005,6 +5026,9 @@ export type Database = {
           web_tags?: string[] | null
           web_visibility_override?: string
           website_url?: string | null
+          auto_created_by_agent_id?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
         }
         Update: {
           abandonment_threshold_days?: number
@@ -5071,6 +5095,9 @@ export type Database = {
           web_tags?: string[] | null
           web_visibility_override?: string
           website_url?: string | null
+          auto_created_by_agent_id?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
         }
         Relationships: []
       }
@@ -6724,6 +6751,7 @@ export type Database = {
           xp_pending: number
           xp_recent_12m: number
           xp_total: number
+          is_agent: boolean
         }
         Insert: {
           agent_interactions_reset_at?: string | null
@@ -6801,6 +6829,7 @@ export type Database = {
           xp_pending?: number
           xp_recent_12m?: number
           xp_total?: number
+          is_agent?: boolean
         }
         Update: {
           agent_interactions_reset_at?: string | null
@@ -6878,6 +6907,7 @@ export type Database = {
           xp_pending?: number
           xp_recent_12m?: number
           xp_total?: number
+          is_agent?: boolean
         }
         Relationships: [
           {

@@ -4056,7 +4056,9 @@
       "guild": "Via guild {{name}}",
       "pod": "Via pod {{name}}",
       "quest": "Via quest {{name}}"
-    }
+    },
+    "shareEmail": "Share my email with this agent (for access and quotas)",
+    "consentFailed": "Couldn't save your choice."
   },
   "agentForm": {
     "publishAs": "Publish on behalf of",
@@ -4083,6 +4085,17 @@
     "listed": "Listed in the marketplace",
     "listedNote": "Other guilds can find and use this agent. Turn off to keep it to yourself.",
     "secretTitle": "Your webhook secret",
-    "secretIntro": "Copy it now and set it in your agent (X-Webhook-Secret). For security it will not be shown again."
+    "secretIntro": "Copy it now and set it in your agent (X-Webhook-Secret). For security it will not be shown again.",
+    "syncTitle": "Sync with this agent",
+    "syncNote": "changethegame will pull its places, create pages for them, and send public updates back. Requires the endpoints /lieux, /events, /access.",
+    "syncBaseUrlRequired": "Base URL is required to enable sync"
+  },
+  "autoGuild": {
+    "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
+    "anAgent": "an external agent",
+    "claim": "Claim this page",
+    "loginToClaim": "Log in to claim",
+    "claimed": "You are now the admin of this page.",
+    "claimFailed": "This page can't be claimed (already claimed or unavailable)."
   }
 }

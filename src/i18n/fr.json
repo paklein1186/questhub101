@@ -4042,7 +4042,9 @@
       "guild": "Via la guilde {{name}}",
       "pod": "Via le pod {{name}}",
       "quest": "Via la quête {{name}}"
-    }
+    },
+    "shareEmail": "Partager mon email avec cet agent (accès et quotas)",
+    "consentFailed": "Impossible d'enregistrer votre choix."
   },
   "agentForm": {
     "publishAs": "Publier au nom de",
@@ -4069,6 +4071,17 @@
     "listed": "Listé dans la marketplace",
     "listedNote": "Les autres guildes peuvent trouver et utiliser cet agent. Désactivez pour le garder pour vous.",
     "secretTitle": "Votre secret de webhook",
-    "secretIntro": "Copiez-le maintenant et renseignez-le dans votre agent (X-Webhook-Secret). Par sécurité, il ne sera plus affiché."
+    "secretIntro": "Copiez-le maintenant et renseignez-le dans votre agent (X-Webhook-Secret). Par sécurité, il ne sera plus affiché.",
+    "syncTitle": "Synchroniser avec cet agent",
+    "syncNote": "changethegame lira ses lieux, créera leurs fiches et renverra les mises à jour publiques. Suppose les endpoints /lieux, /events, /access.",
+    "syncBaseUrlRequired": "L'URL de base est requise pour activer la synchronisation"
+  },
+  "autoGuild": {
+    "notice": "Cette fiche a été créée automatiquement à partir de {{agent}}. Si c'est votre lieu, revendiquez-la pour la gérer.",
+    "anAgent": "un agent externe",
+    "claim": "Revendiquer cette fiche",
+    "loginToClaim": "Se connecter pour revendiquer",
+    "claimed": "Vous êtes maintenant admin de cette fiche.",
+    "claimFailed": "Cette fiche ne peut pas être revendiquée (déjà revendiquée ou indisponible)."
   }
 }

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Bot, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,9 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { AgentSourceBadge } from "@/components/agent/AgentSourceBadge";
+import { toast } from "sonner";
 
-const AGENT_COLS = "id, name, description, category, agent_source, health_status";
+const AGENT_COLS = "id, name, description, category, agent_source, health_status, sync_enabled";
 
 type UnitKind = "guild" | "pod" | "quest";
 
@@ -75,6 +77,41 @@ function useAgentAccess(userId: string) {
   });
 }
 
+function ConsentToggle({ agentId, userId }: { agentId: string; userId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["agent-consent", agentId, userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("agent_access_consents" as any)
+        .select("consented_at, revoked_at")
+        .eq("agent_id", agentId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+  const active = !!data && !data.revoked_at;
+
+  const toggle = async (checked: boolean) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("agent_access_consents" as any).upsert(
+      { agent_id: agentId, user_id: userId, consented_at: checked ? now : (data?.consented_at ?? now), revoked_at: checked ? null : now } as any,
+      { onConflict: "user_id,agent_id" }
+    );
+    if (error) { toast.error(t("profileAgents.consentFailed")); return; }
+    qc.invalidateQueries({ queryKey: ["agent-consent", agentId, userId] });
+  };
+
+  return (
+    <label className="flex items-center gap-2 mt-2 cursor-pointer">
+      <Switch checked={active} onCheckedChange={toggle} />
+      <span className="text-xs text-muted-foreground">{t("profileAgents.shareEmail")}</span>
+    </label>
+  );
+}
+
 function AgentRow({ agent, children }: { agent: any; children?: React.ReactNode }) {
   return (
     <Card className="p-4">
@@ -129,7 +166,11 @@ export function ProfileAgentsTab({ userId }: { userId: string }) {
           <p className="text-sm text-muted-foreground">{t("profileAgents.hiredEmpty")}</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {hired.map((agent: any) => <AgentRow key={agent.id} agent={agent} />)}
+            {hired.map((agent: any) => (
+              <AgentRow key={agent.id} agent={agent}>
+                {agent.sync_enabled && <ConsentToggle agentId={agent.id} userId={userId} />}
+              </AgentRow>
+            ))}
           </div>
         )}
       </section>
@@ -148,6 +189,7 @@ export function ProfileAgentsTab({ userId }: { userId: string }) {
                 >
                   {t(`profileAgents.via.${a.unitType}`, { name: a.unitName })} <ArrowRight className="h-3 w-3" />
                 </Link>
+                {a.agent.sync_enabled && <ConsentToggle agentId={a.agent.id} userId={userId} />}
               </AgentRow>
             ))}
           </div>

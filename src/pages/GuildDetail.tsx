@@ -33,6 +33,7 @@ import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_CREDIT_COST, EXTRA_GUILD_CREDIT_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, FollowTargetType, GuildJoinPolicy, OnlineLocationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { AutoGuildBanner } from "@/components/guild/AutoGuildBanner";
 import { DraftBanner } from "@/components/DraftBanner";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
@@ -456,6 +457,7 @@ export default function GuildDetail() {
       </Button>
 
       {guild.is_draft && <DraftBanner />}
+      <AutoGuildBanner guild={guild} isLoggedIn={isLoggedIn} />
 
       {guild.banner_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">

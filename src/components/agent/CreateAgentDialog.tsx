@@ -105,6 +105,8 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [llmApiKey, setLlmApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [syncEnabled, setSyncEnabled] = useState(false);
+  const [syncBaseUrl, setSyncBaseUrl] = useState("");
 
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -152,7 +154,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     setName(""); setDescription(""); setPurpose(""); setLongDescription(""); setVariables([]);
     setTopicIds([]); setTerritoryIds([]); setIsListed(true); setSystemPrompt(""); setSkills("");
     setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
-    setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false);
+    setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false); setSyncEnabled(false); setSyncBaseUrl("");
     setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit("");
     setOwnerKey(defaultOwner ? `${defaultOwner.type}:${defaultOwner.id}` : "user");
   };
@@ -161,6 +163,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     if (!name.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "platform" && !systemPrompt.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "webhook" && !webhookUrl.trim()) { toast.error("Webhook URL is required"); return; }
+    if (agentSource === "webhook" && syncEnabled && !syncBaseUrl.trim()) { toast.error(t("agentForm.syncBaseUrlRequired")); return; }
     if (agentSource === "custom_llm" && (!llmProvider || !llmModel || !llmApiKey.trim())) {
       toast.error("Provider, model, and API key are required"); return;
     }
@@ -192,6 +195,10 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     };
 
     if (agentSource === "webhook") insertPayload.external_webhook_url = webhookUrl.trim();
+    if (agentSource === "webhook" && syncEnabled) {
+      insertPayload.sync_enabled = true;
+      insertPayload.sync_base_url = syncBaseUrl.trim();
+    }
     if (agentSource === "custom_llm") insertPayload.external_llm_config = { provider: llmProvider, model: llmModel };
 
     const { data: agent, error } = await supabase.from("agents").insert(insertPayload as any).select("id").single();
@@ -424,6 +431,18 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                   <pre className="bg-background rounded p-2 overflow-x-auto text-[11px]">{`{ "content": "agent answer" }
 // or an SSE stream (text/event-stream)`}</pre>
                   <p>{t("agentForm.secretNote")}</p>
+                </div>
+                <div className="space-y-2 rounded-lg border border-border p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{t("agentForm.syncTitle")}</p>
+                      <p className="text-[11px] text-muted-foreground">{t("agentForm.syncNote")}</p>
+                    </div>
+                    <Switch checked={syncEnabled} onCheckedChange={setSyncEnabled} />
+                  </div>
+                  {syncEnabled && (
+                    <Input value={syncBaseUrl} onChange={(e) => setSyncBaseUrl(e.target.value)} placeholder="https://your-server.com" />
+                  )}
                 </div>
               </>
             )}

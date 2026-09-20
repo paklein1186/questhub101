@@ -134,3 +134,6 @@ verify_jwt = false
 
 [functions.trust-renewal-cron]
 verify_jwt = false
+
+[functions.agent-sync]
+verify_jwt = false
