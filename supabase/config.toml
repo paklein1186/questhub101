@@ -140,3 +140,6 @@ verify_jwt = false
 
 [functions.agent-manifest]
 verify_jwt = false
+
+[functions.territory-boundary]
+verify_jwt = false
