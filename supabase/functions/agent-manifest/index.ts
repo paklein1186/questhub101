@@ -211,8 +211,13 @@ serve(async (req) => {
       if (hit) { territoryIds.push(hit.id); matches.push({ wanted: w, name: hit.name }); } else unmatched.push(w);
     }
 
+    // Adresse de conversation annoncée par l'agent (« POST /ask ») : c'est celle que le chat appelle.
+    const askPath = String(raw.endpoints?.ask ?? "").match(/(\/[A-Za-z0-9._~\/-]*)/)?.[1];
+    const askUrl = askPath && !askPath.includes("//") ? `${origin}${askPath}` : null;
+
     return json({
       manifest: {
+        ask_url: askUrl,
         name: str(raw.name, 120),
         description: str(raw.description, 500),
         purpose: str(raw.purpose, 300),

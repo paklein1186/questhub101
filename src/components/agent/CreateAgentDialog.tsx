@@ -217,6 +217,13 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     const m = data?.manifest;
     if (!m) { setImportStatus({ kind: "error", text: t("agentForm.importFailed") }); return; }
 
+    // Le chat appelle l'adresse de conversation de l'agent (ex. …/ask), pas la racine du site.
+    if (m.ask_url && m.ask_url !== webhookUrl.trim()) {
+      const typed = webhookUrl.trim();
+      let bare = false;
+      try { bare = new URL(typed).pathname.replace(/\/+$/, "") === ""; } catch { /* keep as typed */ }
+      if (bare || overwrite) { setWebhookUrl(m.ask_url); lastImported.current = m.ask_url; }
+    }
     if (m.name && (overwrite || !name.trim())) setName(m.name);
     if (m.description && (overwrite || !description.trim())) setDescription(m.description);
     if (m.purpose && (overwrite || !purpose.trim())) setPurpose(m.purpose);
