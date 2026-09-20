@@ -722,6 +722,7 @@ export type Database = {
           last_sync_summary: Json | null
           long_description: string | null
           name: string
+          objects_cursor: string | null
           owner_id: string | null
           owner_type: string
           pricing_mode: string
@@ -761,6 +762,7 @@ export type Database = {
           last_sync_summary?: Json | null
           long_description?: string | null
           name: string
+          objects_cursor?: string | null
           owner_id?: string | null
           owner_type?: string
           pricing_mode?: string
@@ -800,6 +802,7 @@ export type Database = {
           last_sync_summary?: Json | null
           long_description?: string | null
           name?: string
+          objects_cursor?: string | null
           owner_id?: string | null
           owner_type?: string
           pricing_mode?: string
@@ -5137,6 +5140,7 @@ export type Database = {
           is_approved: boolean
           is_deleted: boolean
           is_draft: boolean
+          is_physical_place: boolean
           join_policy: Database["public"]["Enums"]["guild_join_policy"]
           joining_fee_credits: number | null
           linkedin_url: string | null
@@ -5206,6 +5210,7 @@ export type Database = {
           is_approved?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          is_physical_place?: boolean
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           joining_fee_credits?: number | null
           linkedin_url?: string | null
@@ -5275,6 +5280,7 @@ export type Database = {
           is_approved?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          is_physical_place?: boolean
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           joining_fee_credits?: number | null
           linkedin_url?: string | null
