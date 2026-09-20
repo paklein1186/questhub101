@@ -4279,5 +4279,28 @@
     "newTerritories": "Nouveaux territoires",
     "unmatchedPlaces": "Lieux sans équivalent",
     "photos": "{{count}} photos importées"
+  },
+  "territoryMap": {
+    "view": "Voir le territoire →",
+    "zoomHint": "Zoomez pour distinguer les communes",
+    "levels": {
+      "global": "Monde",
+      "continent": "Continent",
+      "national": "Pays",
+      "region": "Région",
+      "bioregion": "Bio-région",
+      "other": "Autre zone",
+      "town": "Commune / village"
+    }
+  },
+  "guildHeader": {
+    "join": "Rejoindre",
+    "leave": "Quitter",
+    "settings": "Paramètres",
+    "createdBy": "Créé par",
+    "awaitingModeration": "En attente de modération",
+    "loading": "Chargement…",
+    "notFound": "Guilde introuvable.",
+    "removed": "Cette guilde a été supprimée."
   }
 }

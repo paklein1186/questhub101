@@ -112,8 +112,8 @@ export default function CompanyDetail() {
   ], [company?.name, company?.description]);
   const { translations: companyTr } = useContentTranslations("COMPANY", id, companyTrFields);
   useAutoTranslateEntity("COMPANY", id, companyTrFields, companyTr);
-  const trName = (i18n.language !== "en" && companyTr.name?.isTranslated ? companyTr.name.text : null) ?? company?.name;
-  const trDesc = (i18n.language !== "en" && companyTr.description?.isTranslated ? companyTr.description.text : null) ?? company?.description;
+  const trName = (companyTr.name?.isTranslated ? companyTr.name.text : null) ?? company?.name;
+  const trDesc = (companyTr.description?.isTranslated ? companyTr.description.text : null) ?? company?.description;
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;

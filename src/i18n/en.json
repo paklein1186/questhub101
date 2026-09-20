@@ -4293,5 +4293,28 @@
     "newTerritories": "New territories",
     "unmatchedPlaces": "Places with no match",
     "photos": "{{count}} photos imported"
+  },
+  "territoryMap": {
+    "view": "View territory →",
+    "zoomHint": "Zoom in to see towns apart",
+    "levels": {
+      "global": "World",
+      "continent": "Continent",
+      "national": "Country",
+      "region": "Region",
+      "bioregion": "Bioregion",
+      "other": "Other area",
+      "town": "Town / village"
+    }
+  },
+  "guildHeader": {
+    "join": "Join",
+    "leave": "Leave",
+    "settings": "Settings",
+    "createdBy": "Created by",
+    "awaitingModeration": "Awaiting moderation",
+    "loading": "Loading…",
+    "notFound": "Guild not found.",
+    "removed": "This guild has been removed."
   }
 }

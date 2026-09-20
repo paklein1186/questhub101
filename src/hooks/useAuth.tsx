@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import i18n from "i18next";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const languageSyncedFor = useRef<string | null>(null);
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
@@ -49,10 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         onboardingSkipped: !!(data as any).onboarding_skipped,
       });
       // Sync language preference
+      // Only once per sign-in: later refreshes read a possibly stale value and used to flip the UI back.
       const lang = (data as any).preferred_language;
-      if (lang && lang !== i18n.language) {
+      if (languageSyncedFor.current !== userId && lang && lang !== i18n.language) {
         i18n.changeLanguage(lang);
       }
+      languageSyncedFor.current = userId;
     }
   };
 

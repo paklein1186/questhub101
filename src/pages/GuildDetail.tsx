@@ -348,13 +348,13 @@ export default function GuildDetail() {
   ], [guild?.name, guild?.description]);
   const { translations: guildTr } = useContentTranslations("GUILD", id, guildTrFields);
   useAutoTranslateEntity("GUILD", id, guildTrFields, guildTr);
-  const trName = (i18n.language !== "en" && guildTr.name?.isTranslated ? guildTr.name.text : null) ?? guild?.name;
-  const trDesc = (i18n.language !== "en" && guildTr.description?.isTranslated ? guildTr.description.text : null) ?? guild?.description;
+  const trName = (guildTr.name?.isTranslated ? guildTr.name.text : null) ?? guild?.name;
+  const trDesc = (guildTr.description?.isTranslated ? guildTr.description.text : null) ?? guild?.description;
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
-  if (guild.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
-  if (guild.is_draft && guild.created_by_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Guild not found.</p></PageShell>;
+  if (isLoading) return <PageShell><p>{t("guildHeader.loading")}</p></PageShell>;
+  if (!guild) return <PageShell><p>{t("guildHeader.notFound")}</p></PageShell>;
+  if (guild.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>{t("guildHeader.removed")}</p></PageShell>;
+  if (guild.is_draft && guild.created_by_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>{t("guildHeader.notFound")}</p></PageShell>;
 
   const topics = (guild.guild_topics || []).map((gt: any) => gt.topics).filter(Boolean);
   const territories = (guild.guild_territories || []).map((gt: any) => gt.territories).filter(Boolean);
@@ -476,17 +476,17 @@ export default function GuildDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{trName}</h1>
-              {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
+              {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> {t("guildHeader.awaitingModeration")}</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <Badge variant="secondary" className="capitalize">{translateEntityType(guild.type || "guild", t)}</Badge>
-              <span>Created by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
+              <span>{t("guildHeader.createdBy")} <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
             <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}><p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{trDesc}</p></GuestContentGate>
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 flex-wrap">
               <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth("follow this guild", toggleFollow)}>
-                <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? "Unfollow" : "Follow"}
+                <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? t("common.unfollow") : t("common.follow")}
               </Button>
               {!isMember && (
                 isLoggedIn ? (
@@ -496,12 +496,12 @@ export default function GuildDetail() {
                   </div>
                 ) : (
                   <Button size="sm" onClick={() => requireAuth("join this guild")}>
-                    <Users className="h-4 w-4 mr-1" /> Join
+                    <Users className="h-4 w-4 mr-1" /> {t("guildHeader.join")}
                   </Button>
                 )
               )}
-              {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
-              {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
+              {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> {t("guildHeader.leave")}</Button>}
+              {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> {t("guildHeader.settings")}</Link></Button>}
               {isAdmin && <InviteLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />}
               <ShareLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />
               {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.GUILD} targetNodeId={guild.id} targetName={guild.name} contextGuildId={guild.id} />}

@@ -1,13 +1,11 @@
-import { useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { MapContainer, TileLayer, GeoJSON, Circle, CircleMarker, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { TerritoryLeaderboardItem } from "@/hooks/useNetworkLeaderboardData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-const MARKER_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#14b8a6"];
 
 /** Generate a GeoJSON circle polygon from a center point + radius in km */
 function createCircleGeoJSON(lat: number, lng: number, radiusKm: number, points = 48): GeoJSON.Feature {
@@ -25,18 +23,29 @@ function createCircleGeoJSON(lat: number, lng: number, radiusKm: number, points 
   };
 }
 
-/** Approximate radius by territory level */
-function radiusForLevel(level: string | undefined): number {
-  switch (level?.toUpperCase()) {
-    case "GLOBAL": return 2000;
-    case "CONTINENT": return 800;
-    case "NATIONAL": return 250;
-    case "REGION": return 80;
-    case "PROVINCE": return 40;
-    case "TOWN":
-    case "LOCAL":
-    default: return 15;
-  }
+/**
+ * How each level is drawn. Big areas are geographic rings that fade away once the map is zoomed
+ * past `ringMaxZoom` (they would otherwise cover the whole screen) and become a small hollow dot;
+ * towns are dots of a fixed on-screen size, so they separate as the user zooms in.
+ */
+interface LevelStyle { key: string; rank: number; color: string; km: number; ringMaxZoom: number }
+const LEVEL_STYLES: Record<string, LevelStyle> = {
+  GLOBAL: { key: "global", rank: 0, color: "#6366f1", km: 2000, ringMaxZoom: 3 },
+  CONTINENT: { key: "continent", rank: 1, color: "#8b5cf6", km: 800, ringMaxZoom: 5 },
+  NATIONAL: { key: "national", rank: 2, color: "#f59e0b", km: 250, ringMaxZoom: 7 },
+  REGION: { key: "region", rank: 3, color: "#10b981", km: 80, ringMaxZoom: 9 },
+  PROVINCE: { key: "region", rank: 3, color: "#10b981", km: 40, ringMaxZoom: 10 },
+  BIOREGION: { key: "bioregion", rank: 3, color: "#14b8a6", km: 60, ringMaxZoom: 10 },
+  OTHER: { key: "other", rank: 3, color: "#ec4899", km: 40, ringMaxZoom: 10 },
+  TOWN: { key: "town", rank: 4, color: "#3b82f6", km: 0, ringMaxZoom: 0 },
+};
+const styleForLevel = (level: string | undefined): LevelStyle => LEVEL_STYLES[(level ?? "").toUpperCase()] ?? LEVEL_STYLES.TOWN;
+const townDotRadius = (zoom: number) => (zoom < 6 ? 4 : zoom < 9 ? 6 : 9);
+
+function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }): null {
+  const map = useMapEvents({ zoomend: () => onZoom(map.getZoom()) });
+  useEffect(() => { onZoom(map.getZoom()); }, [map, onZoom]);
+  return null;
 }
 
 function FitBounds({ positions }: { positions: [number, number][] }): null {
@@ -88,7 +97,8 @@ async function geocodeAndPersist(id: string, name: string): Promise<{ lat: numbe
 }
 
 export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props) {
-  const navigate = useNavigate();
+  const { t: tr } = useTranslation();
+  const [zoom, setZoom] = useState(2);
 
   const territoryIds = useMemo(() => territories.map((t) => t.id), [territories]);
   const { data: geoData = {} } = useQuery({
@@ -139,10 +149,18 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
   );
 
   const unmappedCount = territories.length - mappedTerritories.length;
+  const levelsPresent = useMemo(() => {
+    const seen = new Map<string, LevelStyle>();
+    for (const t of mappedTerritories) {
+      const st = styleForLevel(geoData[t.id].level);
+      if (!seen.has(st.key)) seen.set(st.key, st);
+    }
+    return [...seen.values()].sort((a, b) => a.rank - b.rank);
+  }, [mappedTerritories, geoData]);
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border border-border overflow-hidden bg-card" style={{ height: "500px" }}>
+      <div className="relative rounded-2xl border border-border overflow-hidden bg-card" style={{ height: "500px" }}>
         <MapContainer
           center={[30, 0]}
           zoom={2}
@@ -156,49 +174,74 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
           />
           {positions.length > 0 && <FitBounds positions={positions} />}
 
-          {mappedTerritories.map((t, i) => {
-            const geo = geoData[t.id];
-            const color = MARKER_COLORS[i % MARKER_COLORS.length];
-            // Use stored GeoJSON if available, otherwise generate a circle boundary
-            const geojsonData = geo.geojson || createCircleGeoJSON(geo.lat, geo.lng, radiusForLevel(geo.level));
+          <ZoomWatcher onZoom={setZoom} />
 
-            return (
-              <GeoJSON
-                key={`geo-${t.id}-${geo.lat}-${geo.lng}`}
-                data={geojsonData}
-                style={{
-                  color,
-                  weight: 2,
-                  fillColor: color,
-                  fillOpacity: 0.15,
-                  opacity: 0.8,
-                }}
-                eventHandlers={{
-                  click: () => navigate(`/territories/${t.id}`),
-                  mouseover: (e: any) => {
-                    e.target.setStyle({ fillOpacity: 0.35, weight: 3 });
-                  },
-                  mouseout: (e: any) => {
-                    e.target.setStyle({ fillOpacity: 0.15, weight: 2 });
-                  },
-                }}
-                onEachFeature={(_feature, layer) => {
-                  layer.bindPopup(
-                    `<div style="min-width:160px">
-                      <h4 style="font-weight:600;font-size:13px;margin:0 0 4px">${t.name}</h4>
-                      ${t.parent_name ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${t.parent_name}</p>` : ""}
-                      <div style="font-size:11px;display:flex;gap:8px">
-                        <span>${t.quests} quests</span>
-                        <span>${t.entities} entities</span>
-                      </div>
-                      <a href="/territories/${t.id}" style="font-size:11px;color:#3b82f6;text-decoration:none;margin-top:4px;display:block">View territory →</a>
-                    </div>`
-                  );
-                }}
-              />
-            );
-          })}
+          {/* Big areas first so towns stay on top and clickable. */}
+          {[...mappedTerritories]
+            .sort((x, y) => styleForLevel(geoData[x.id].level).rank - styleForLevel(geoData[y.id].level).rank)
+            .map((t) => {
+              const geo = geoData[t.id];
+              const st = styleForLevel(geo.level);
+              const popup = (
+                <Popup>
+                  <div style={{ minWidth: 160 }}>
+                    <h4 style={{ fontWeight: 600, fontSize: 13, margin: "0 0 4px" }}>{t.name}</h4>
+                    {t.parent_name && <p style={{ fontSize: 11, color: "#888", margin: "0 0 4px" }}>{t.parent_name}</p>}
+                    <div style={{ fontSize: 11, display: "flex", gap: 8 }}>
+                      <span>{t.quests} quests</span>
+                      <span>{t.entities} entities</span>
+                    </div>
+                    <a href={`/territories/${t.id}`} style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none", marginTop: 4, display: "block" }}>
+                      {tr("territoryMap.view")}
+                    </a>
+                  </div>
+                </Popup>
+              );
+              const label = <Tooltip sticky direction="top">{t.name}</Tooltip>;
+
+              // Towns: a dot whose on-screen size does not grow with the zoom.
+              if (st.rank >= 4) {
+                return (
+                  <CircleMarker key={`dot-${t.id}`} center={[geo.lat, geo.lng]} radius={townDotRadius(zoom)}
+                    pathOptions={{ color: "#fff", weight: 1.5, fillColor: st.color, fillOpacity: 0.85 }}>
+                    {label}{popup}
+                  </CircleMarker>
+                );
+              }
+
+              // Areas: a light ring while it is readable, then a small hollow dot.
+              if (zoom > st.ringMaxZoom) {
+                return (
+                  <CircleMarker key={`dot-${t.id}`} center={[geo.lat, geo.lng]} radius={6}
+                    pathOptions={{ color: st.color, weight: 2, fillColor: st.color, fillOpacity: 0.1 }}>
+                    {label}{popup}
+                  </CircleMarker>
+                );
+              }
+              const ringStyle = { color: st.color, weight: 1.5, fillColor: st.color, fillOpacity: 0.05, opacity: 0.7, dashArray: "6 4" };
+              if (geo.geojson) {
+                return (
+                  <GeoJSON key={`geo-${t.id}`} data={geo.geojson} style={ringStyle}>{label}{popup}</GeoJSON>
+                );
+              }
+              return (
+                <Circle key={`ring-${t.id}`} center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={ringStyle}>
+                  {label}{popup}
+                </Circle>
+              );
+            })}
         </MapContainer>
+        {levelsPresent.length > 1 && (
+          <div className="absolute bottom-3 left-3 z-[400] rounded-lg bg-background/90 backdrop-blur px-2.5 py-2 text-[11px] shadow border border-border space-y-1">
+            {levelsPresent.map((l) => (
+              <div key={l.key} className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
+                {tr(`territoryMap.levels.${l.key}`)}
+              </div>
+            ))}
+            <p className="text-muted-foreground pt-0.5">{tr("territoryMap.zoomHint")}</p>
+          </div>
+        )}
       </div>
 
       {unmappedCount > 0 && (

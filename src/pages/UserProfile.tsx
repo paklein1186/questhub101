@@ -449,7 +449,7 @@ export default function UserProfile() {
   ], [profile?.bio]);
   const { translations: profileTr } = useContentTranslations("PROFILE", id, profileTrFields);
   useAutoTranslateEntity("PROFILE", id, profileTrFields, profileTr);
-  const trBio = (i18n.language !== "en" && profileTr.bio?.isTranslated ? profileTr.bio.text : null) ?? profile?.bio;
+  const trBio = (profileTr.bio?.isTranslated ? profileTr.bio.text : null) ?? profile?.bio;
 
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
