@@ -73,11 +73,13 @@ export function AddTerritoryDialog({ onCreated }: Props) {
       return;
     }
 
+    const { data: authData } = await supabase.auth.getUser();
     const insertData: Record<string, unknown> = {
       name: trimmed,
       level: level as any,
       latitude: geocoded?.lat ?? null,
       longitude: geocoded?.lng ?? null,
+      created_by_user_id: authData.user?.id ?? null,
     };
     if (granularity) insertData.granularity = granularity;
 
