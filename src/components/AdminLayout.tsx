@@ -5,6 +5,7 @@ import {
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
   Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot, Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -51,6 +52,7 @@ const clusters: NavCluster[] = [
     icon: Compass,
     items: [
       { to: "/admin/content/quests", label: "Quests", icon: Compass },
+      { to: "/admin/content/territory-covers", label: "Territory covers", icon: ImageIcon },
       { to: "/admin/content/courses", label: "Courses", icon: ScrollText },
       { to: "/admin/content/services", label: "Services", icon: ShoppingBag },
       { to: "/admin/content/reports", label: "Reports & Moderation", icon: Flag },

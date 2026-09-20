@@ -48,6 +48,7 @@ const AdminCommunityGuilds = lazy(() => import("./pages/admin/AdminCommunityGuil
 const AdminCommunityPods = lazy(() => import("./pages/admin/AdminCommunityPods"));
 const AdminCommunityCompanies = lazy(() => import("./pages/admin/AdminCommunityCompanies"));
 const AdminContentQuests = lazy(() => import("./pages/admin/AdminContentQuests"));
+const AdminContentTerritoryCovers = lazy(() => import("./pages/admin/AdminContentTerritoryCovers"));
 const AdminContentCourses = lazy(() => import("./pages/admin/AdminContentCourses"));
 const AdminContentServices = lazy(() => import("./pages/admin/AdminContentServices"));
 const AdminContentReports = lazy(() => import("./pages/admin/AdminContentReports"));
@@ -339,6 +340,7 @@ const App = () => (
                   <Route path="community/pods" element={<Suspense fallback={null}><AdminCommunityPods /></Suspense>} />
                   <Route path="community/companies" element={<Suspense fallback={null}><AdminCommunityCompanies /></Suspense>} />
                   <Route path="content/quests" element={<Suspense fallback={null}><AdminContentQuests /></Suspense>} />
+                  <Route path="content/territory-covers" element={<Suspense fallback={null}><AdminContentTerritoryCovers /></Suspense>} />
                   <Route path="content/courses" element={<Suspense fallback={null}><AdminContentCourses /></Suspense>} />
                   <Route path="content/services" element={<Suspense fallback={null}><AdminContentServices /></Suspense>} />
                   <Route path="content/reports" element={<Suspense fallback={null}><AdminContentReports /></Suspense>} />

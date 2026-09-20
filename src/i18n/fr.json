@@ -4318,5 +4318,18 @@
     "agentsLabel": "Interroger un agent :",
     "askPrefix": "Demande à {{agent}} : ",
     "viaAgent": "Réponse de {{agent}}"
+  },
+  "adminCovers": {
+    "title": "Bannières des territoires",
+    "intro": "Régénère les bannières des territoires en images réalistes du lieu (sans texte dans l'image), en commençant par les territoires où l'écosystème est le plus dense (guildes, quêtes, entités, pods).",
+    "progress": "Avancement",
+    "counts": "{{done}} territoires sur {{total}} ont une nouvelle bannière",
+    "next": "Prochains (avec score d'activité)",
+    "nextBatch": "Régénérer les 3 suivants",
+    "runAll": "Tout régénérer",
+    "stop": "Arrêter",
+    "cost": "Chaque bannière consomme des crédits IA (une description puis une image). Le lot s'arrête de lui-même si le service IA refuse.",
+    "loadFailed": "Impossible de charger l'état (réservé aux admins, et la fonction doit être déployée)",
+    "batchFailed": "Le lot a échoué"
   }
 }

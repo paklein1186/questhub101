@@ -4332,5 +4332,18 @@
     "agentsLabel": "Ask an agent:",
     "askPrefix": "Ask {{agent}}: ",
     "viaAgent": "Answer from {{agent}}"
+  },
+  "adminCovers": {
+    "title": "Territory covers",
+    "intro": "Regenerates territory banners as realistic pictures of the place (no text in the image), starting with the territories where the ecosystem is densest (guilds, quests, entities, pods).",
+    "progress": "Progress",
+    "counts": "{{done}} of {{total}} territories have a new cover",
+    "next": "Next in line (with activity score)",
+    "nextBatch": "Regenerate the next 3",
+    "runAll": "Run until done",
+    "stop": "Stop",
+    "cost": "Each cover uses AI credits (a text brief plus an image). The run stops by itself if the AI service refuses.",
+    "loadFailed": "Couldn't load the status (admins only, and the function must be deployed)",
+    "batchFailed": "The batch failed"
   }
 }
