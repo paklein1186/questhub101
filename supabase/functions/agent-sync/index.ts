@@ -119,7 +119,7 @@ async function callAgent(base: string, secret: string, path: string, init: Reque
 }
 
 // ── synchronisation d'un agent ─────────────────────────────────────────────
-async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate: number }) {
+async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate: number; full?: boolean }) {
   const summary: Record<string, any> = {
     agent: agent.name, dry_run: opts.dryRun,
     fetched: 0, created: 0, updated: 0, linked: 0, needs_quests: 0, events_sent: 0, access_sent: 0, masked: 0,
@@ -148,7 +148,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
   }
 
   // 1. Flux des lieux -------------------------------------------------------
-  const since = agent.sync_cursor ? `?updated_since=${encodeURIComponent(agent.sync_cursor)}` : "";
+  // Un lancement manuel relit tout le flux (idempotent) : rattrape un curseur trop avancé.
+  const since = agent.sync_cursor && !opts.full ? `?updated_since=${encodeURIComponent(agent.sync_cursor)}` : "";
   const feedRes = await callAgent(base, secret, `/lieux${since}`);
   if (!feedRes.ok) { err(`GET /lieux → ${feedRes.status}`); return summary; }
   const lieux: any[] = (await feedRes.json())?.lieux ?? [];
@@ -196,6 +197,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
 
   let createdThisRun = 0;
   let maxUpdatedAt: string | null = null;
+  // Le curseur ne doit jamais dépasser un lieu non traité (plafond de création, erreur) : il serait perdu.
+  let cursorBlocked = false;
 
   for (const lieu of lieux) {
     try {
@@ -214,7 +217,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       }
 
       if (!ref) {
-        if (createdThisRun >= opts.maxCreate) { summary.skipped_over_limit++; continue; }
+        if (createdThisRun >= opts.maxCreate) { summary.skipped_over_limit++; cursorBlocked = true; continue; }
         createdThisRun++;
         summary.created++;
         const tax = taxonomyFor(lieu);
@@ -231,7 +234,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
           website_url: lieu.lien_externe ?? null,
           auto_created_by_agent_id: agent.id,
         }).select("id").single();
-        if (gErr || !guild) { err(`création « ${lieu.tiers_lieu} » : ${gErr?.message}`); summary.created--; continue; }
+        if (gErr || !guild) { err(`création « ${lieu.tiers_lieu} » : ${gErr?.message}`); summary.created--; cursorBlocked = true; continue; }
 
         await sb.from("guild_members").insert({ guild_id: guild.id, user_id: agentUserId, role: "ADMIN" });
 
@@ -240,7 +243,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         const { data: inserted } = await sb.from("agent_external_refs")
           .insert({ agent_id: agent.id, external_id: lieu.space2_id, entity_type: "guild", entity_id: guild.id })
           .select("*").single();
-        if (!inserted) { err(`correspondance non enregistrée pour ${lieu.space2_id}`); continue; }
+        if (!inserted) { err(`correspondance non enregistrée pour ${lieu.space2_id}`); cursorBlocked = true; continue; }
         ref = inserted; refs.set(lieu.space2_id, ref);
 
         const linkRes = await callAgent(base, secret, `/lieux/${encodeURIComponent(lieu.space2_id)}/link`, {
@@ -300,6 +303,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       }
     } catch (e: any) {
       err(`${lieu?.space2_id}: ${e?.message ?? e}`);
+      cursorBlocked = true;
     }
   }
 
@@ -412,7 +416,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
 
   // 6. Curseur + trace ------------------------------------------------------------
   await sb.from("agents").update({
-    sync_cursor: maxUpdatedAt ?? agent.sync_cursor ?? null,
+    sync_cursor: cursorBlocked ? (agent.sync_cursor ?? null) : (maxUpdatedAt ?? agent.sync_cursor ?? null),
     last_sync_at: new Date().toISOString(),
     last_sync_summary: summary,
   }).eq("id", agent.id);
@@ -456,7 +460,7 @@ serve(async (req) => {
       if (!allowed) { results.push({ agent: agent.name, error: "forbidden" }); continue; }
     }
     try {
-      results.push(await syncAgent(sb, agent, { dryRun, maxCreate }));
+      results.push(await syncAgent(sb, agent, { dryRun, maxCreate, full: !isCron }));
     } catch (e: any) {
       results.push({ agent: agent.name, error: String(e?.message ?? e) });
     }

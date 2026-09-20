@@ -4215,7 +4215,8 @@
     "noTargets": "Aucun résultat pour {{target}} dont vous êtes administrateur.",
     "attachBadge": "Attacher",
     "edit": "Modifier",
-    "syncUnmatched": "Lieux sans équivalent dans changethegame : {{list}}."
+    "syncUnmatched": "Lieux sans équivalent dans changethegame : {{list}}.",
+    "syncRemaining": "Il en reste {{count}} à traiter : relancez la synchro."
   },
   "agentOverview": {
     "published": "Publié",

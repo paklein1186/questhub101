@@ -4229,7 +4229,8 @@
     "noTargets": "No {{target}} found where you have admin access.",
     "attachBadge": "Attach",
     "edit": "Edit",
-    "syncUnmatched": "Places with no match in changethegame: {{list}}."
+    "syncUnmatched": "Places with no match in changethegame: {{list}}.",
+    "syncRemaining": "{{count}} more to process: run the sync again."
   },
   "agentOverview": {
     "published": "Published",
