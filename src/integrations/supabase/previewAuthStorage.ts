@@ -76,13 +76,13 @@ export function brokeredPreviewStorage() {
       }
       return localStorage.getItem(key);
     },
-    setItem: (key: string, value: string) => {
+    setItem: async (key: string, value: string): Promise<void> => {
       localStorage.setItem(key, value);
-      return request('lovable-preview-auth:set', key, value).then(() => undefined);
+      await request('lovable-preview-auth:set', key, value);
     },
-    removeItem: (key: string) => {
+    removeItem: async (key: string): Promise<void> => {
       localStorage.removeItem(key);
-      return request('lovable-preview-auth:remove', key).then(() => undefined);
+      await request('lovable-preview-auth:remove', key);
     },
   };
 }
