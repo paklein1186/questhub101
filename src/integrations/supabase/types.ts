@@ -9897,6 +9897,7 @@ export type Database = {
           admitted_at: string
           admitted_by_user_id: string
           agent_id: string
+          free_for: string
           id: string
           is_active: boolean
           unit_id: string
@@ -9906,6 +9907,7 @@ export type Database = {
           admitted_at?: string
           admitted_by_user_id: string
           agent_id: string
+          free_for?: string
           id?: string
           is_active?: boolean
           unit_id: string
@@ -9915,6 +9917,7 @@ export type Database = {
           admitted_at?: string
           admitted_by_user_id?: string
           agent_id?: string
+          free_for?: string
           id?: string
           is_active?: boolean
           unit_id?: string
