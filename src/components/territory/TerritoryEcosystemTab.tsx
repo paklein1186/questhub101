@@ -80,14 +80,11 @@ function useDescendantIds(territoryId: string, includeNested: boolean) {
     enabled: !!territoryId,
     queryFn: async () => {
       if (!includeNested) return [territoryId];
-      const [closureRes, childrenRes] = await Promise.all([
-        supabase.from("territory_closure").select("descendant_id").eq("ancestor_id", territoryId),
-        supabase.from("territories").select("id").eq("parent_id", territoryId),
-      ]);
-      // Always include the territory itself — the closure table may not carry a self row.
-      const ids = new Set<string>([territoryId]);
-      for (const d of (closureRes.data ?? [])) ids.add((d as any).descendant_id);
-      for (const c of (childrenRes.data ?? [])) ids.add((c as any).id);
+      // Self + administrative descendants + bioregion members (and what is inside them).
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = new Set<string>(await getAllTerritoryIds(territoryId));
+      const { data: childrenRes } = await supabase.from("territories").select("id").eq("parent_id", territoryId);
+      for (const c of (childrenRes ?? [])) ids.add((c as any).id);
       return [...ids] as string[];
     },
   });
@@ -105,10 +102,14 @@ function useChildTerritories(territoryId: string) {
         .eq("ancestor_id", territoryId)
         .gt("depth", 0);
 
-      if (!data?.length) return { children: [] as TerritoryChild[], childMap: new Map<string, string>() };
+      // A bioregion groups its members (towns, areas) in parallel to the administrative hierarchy.
+      const { data: memberRows } = await supabase.from("bioregion_members" as any).select("territory_id").eq("bioregion_id", territoryId);
+      const memberIds = ((memberRows ?? []) as any[]).map((r) => r.territory_id as string);
 
-      const descIds = data.map((d: any) => d.descendant_id);
-      const depthMap = new Map(data.map((d: any) => [d.descendant_id, d.depth]));
+      if (!data?.length && !memberIds.length) return { children: [] as TerritoryChild[], childMap: new Map<string, string>() };
+
+      const descIds = (data ?? []).map((d: any) => d.descendant_id);
+      const depthMap = new Map((data ?? []).map((d: any) => [d.descendant_id, d.depth]));
 
       const { data: territories } = await supabase
         .from("territories")
@@ -142,7 +143,7 @@ function useChildTerritories(territoryId: string) {
       const childMap = new Map<string, string>();
       const groupChildIds = new Set(groupChildren.map(c => c.id));
 
-      for (const desc of data) {
+      for (const desc of data ?? []) {
         const descId = desc.descendant_id as string;
         if (groupChildIds.has(descId)) {
           childMap.set(descId, descId);
@@ -160,6 +161,19 @@ function useChildTerritories(territoryId: string) {
         if (matchedGroup) {
           childMap.set(descId, matchedGroup);
         }
+      }
+
+      if (memberIds.length) {
+        const { data: memberTerr } = await supabase.from("territories").select("id, name, level").in("id", memberIds);
+        for (const m of (memberTerr ?? []) as any[]) {
+          if (groupChildIds.has(m.id)) continue;
+          groupChildren.push({ id: m.id, name: m.name, level: m.level, depth: 1 } as TerritoryChild);
+          groupChildIds.add(m.id);
+          childMap.set(m.id, m.id);
+        }
+        // Everything inside a member belongs to that member's group.
+        const { data: inner } = await supabase.from("territory_closure").select("ancestor_id, descendant_id").in("ancestor_id", memberIds).gt("depth", 0);
+        for (const r of (inner ?? []) as any[]) if (!childMap.has(r.descendant_id)) childMap.set(r.descendant_id, r.ancestor_id);
       }
 
       return { children: groupChildren.sort((a, b) => a.name.localeCompare(b.name)), childMap };
