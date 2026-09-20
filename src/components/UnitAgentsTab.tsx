@@ -39,7 +39,6 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
   const { user } = useAuth();
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const [addOpen, setAddOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [editAgent, setEditAgent] = useState<any>(null);
   const [activeChatAgentId, setActiveChatAgentId] = useState<string | null>(null);
@@ -168,11 +167,8 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
         </div>
         {isAdmin && (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setRegisterOpen(true)}>
+            <Button size="sm" onClick={() => setRegisterOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> {t("agentsUi.register")}
-            </Button>
-            <Button size="sm" onClick={() => setAddOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> {t("agentsUi.attach")}
             </Button>
           </div>
         )}
@@ -275,16 +271,6 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
         />
       )}
 
-      {isAdmin && user && (
-        <AdmitAgentDialog
-          open={addOpen}
-          onOpenChange={setAddOpen}
-          unitType={unitType}
-          unitId={unitId}
-          userId={user.id}
-          existingAgentIds={(unitAgents || []).map((ua: any) => ua.agent_id)}
-        />
-      )}
     </div>
   );
 }
@@ -361,130 +347,6 @@ function AgentManageBar({ ua, unitType, userId, onEdit, onSync, onFreeFor }: {
   );
 }
 
-function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existingAgentIds }: {
-  open: boolean; onOpenChange: (v: boolean) => void;
-  unitType: string; unitId: string; userId: string; existingAgentIds: string[];
-}) {
-  const { t } = useTranslation();
-  const [search, setSearch] = useState("");
-  const qc = useQueryClient();
-
-  // Browse every published agent — including ones another guild admitted
-  // first — rather than only agents this user personally hired, so agents
-  // can circulate across guilds instead of staying siloed to their creator.
-  const { data: hiredAgents, isLoading } = useQuery({
-    queryKey: ["published-agents-for-admit", search],
-    enabled: open,
-    queryFn: async () => {
-      let q = supabase
-        .from("agents" as any)
-        .select("*")
-        .eq("is_published", true)
-        .order("usage_count", { ascending: false })
-        .limit(50);
-      if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
-      const { data: agents, error } = await q;
-      if (error) throw error;
-
-      const agentIds = (agents ?? []).map((a: any) => a.id);
-      if (agentIds.length === 0) return [];
-
-      const { data: attachments } = await supabase
-        .from("unit_agents" as any)
-        .select("agent_id, unit_type, unit_id")
-        .eq("unit_type", "guild")
-        .eq("is_active", true)
-        .in("agent_id", agentIds);
-
-      const guildCountByAgent = new Map<string, Set<string>>();
-      for (const a of (attachments ?? []) as any[]) {
-        if (a.unit_id === unitId) continue; // don't count this guild itself
-        const set = guildCountByAgent.get(a.agent_id) ?? new Set();
-        set.add(a.unit_id);
-        guildCountByAgent.set(a.agent_id, set);
-      }
-
-      return (agents ?? []).map((a: any) => ({
-        ...a,
-        guildCount: guildCountByAgent.get(a.id)?.size ?? 0,
-      }));
-    },
-  });
-
-  const admit = async (agentId: string) => {
-    const { error } = await supabase.from("unit_agents" as any).insert({
-      agent_id: agentId,
-      unit_type: unitType,
-      unit_id: unitId,
-      admitted_by_user_id: userId,
-    } as any);
-    if (error) {
-      toast.error(error.message.includes("duplicate") ? t("agentsUi.alreadyAttached") : t("agentsUi.attachFailed"));
-      return;
-    }
-    toast.success(t("agentsUi.attached"));
-    qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] });
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{t("agentsUi.attachTitle")}</DialogTitle></DialogHeader>
-        <p className="text-xs text-muted-foreground -mt-2">
-          {t("agentsUi.attachNote")}
-        </p>
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("agentsUi.searchPublished")}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-          {isLoading ? (
-            <Skeleton className="h-16" />
-          ) : !hiredAgents?.length ? (
-            <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">{t("agentsUi.noPublished")}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                <a href="/agents" className="text-primary hover:underline">{t("agentsUi.browseMarketplace")}</a> {t("agentsUi.toCreateOne")}
-              </p>
-            </div>
-          ) : (
-            hiredAgents
-              .filter((a: any) => !existingAgentIds.includes(a.id))
-              .map((agent: any) => (
-                <div
-                  key={agent.id}
-                  className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => admit(agent.id)}
-                >
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{agent.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{agent.description}</p>
-                    {agent.guildCount > 0 && (
-                      <p className="text-[10px] text-primary mt-0.5">
-                        {t("agentsUi.usedByGuilds", { count: agent.guildCount })}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant="secondary" className="text-[10px] shrink-0">
-                    {t("agentsUi.crShort", { count: agent.cost_per_use })}
-                  </Badge>
-                </div>
-              ))
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
   agent: any; unitType: string; unitId: string; unitName: string; freeForMe: boolean | "maybe";
 }) {

@@ -4203,7 +4203,7 @@
     "register": "Register an agent",
     "attach": "Attach an agent",
     "none": "No agents attached yet.",
-    "noneHint": "Attach a published agent — your own or one another guild already uses.",
+    "noneHint": "Register an external agent to connect it to this space.",
     "fromGuild": "From guild",
     "freeForYou": "Free for you",
     "simulateSync": "Simulate sync",

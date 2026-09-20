@@ -4189,7 +4189,7 @@
     "register": "Enregistrer un agent",
     "attach": "Attacher un agent",
     "none": "Aucun agent attaché pour l'instant.",
-    "noneHint": "Attachez un agent publié — le vôtre ou un que d'autres guildes utilisent déjà.",
+    "noneHint": "Enregistrez un agent externe pour le connecter à cet espace.",
     "fromGuild": "Via la guilde",
     "freeForYou": "Gratuit pour vous",
     "simulateSync": "Simuler la synchro",
