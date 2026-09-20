@@ -1,21 +1,10 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
+import { AgentMarkdown } from "@/components/agent/AgentMarkdown";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-// No typography plugin in the project: style the markdown elements directly.
-const MARKDOWN_CLASSES = [
-  "text-sm leading-relaxed space-y-2 break-words",
-  "[&_h1]:text-base [&_h1]:font-semibold [&_h1]:mt-1",
-  "[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-4 [&_h2]:pt-3 [&_h2]:border-t [&_h2]:border-border/60",
-  "[&_h3]:text-sm [&_h3]:font-medium [&_h3]:mt-3",
-  "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1",
-  "[&_a]:text-primary [&_a]:underline [&_code]:bg-muted [&_code]:px-1 [&_code]:rounded [&_code]:text-xs",
-  "[&_strong]:font-semibold [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground",
-].join(" ");
 
 /** Public "fiche" of an agent: purpose, detailed description, variables, scope and where it is used. */
 export function AgentFiche({ agent }: { agent: any }) {
@@ -73,9 +62,7 @@ export function AgentFiche({ agent }: { agent: any }) {
         {agent.long_description && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.about")}</p>
-            <div className={MARKDOWN_CLASSES}>
-              <ReactMarkdown>{agent.long_description}</ReactMarkdown>
-            </div>
+            <AgentMarkdown>{agent.long_description}</AgentMarkdown>
           </div>
         )}
 

@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+import { AgentMarkdown } from "@/components/agent/AgentMarkdown";
 import { useAgentQuota } from "@/hooks/useAgentQuota";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -496,6 +496,15 @@ function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const agentQuota = useAgentQuota();
+  // Places the agent created on changethegame: their names in an answer become links to their guild page.
+  const { data: placeLinks = [] } = useQuery({
+    queryKey: ["agent-place-links", agent.id],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("id, name").eq("auto_created_by_agent_id", agent.id).eq("is_deleted", false).limit(1000);
+      return ((data ?? []) as any[]).map((g) => ({ name: g.name as string, href: `/guilds/${g.id}` }));
+    },
+  });
   const usagePrice = freeForMe ? 0 : Number(agent.usage_price ?? agent.cost_per_use ?? 0);
 
   useEffect(() => {
@@ -617,13 +626,11 @@ function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+            <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-sm ${
               m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
             }`}>
               {m.role === "assistant" ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
-                </div>
+                <AgentMarkdown links={placeLinks}>{m.content}</AgentMarkdown>
               ) : m.content}
             </div>
           </div>
