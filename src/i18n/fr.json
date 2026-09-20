@@ -4074,7 +4074,22 @@
     "secretIntro": "Copiez-le maintenant et renseignez-le dans votre agent (X-Webhook-Secret). Par sécurité, il ne sera plus affiché.",
     "syncTitle": "Synchroniser avec cet agent",
     "syncNote": "changethegame lira ses lieux, créera leurs fiches et renverra les mises à jour publiques. Suppose les endpoints /lieux, /events, /access.",
-    "syncBaseUrlRequired": "L'URL de base est requise pour activer la synchronisation"
+    "syncBaseUrlRequired": "L'URL de base est requise pour activer la synchronisation",
+    "importFromAgent": "Importer la fiche depuis l'agent",
+    "importNote": "Lit le GET /manifest de l'agent (informations publiques). Vous pouvez tout modifier ensuite.",
+    "importFailed": "Impossible de lire la fiche de l'agent.",
+    "imported": "Fiche importée ({{count}} variables).",
+    "importUnmatched": "Sans correspondance thématique ou territoire : {{list}}",
+    "secretField": "Secret (laisser vide pour en générer un)",
+    "secretFieldPlaceholder": "Collez le secret déjà défini sur votre agent (16 caractères minimum)",
+    "secretTooShort": "Le secret doit faire au moins 16 caractères.",
+    "secretPanelTitle": "Secret de webhook",
+    "secretIsSet": "Un secret est défini. Il n'est jamais affiché ; régénérez-le ou remplacez-le ci-dessous.",
+    "secretIsNotSet": "Aucun secret défini : votre endpoint n'est pas protégé.",
+    "secretUseMine": "Utiliser ce secret",
+    "secretRegenerate": "Générer un nouveau secret",
+    "secretSaved": "Secret mis à jour.",
+    "secretSaveFailed": "Impossible d'enregistrer le secret."
   },
   "autoGuild": {
     "notice": "Cette fiche a été créée automatiquement à partir de {{agent}}. Si c'est votre lieu, revendiquez-la pour la gérer.",
@@ -4083,5 +4098,14 @@
     "loginToClaim": "Se connecter pour revendiquer",
     "claimed": "Vous êtes maintenant admin de cette fiche.",
     "claimFailed": "Cette fiche ne peut pas être revendiquée (déjà revendiquée ou indisponible)."
+  },
+  "agentFiche": {
+    "title": "À propos de cet agent",
+    "purpose": "À quoi il sert",
+    "about": "Détails",
+    "variables": "Variables",
+    "scope": "Thématiques et territoires couverts",
+    "usedIn": "Utilisé dans",
+    "podsQuests": "+ {{pods}} pods, {{quests}} quêtes"
   }
 }

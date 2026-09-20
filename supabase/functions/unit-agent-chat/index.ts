@@ -120,9 +120,12 @@ serve(async (req) => {
 
     // Gather unit context
     let unitContext = "";
+    // Minimal context (name, description, status only) — what an external agent receives by default.
+    let headerContext = "";
     if (unitType === "guild") {
       const { data: guild } = await adminClient.from("guilds").select("name, description").eq("id", unitId).single();
       if (guild) unitContext += `Guild: ${guild.name}\nDescription: ${guild.description || "N/A"}\n`;
+      headerContext = unitContext;
 
       // Recent posts
       const { data: posts } = await adminClient.from("feed_posts").select("content, created_at").eq("context_type", "GUILD").eq("context_id", unitId).eq("is_deleted", false).order("created_at", { ascending: false }).limit(5);
@@ -144,6 +147,7 @@ serve(async (req) => {
     } else if (unitType === "pod") {
       const { data: pod } = await adminClient.from("pods").select("name, description").eq("id", unitId).single();
       if (pod) unitContext += `Pod: ${pod.name}\nDescription: ${pod.description || "N/A"}\n`;
+      headerContext = unitContext;
 
       const { data: members } = await adminClient.from("pod_members").select("user_id, role, profiles:user_id(name)").eq("pod_id", unitId).limit(20);
       if (members?.length) {
@@ -152,6 +156,7 @@ serve(async (req) => {
     } else if (unitType === "quest") {
       const { data: quest } = await adminClient.from("quests").select("title, description, status, reward_xp").eq("id", unitId).single();
       if (quest) unitContext += `Quest: ${quest.title}\nDescription: ${quest.description || "N/A"}\nStatus: ${quest.status}\nReward: ${quest.reward_xp} XP\n`;
+      headerContext = unitContext;
 
       const { data: participants } = await adminClient.from("quest_participants").select("user_id, role, status, profiles:user_id(name)").eq("quest_id", unitId).limit(20);
       if (participants?.length) {
@@ -171,7 +176,7 @@ serve(async (req) => {
 ---
 CONTEXT: You are operating inside a ${unitType} on the changethegame platform. Use the following context to provide relevant, grounded answers.
 
-${unitContext}
+${agent.agent_source === "platform" ? unitContext : headerContext}
 ---
 Respond helpfully based on this context. If you don't know something specific about the unit, say so.`;
 
@@ -327,7 +332,7 @@ Respond helpfully based on this context. If you don't know something specific ab
           headers: webhookHeaders,
           body: JSON.stringify({
             messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
-            context: { unit_type: unitType, unit_id: unitId, unit_context: unitContext, agent_id: agentId, user_id: user.id },
+            context: { unit_type: unitType, unit_id: unitId, unit_context: headerContext, agent_id: agentId, user_id: user.id },
           }),
           signal: AbortSignal.timeout(30_000),
         });

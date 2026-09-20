@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Eye, EyeOff, CircleDollarSign, Gift, Plus, Trash2, Copy, Check } from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, CircleDollarSign, Gift, Plus, Trash2, Copy, Check, Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,8 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [llmApiKey, setLlmApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [customSecret, setCustomSecret] = useState("");
+  const [importing, setImporting] = useState(false);
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [syncBaseUrl, setSyncBaseUrl] = useState("");
 
@@ -154,15 +156,38 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     setName(""); setDescription(""); setPurpose(""); setLongDescription(""); setVariables([]);
     setTopicIds([]); setTerritoryIds([]); setIsListed(true); setSystemPrompt(""); setSkills("");
     setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
-    setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false); setSyncEnabled(false); setSyncBaseUrl("");
+    setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false); setSyncEnabled(false); setSyncBaseUrl(""); setCustomSecret("");
     setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit("");
     setOwnerKey(defaultOwner ? `${defaultOwner.type}:${defaultOwner.id}` : "user");
+  };
+
+  const importManifest = async () => {
+    const target = (syncBaseUrl.trim() || webhookUrl.trim());
+    if (!target) return;
+    setImporting(true);
+    const { data, error } = await supabase.functions.invoke("agent-manifest", { body: { url: target } });
+    setImporting(false);
+    if (error) { toast.error(t("agentForm.importFailed")); return; }
+    if (data?.error) { toast.error(data.error); return; }
+    const m = data?.manifest;
+    if (!m) { toast.error(t("agentForm.importFailed")); return; }
+    if (m.name) setName(m.name);
+    if (m.description) setDescription(m.description);
+    if (m.purpose) setPurpose(m.purpose);
+    if (m.readme) setLongDescription(m.readme);
+    if (m.category && CATEGORIES.some((c) => c.value === m.category)) setCategory(m.category);
+    setVariables(Array.isArray(m.variables) ? m.variables : []);
+    setTopicIds(m.topic_ids ?? []);
+    setTerritoryIds(m.territory_ids ?? []);
+    toast.success(t("agentForm.imported", { count: (m.variables ?? []).length }));
+    if (m.unmatched?.length) toast.message(t("agentForm.importUnmatched", { list: m.unmatched.join(", ") }));
   };
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "platform" && !systemPrompt.trim()) { toast.error(t("agents.nameRequired")); return; }
     if (agentSource === "webhook" && !webhookUrl.trim()) { toast.error("Webhook URL is required"); return; }
+    if (agentSource === "webhook" && customSecret.trim() && customSecret.trim().length < 16) { toast.error(t("agentForm.secretTooShort")); return; }
     if (agentSource === "webhook" && syncEnabled && !syncBaseUrl.trim()) { toast.error(t("agentForm.syncBaseUrlRequired")); return; }
     if (agentSource === "custom_llm" && (!llmProvider || !llmModel || !llmApiKey.trim())) {
       toast.error("Provider, model, and API key are required"); return;
@@ -206,8 +231,10 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
 
     // Secrets go to a creator-only table, never on the publicly readable agents row.
     let secret: string | null = null;
+    let generatedSecret = false;
     if (agentSource !== "platform") {
-      secret = agentSource === "webhook" ? generateSecret() : null;
+      generatedSecret = agentSource === "webhook" && !customSecret.trim();
+      secret = agentSource === "webhook" ? (customSecret.trim() || generateSecret()) : null;
       const { error: secretErr } = await supabase.from("agent_secrets" as any).insert({
         agent_id: agent.id,
         webhook_secret: secret,
@@ -238,7 +265,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     onOpenChange(false);
     resetForm();
     onCreated?.(agent.id);
-    if (secret) setCreatedSecret(secret);
+    if (secret && generatedSecret) setCreatedSecret(secret);
   };
 
   const isExternal = agentSource !== "platform";
@@ -413,6 +440,15 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                 <div>
                   <Label>Webhook URL *</Label>
                   <Input value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/agent" />
+                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={importManifest} disabled={importing || !(webhookUrl.trim() || syncBaseUrl.trim())}>
+                    {importing ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+                    {t("agentForm.importFromAgent")}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.importNote")}</p>
+                </div>
+                <div>
+                  <Label>{t("agentForm.secretField")}</Label>
+                  <Input value={customSecret} onChange={(e) => setCustomSecret(e.target.value)} placeholder={t("agentForm.secretFieldPlaceholder")} className="font-mono text-xs" autoComplete="off" />
                 </div>
                 <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground space-y-1.5">
                   <p className="font-medium text-foreground text-sm">{t("agentForm.expectedFormat")}</p>

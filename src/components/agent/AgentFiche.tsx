@@ -1,0 +1,111 @@
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+/** Public "fiche" of an agent: purpose, detailed description, variables, scope and where it is used. */
+export function AgentFiche({ agent }: { agent: any }) {
+  const { t } = useTranslation();
+  const variables: { name: string; description?: string }[] = Array.isArray(agent.variables) ? agent.variables : [];
+
+  const { data: scope } = useQuery({
+    queryKey: ["agent-scope", agent.id],
+    queryFn: async () => {
+      const [tp, tr] = await Promise.all([
+        supabase.from("agent_topics" as any).select("topics(id, name)").eq("agent_id", agent.id),
+        supabase.from("agent_territories" as any).select("territories(id, name)").eq("agent_id", agent.id),
+      ]);
+      return {
+        topics: ((tp.data ?? []) as any[]).map((r) => r.topics).filter(Boolean),
+        territories: ((tr.data ?? []) as any[]).map((r) => r.territories).filter(Boolean),
+      };
+    },
+  });
+
+  const { data: usage } = useQuery({
+    queryKey: ["agent-usage-units", agent.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("unit_agents" as any).select("unit_type, unit_id").eq("agent_id", agent.id).eq("is_active", true);
+      const rows = (data ?? []) as any[];
+      const guildIds = rows.filter((r) => r.unit_type === "guild").map((r) => r.unit_id);
+      const { data: guilds } = guildIds.length
+        ? await supabase.from("guilds").select("id, name").in("id", guildIds)
+        : { data: [] as any[] };
+      return {
+        guilds: guilds ?? [],
+        pods: rows.filter((r) => r.unit_type === "pod").length,
+        quests: rows.filter((r) => r.unit_type === "quest").length,
+      };
+    },
+  });
+
+  const hasScope = (scope?.topics.length ?? 0) + (scope?.territories.length ?? 0) > 0;
+  const hasUsage = (usage?.guilds.length ?? 0) + (usage?.pods ?? 0) + (usage?.quests ?? 0) > 0;
+  if (!agent.purpose && !agent.long_description && variables.length === 0 && !hasScope && !hasUsage) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2"><CardTitle className="text-base">{t("agentFiche.title")}</CardTitle></CardHeader>
+      <CardContent className="space-y-5 text-sm">
+        {agent.purpose && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.purpose")}</p>
+            <p>{agent.purpose}</p>
+          </div>
+        )}
+
+        {agent.long_description && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.about")}</p>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown>{agent.long_description}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+
+        {variables.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.variables")}</p>
+            <div className="rounded-lg border border-border overflow-hidden">
+              {variables.map((v) => (
+                <div key={v.name} className="flex gap-3 px-3 py-2 border-b border-border/50 last:border-0">
+                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded h-fit shrink-0">{v.name}</code>
+                  <span className="text-xs text-muted-foreground">{v.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasScope && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.scope")}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {scope!.topics.map((tp: any) => <Badge key={tp.id} variant="secondary" className="text-xs">{tp.name}</Badge>)}
+              {scope!.territories.map((tr: any) => <Badge key={tr.id} variant="outline" className="text-xs">{tr.name}</Badge>)}
+            </div>
+          </div>
+        )}
+
+        {hasUsage && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t("agentFiche.usedIn")}</p>
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {usage!.guilds.map((g: any) => (
+                <Link key={g.id} to={`/guilds/${g.id}`}><Badge variant="outline" className="text-xs hover:border-primary/40">{g.name}</Badge></Link>
+              ))}
+              {(usage!.pods > 0 || usage!.quests > 0) && (
+                <span className="text-xs text-muted-foreground">
+                  {t("agentFiche.podsQuests", { pods: usage!.pods, quests: usage!.quests })}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

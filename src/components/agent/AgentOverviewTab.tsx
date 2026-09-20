@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { AgentFiche } from "@/components/agent/AgentFiche";
+import { WebhookSecretPanel } from "@/components/agent/WebhookSecretPanel";
 
 interface Props {
   agent: any;
@@ -112,6 +114,10 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
           </div>
         </CardContent>
       </Card>
+
+      <AgentFiche agent={agent} />
+
+      {isOwner && agent.agent_source === "webhook" && <WebhookSecretPanel agentId={agent.id} />}
 
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

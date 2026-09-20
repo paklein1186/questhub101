@@ -137,3 +137,6 @@ verify_jwt = false
 
 [functions.agent-sync]
 verify_jwt = false
+
+[functions.agent-manifest]
+verify_jwt = false

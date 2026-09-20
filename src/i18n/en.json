@@ -4088,7 +4088,22 @@
     "secretIntro": "Copy it now and set it in your agent (X-Webhook-Secret). For security it will not be shown again.",
     "syncTitle": "Sync with this agent",
     "syncNote": "changethegame will pull its places, create pages for them, and send public updates back. Requires the endpoints /lieux, /events, /access.",
-    "syncBaseUrlRequired": "Base URL is required to enable sync"
+    "syncBaseUrlRequired": "Base URL is required to enable sync",
+    "importFromAgent": "Import details from the agent",
+    "importNote": "Reads the agent's own GET /manifest (public information). You can edit everything afterwards.",
+    "importFailed": "Couldn't read the agent's details.",
+    "imported": "Details imported ({{count}} variables).",
+    "importUnmatched": "Not matched to a topic or territory: {{list}}",
+    "secretField": "Secret (leave empty to generate one)",
+    "secretFieldPlaceholder": "Paste the secret already set on your agent (16+ characters)",
+    "secretTooShort": "The secret must be at least 16 characters.",
+    "secretPanelTitle": "Webhook secret",
+    "secretIsSet": "A secret is set. It is never displayed; regenerate or replace it below.",
+    "secretIsNotSet": "No secret is set: your endpoint is not protected.",
+    "secretUseMine": "Use this secret",
+    "secretRegenerate": "Generate a new secret",
+    "secretSaved": "Secret updated.",
+    "secretSaveFailed": "Couldn't save the secret."
   },
   "autoGuild": {
     "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
@@ -4097,5 +4112,14 @@
     "loginToClaim": "Log in to claim",
     "claimed": "You are now the admin of this page.",
     "claimFailed": "This page can't be claimed (already claimed or unavailable)."
+  },
+  "agentFiche": {
+    "title": "About this agent",
+    "purpose": "What it is for",
+    "about": "Details",
+    "variables": "Variables",
+    "scope": "Topics and territories covered",
+    "usedIn": "Used in",
+    "podsQuests": "+ {{pods}} pods, {{quests}} quests"
   }
 }
