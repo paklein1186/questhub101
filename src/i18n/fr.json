@@ -4285,7 +4285,9 @@
     "objectsUnsupported": "Éléments Third Spaces trouvés, mais l'agent ne les accepte pas encore (PUT /ctg/objects).",
     "objectsPreview": "{{count}} éléments Third Spaces partagés avec l'agent",
     "objectsPreviewDry": "{{count}} éléments Third Spaces seraient partagés avec l'agent",
-    "kinds": {"lieu": "Lieux", "organisation": "Organisations", "quete": "Quêtes", "entite": "Entités", "post": "Posts"}
+    "kinds": {"lieu": "Lieux", "organisation": "Organisations", "quete": "Quêtes", "entite": "Entités", "post": "Posts"},
+    "skipped": "Non partagées",
+    "skip": {"private": "guilde privée — cochez « Lieu physique » pour la partager", "unapproved": "en attente de modération"}
   },
   "territoryMap": {
     "view": "Voir le territoire →",
@@ -4314,7 +4316,7 @@
     "physicalPlace": {
       "title": "Lieu physique",
       "label": "Cette guilde est un lieu physique (tiers-lieu, coliving…)",
-      "help": "Space2 la lit comme un lieu de sa bibliothèque. Décochée, la guilde est quand même partagée avec Space2 si elle est taguée Third Spaces, mais seulement comme organisation : elle nourrit ses réponses sans entrer dans la galerie des lieux.",
+      "help": "Space2 la lit comme un lieu de sa bibliothèque. Cocher cette case partage le nom, la description, les thèmes et le territoire de la guilde avec Space2, même si elle est privée. Décochée, la guilde est quand même partagée si elle est publique et taguée Third Spaces, mais seulement comme organisation : elle nourrit ses réponses sans entrer dans la galerie des lieux.",
       "saved": "Enregistré",
       "failed": "Impossible d'enregistrer le réglage"
     }

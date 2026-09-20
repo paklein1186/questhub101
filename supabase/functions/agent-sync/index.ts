@@ -499,7 +499,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     const guildSelect = "id, name, description, website_url, is_physical_place, updated_at, auto_created_by_agent_id, guild_topics(topics(name)), guild_territories(is_primary, territories(name, level, latitude, longitude))";
     const guildRows = new Map<string, any>();
     const guildBase = () => {
-      let q = sb.from("guilds").select(guildSelect).eq("is_deleted", false).eq("is_draft", false).eq("is_approved", true).eq("public_visibility", "public");
+      // Pas de filtre de visibilité ici : on classe ensuite (envoyée / écartée avec sa raison).
+      let q = sb.from("guilds").select(guildSelect + ", is_approved, public_visibility").eq("is_deleted", false).eq("is_draft", false);
       if (since) q = q.gt("updated_at", since);
       return q;
     };
@@ -513,8 +514,13 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       if (error) objErr(`objets (lieux) : ${error.message}`);
       for (const g of data ?? []) guildRows.set(g.id, g);
     }
+    const skipped: { name: string; reason: "private" | "unapproved" }[] = [];
     for (const g of guildRows.values()) {
       if (g.auto_created_by_agent_id === agent.id) continue; // vient déjà de cet agent
+      // La case « Lieu physique » est un consentement explicite à partager avec l'agent, même pour une guilde
+      // privée ; une guilde non approuvée (modération en attente) n'est jamais envoyée.
+      if (!g.is_approved) { skipped.push({ name: g.name, reason: "unapproved" }); continue; }
+      if (g.public_visibility !== "public" && !g.is_physical_place) { skipped.push({ name: g.name, reason: "private" }); continue; }
       const place = placeOf(g.guild_territories);
       objects.push({
         ctg_id: `guild:${g.id}`, kind: g.is_physical_place ? "lieu" : "organisation", is_place: !!g.is_physical_place,
@@ -578,6 +584,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       }
     }
 
+    if (skipped.length) summary.objects_skipped = skipped.slice(0, 30);
     // Space2 refuse un objet sans nom (422) : jamais de nom vide.
     for (const o of objects) if (!o.name) o.name = o.ctg_id;
     summary.objects_found = objects.length;

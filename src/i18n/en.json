@@ -4299,7 +4299,9 @@
     "objectsUnsupported": "Third Spaces items found, but the agent does not accept them yet (PUT /ctg/objects).",
     "objectsPreview": "{{count}} Third Spaces items shared with the agent",
     "objectsPreviewDry": "{{count}} Third Spaces items would be shared with the agent",
-    "kinds": {"lieu": "Places", "organisation": "Organisations", "quete": "Quests", "entite": "Entities", "post": "Posts"}
+    "kinds": {"lieu": "Places", "organisation": "Organisations", "quete": "Quests", "entite": "Entities", "post": "Posts"},
+    "skipped": "Not shared",
+    "skip": {"private": "private guild — tick \"Physical place\" to share it", "unapproved": "awaiting moderation"}
   },
   "territoryMap": {
     "view": "View territory →",
@@ -4328,7 +4330,7 @@
     "physicalPlace": {
       "title": "Physical place",
       "label": "This guild is a physical place (third place, coliving…)",
-      "help": "Space2 reads it as a place in its library. Left unchecked, the guild is still shared with Space2 when tagged Third Spaces, but only as an organisation: it informs its answers without entering the gallery of places.",
+      "help": "Space2 reads it as a place in its library. Ticking this shares the guild's name, description, topics and territory with Space2, even if the guild is private. Left unchecked, the guild is still shared when it is public and tagged Third Spaces, but only as an organisation: it informs answers without entering the gallery of places.",
       "saved": "Saved",
       "failed": "Couldn't save the setting"
     }

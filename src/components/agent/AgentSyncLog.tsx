@@ -113,6 +113,12 @@ function AgentSyncLogDialog({ agentId, onClose }: { agentId: string; onClose: ()
                         })}
                       </div>
                     )}
+                    {Array.isArray(s.objects_skipped) && s.objects_skipped.length > 0 && (
+                      <p className="text-xs text-amber-800 dark:text-amber-300">
+                        <span className="font-medium">{t("syncLog.skipped")} :</span>{" "}
+                        {s.objects_skipped.map((o: any) => `${o.name} (${t(`syncLog.skip.${o.reason}`)})`).join(", ")}
+                      </p>
+                    )}
                     {s.objects_unsupported && <p className="text-xs text-muted-foreground">{t("syncLog.objectsUnsupported")}</p>}
                     {lists.filter(([, l]) => l.length).map(([label, l]) => (
                       <p key={label} className="text-xs"><span className="font-medium">{label} :</span> {l.join(", ")}</p>
