@@ -162,6 +162,35 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_access_consents: {
+        Row: {
+          agent_id: string
+          consented_at: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          consented_at?: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          consented_at?: string
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_access_consents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_billing_profiles: {
         Row: {
           agent_id: string
@@ -244,6 +273,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "agent_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_external_refs: {
+        Row: {
+          agent_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          external_id: string
+          id: string
+          masked_notified_at: string | null
+          needs_quest_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          entity_id: string
+          entity_type?: string
+          external_id: string
+          id?: string
+          masked_notified_at?: string | null
+          needs_quest_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          external_id?: string
+          id?: string
+          masked_notified_at?: string | null
+          needs_quest_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_external_refs_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
@@ -586,6 +656,7 @@ export type Database = {
       agents: {
         Row: {
           agent_source: string
+          agent_user_id: string | null
           avatar_url: string | null
           billing_currency: string
           category: string
@@ -602,6 +673,8 @@ export type Database = {
           is_featured: boolean
           is_published: boolean
           last_health_check_at: string | null
+          last_sync_at: string | null
+          last_sync_summary: Json | null
           long_description: string | null
           name: string
           owner_id: string | null
@@ -609,6 +682,9 @@ export type Database = {
           pricing_mode: string
           purpose: string | null
           skills: string[] | null
+          sync_base_url: string | null
+          sync_cursor: string | null
+          sync_enabled: boolean
           system_prompt: string
           territory_id: string | null
           updated_at: string
@@ -618,6 +694,7 @@ export type Database = {
         }
         Insert: {
           agent_source?: string
+          agent_user_id?: string | null
           avatar_url?: string | null
           billing_currency?: string
           category?: string
@@ -634,6 +711,8 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
+          last_sync_at?: string | null
+          last_sync_summary?: Json | null
           long_description?: string | null
           name: string
           owner_id?: string | null
@@ -641,6 +720,9 @@ export type Database = {
           pricing_mode?: string
           purpose?: string | null
           skills?: string[] | null
+          sync_base_url?: string | null
+          sync_cursor?: string | null
+          sync_enabled?: boolean
           system_prompt: string
           territory_id?: string | null
           updated_at?: string
@@ -650,6 +732,7 @@ export type Database = {
         }
         Update: {
           agent_source?: string
+          agent_user_id?: string | null
           avatar_url?: string | null
           billing_currency?: string
           category?: string
@@ -666,6 +749,8 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
+          last_sync_at?: string | null
+          last_sync_summary?: Json | null
           long_description?: string | null
           name?: string
           owner_id?: string | null
@@ -673,6 +758,9 @@ export type Database = {
           pricing_mode?: string
           purpose?: string | null
           skills?: string[] | null
+          sync_base_url?: string | null
+          sync_cursor?: string | null
+          sync_enabled?: boolean
           system_prompt?: string
           territory_id?: string | null
           updated_at?: string
@@ -4968,9 +5056,12 @@ export type Database = {
           allow_agent_crawling: boolean
           allow_agent_subscription: boolean
           application_questions: Json | null
+          auto_created_by_agent_id: string | null
           banner_url: string | null
           billing_model: string
           cash_multiplier: number
+          claimed_at: string | null
+          claimed_by: string | null
           coins_balance: number
           created_at: string
           created_by_user_id: string
@@ -5034,9 +5125,12 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           application_questions?: Json | null
+          auto_created_by_agent_id?: string | null
           banner_url?: string | null
           billing_model?: string
           cash_multiplier?: number
+          claimed_at?: string | null
+          claimed_by?: string | null
           coins_balance?: number
           created_at?: string
           created_by_user_id: string
@@ -5100,9 +5194,12 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           application_questions?: Json | null
+          auto_created_by_agent_id?: string | null
           banner_url?: string | null
           billing_model?: string
           cash_multiplier?: number
+          claimed_at?: string | null
+          claimed_by?: string | null
           coins_balance?: number
           created_at?: string
           created_by_user_id?: string
@@ -5161,7 +5258,15 @@ export type Database = {
           web_visibility_override?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guilds_auto_created_by_agent_id_fkey"
+            columns: ["auto_created_by_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       harvest_windows: {
         Row: {
@@ -6769,6 +6874,7 @@ export type Database = {
           headline: string | null
           id: string
           instagram_url: string | null
+          is_agent: boolean
           is_cooperative_member: boolean
           last_ctg_demurrage_at: string | null
           last_demurrage_at: string | null
@@ -6846,6 +6952,7 @@ export type Database = {
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          is_agent?: boolean
           is_cooperative_member?: boolean
           last_ctg_demurrage_at?: string | null
           last_demurrage_at?: string | null
@@ -6923,6 +7030,7 @@ export type Database = {
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          is_agent?: boolean
           is_cooperative_member?: boolean
           last_ctg_demurrage_at?: string | null
           last_demurrage_at?: string | null
@@ -10875,6 +10983,7 @@ export type Database = {
         Args: { _agent_id: string; _user_id: string }
         Returns: Json
       }
+      claim_auto_guild: { Args: { p_guild_id: string }; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       compute_contribution_fmv: {
         Args: {
