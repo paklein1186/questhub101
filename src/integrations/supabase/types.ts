@@ -521,7 +521,11 @@ export type Database = {
           updated_at: string
           usage_count: number
           usage_price: number
-          webhook_secret: string | null
+          owner_id: string | null
+          owner_type: string
+          purpose: string | null
+          long_description: string | null
+          variables: Json
         }
         Insert: {
           agent_source?: string
@@ -549,7 +553,11 @@ export type Database = {
           updated_at?: string
           usage_count?: number
           usage_price?: number
-          webhook_secret?: string | null
+          owner_id?: string | null
+          owner_type?: string
+          purpose?: string | null
+          long_description?: string | null
+          variables?: Json
         }
         Update: {
           agent_source?: string
@@ -577,7 +585,11 @@ export type Database = {
           updated_at?: string
           usage_count?: number
           usage_price?: number
-          webhook_secret?: string | null
+          owner_id?: string | null
+          owner_type?: string
+          purpose?: string | null
+          long_description?: string | null
+          variables?: Json
         }
         Relationships: [
           {

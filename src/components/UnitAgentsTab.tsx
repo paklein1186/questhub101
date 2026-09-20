@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useAgentQuota } from "@/hooks/useAgentQuota";
+import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -33,6 +34,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
   const { user } = useAuth();
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [activeChatAgentId, setActiveChatAgentId] = useState<string | null>(null);
 
   // Fetch admitted agents for this unit
@@ -116,9 +118,14 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
           </p>
         </div>
         {isAdmin && (
-          <Button size="sm" onClick={() => setAddOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Attach Agent
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setRegisterOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Register an agent
+            </Button>
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Attach Agent
+            </Button>
+          </div>
         )}
       </div>
 
@@ -184,6 +191,17 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
             </Card>
           ))}
         </div>
+      )}
+
+      {isAdmin && user && (
+        <CreateAgentDialog
+          open={registerOpen}
+          onOpenChange={setRegisterOpen}
+          userId={user.id}
+          defaultOwner={unitType === "guild" ? { type: "guild", id: unitId, name: unitName } : undefined}
+          attachTo={{ unitType, unitId }}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] })}
+        />
       )}
 
       {isAdmin && user && (

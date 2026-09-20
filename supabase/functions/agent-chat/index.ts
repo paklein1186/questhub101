@@ -240,10 +240,15 @@ serve(async (req) => {
     let aiResponse: Response;
     const chatMessages = messages.map((m: any) => ({ role: m.role, content: m.content }));
 
+    // Secrets live in a separate, creator-only table (never on the publicly readable agents row).
+    const { data: agentSecrets } = agent.agent_source === "platform"
+      ? { data: null }
+      : await adminClient.from("agent_secrets").select("webhook_secret, llm_api_key").eq("agent_id", agent.id).maybeSingle();
+
     if (agent.agent_source === "webhook" && agent.external_webhook_url) {
       // ── Webhook agent ──
       const webhookHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (agent.webhook_secret) webhookHeaders["X-Webhook-Secret"] = agent.webhook_secret;
+      if (agentSecrets?.webhook_secret) webhookHeaders["X-Webhook-Secret"] = agentSecrets.webhook_secret;
 
       try {
         aiResponse = await fetch(agent.external_webhook_url, {
@@ -290,8 +295,9 @@ serve(async (req) => {
 
     } else if (agent.agent_source === "custom_llm" && agent.external_llm_config) {
       // ── Custom LLM agent ──
-      const cfg = agent.external_llm_config as { provider: string; model: string; api_key_ref: string };
-      const { provider, model, api_key_ref } = cfg;
+      const cfg = agent.external_llm_config as { provider: string; model: string };
+      const { provider, model } = cfg;
+      const api_key_ref = agentSecrets?.llm_api_key ?? "";
 
       const providerEndpoints: Record<string, string> = {
         openai: "https://api.openai.com/v1/chat/completions",

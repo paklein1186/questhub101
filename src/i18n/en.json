@@ -4057,5 +4057,32 @@
       "pod": "Via pod {{name}}",
       "quest": "Via quest {{name}}"
     }
+  },
+  "agentForm": {
+    "publishAs": "Publish on behalf of",
+    "asMyself": "Myself",
+    "ownerType": {
+      "guild": "Guild",
+      "company": "Organization"
+    },
+    "shortDescriptionPlaceholder": "One or two sentences shown in listings",
+    "purpose": "What it is for",
+    "purposePlaceholder": "e.g. Answers questions about third places in Belgium and France",
+    "longDescription": "Detailed description",
+    "longDescriptionPlaceholder": "What the agent knows, how it works, its limits, who should use it…",
+    "variables": "Variables it expects",
+    "addVariable": "Add a variable",
+    "variableName": "Name",
+    "variableDescription": "What it means",
+    "scopeTopics": "Topics covered",
+    "scopeTerritories": "Territories covered",
+    "apiKeyNote": "Stored in a private table, readable only by you and the server — never shown in listings.",
+    "expectedFormat": "Expected format",
+    "response": "Response",
+    "secretNote": "A secret is generated when you create the agent and sent as the X-Webhook-Secret header. Your endpoint should reject requests without it.",
+    "listed": "Listed in the marketplace",
+    "listedNote": "Other guilds can find and use this agent. Turn off to keep it to yourself.",
+    "secretTitle": "Your webhook secret",
+    "secretIntro": "Copy it now and set it in your agent (X-Webhook-Secret). For security it will not be shown again."
   }
 }

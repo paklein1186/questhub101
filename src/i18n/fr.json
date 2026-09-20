@@ -4043,5 +4043,32 @@
       "pod": "Via le pod {{name}}",
       "quest": "Via la quête {{name}}"
     }
+  },
+  "agentForm": {
+    "publishAs": "Publier au nom de",
+    "asMyself": "Moi-même",
+    "ownerType": {
+      "guild": "Guilde",
+      "company": "Organisation"
+    },
+    "shortDescriptionPlaceholder": "Une ou deux phrases affichées dans les listes",
+    "purpose": "À quoi il sert",
+    "purposePlaceholder": "ex. Répond aux questions sur les tiers-lieux en Belgique et en France",
+    "longDescription": "Description détaillée",
+    "longDescriptionPlaceholder": "Ce que l'agent connaît, comment il fonctionne, ses limites, à qui il s'adresse…",
+    "variables": "Variables attendues",
+    "addVariable": "Ajouter une variable",
+    "variableName": "Nom",
+    "variableDescription": "Ce qu'elle signifie",
+    "scopeTopics": "Thématiques couvertes",
+    "scopeTerritories": "Territoires couverts",
+    "apiKeyNote": "Stockée dans une table privée, lisible uniquement par vous et le serveur — jamais affichée dans les listes.",
+    "expectedFormat": "Format attendu",
+    "response": "Réponse",
+    "secretNote": "Un secret est généré à la création de l'agent et envoyé dans l'en-tête X-Webhook-Secret. Votre endpoint doit refuser les requêtes qui n'en portent pas.",
+    "listed": "Listé dans la marketplace",
+    "listedNote": "Les autres guildes peuvent trouver et utiliser cet agent. Désactivez pour le garder pour vous.",
+    "secretTitle": "Votre secret de webhook",
+    "secretIntro": "Copiez-le maintenant et renseignez-le dans votre agent (X-Webhook-Secret). Par sécurité, il ne sera plus affiché."
   }
 }
