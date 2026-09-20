@@ -10982,6 +10982,10 @@ export type Database = {
         Args: { _affiliation_id: string }
         Returns: undefined
       }
+      can_manage_agent: {
+        Args: { _agent_id: string; _user_id: string }
+        Returns: boolean
+      }
       check_agent_billing: {
         Args: { _agent_id: string; _user_id: string }
         Returns: Json
