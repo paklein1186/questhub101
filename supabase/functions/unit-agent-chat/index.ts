@@ -180,12 +180,42 @@ ${agent.agent_source === "platform" ? unitContext : headerContext}
 ---
 Respond helpfully based on this context. If you don't know something specific about the unit, say so.`;
 
+    // ─── Free usage granted by the agent's owner for this attachment ───
+    // Only honoured when the owner attached the agent (or the agent belongs to
+    // that very unit): otherwise any admin could make someone else's agent free.
+    const freeFor: string = (unitAgent as any).free_for ?? "nobody";
+    const ownerAttached =
+      unitAgent.admitted_by_user_id === agent.creator_user_id ||
+      (agent.owner_type === unitAgent.unit_type && agent.owner_id === unitAgent.unit_id);
+    let freeByUnit = false;
+    if (ownerAttached && freeFor !== "nobody") {
+      const attachType = unitAgent.unit_type;
+      const attachId = unitAgent.unit_id;
+      let member = false;
+      let admin = false;
+      if (attachType === "guild") {
+        const { data } = await adminClient.from("guild_members").select("role").eq("guild_id", attachId).eq("user_id", user.id).maybeSingle();
+        member = !!data; admin = data?.role === "ADMIN";
+      } else if (attachType === "pod") {
+        const { data } = await adminClient.from("pod_members").select("role").eq("pod_id", attachId).eq("user_id", user.id).maybeSingle();
+        member = !!data; admin = ["HOST", "ADMIN"].includes(String(data?.role ?? "").toUpperCase());
+      } else if (attachType === "quest") {
+        const [{ data: p }, { data: q }] = await Promise.all([
+          adminClient.from("quest_participants").select("id").eq("quest_id", attachId).eq("user_id", user.id).maybeSingle(),
+          adminClient.from("quests").select("created_by_user_id, owner_id, owner_type").eq("id", attachId).maybeSingle(),
+        ]);
+        admin = q?.created_by_user_id === user.id || (q?.owner_type === "USER" && q?.owner_id === user.id);
+        member = !!p || admin;
+      }
+      freeByUnit = freeFor === "members" ? member : freeFor === "admins" ? admin : false;
+    }
+
     // ─── Hybrid billing ───────────────────────────────────────────
     const billingCurrency = agent.billing_currency || "credits";
     let chargedAmount = 0;
     let paymentType = "free";
 
-    if (billingCurrency !== "free") {
+    if (billingCurrency !== "free" && !freeByUnit) {
       let usedPlan = false;
 
       const { data: profile } = await adminClient

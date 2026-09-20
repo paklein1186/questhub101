@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { AgentFiche } from "@/components/agent/AgentFiche";
 import { WebhookSecretPanel } from "@/components/agent/WebhookSecretPanel";
 
@@ -19,11 +20,11 @@ interface Props {
 }
 
 const TRUST_LEVELS = [
-  { min: 0, max: 20, label: "Untrusted", color: "text-destructive" },
-  { min: 20, max: 40, label: "Guest Agent", color: "text-orange-500" },
-  { min: 40, max: 60, label: "Member Agent", color: "text-yellow-600" },
-  { min: 60, max: 80, label: "Trusted Agent", color: "text-primary" },
-  { min: 80, max: 100, label: "Autonomous", color: "text-emerald-500" },
+  { min: 0, max: 20, key: "untrusted", color: "text-destructive" },
+  { min: 20, max: 40, key: "guest", color: "text-orange-500" },
+  { min: 40, max: 60, key: "member", color: "text-yellow-600" },
+  { min: 60, max: 80, key: "trusted", color: "text-primary" },
+  { min: 80, max: 100, key: "autonomous", color: "text-emerald-500" },
 ];
 
 function getTrustLevel(score: number) {
@@ -31,6 +32,7 @@ function getTrustLevel(score: number) {
 }
 
 export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
+  const { t } = useTranslation();
   const { data: trustScore } = useQuery({
     queryKey: ["agent-trust-score", agent.id],
     queryFn: async () => {
@@ -85,7 +87,7 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
                 <h1 className="text-2xl font-bold">{agent.name}</h1>
                 {agent.is_featured && <Star className="h-5 w-5 text-amber-500 fill-amber-500" />}
                 <Badge variant={agent.is_published ? "default" : "secondary"}>
-                  {agent.is_published ? "Published" : "Draft"}
+                  {agent.is_published ? t("agentOverview.published") : t("agentOverview.draft")}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">{agent.description}</p>
@@ -99,7 +101,7 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
 
               {/* Owner */}
               <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
-                <span>Owner:</span>
+                <span>{t("agentOverview.owner")}</span>
                 {ownerProfile && (
                   <Link to={`/users/${ownerProfile.user_id}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                     <Avatar className="h-5 w-5">
@@ -125,28 +127,28 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
           <CardContent className="p-4 text-center">
             <Shield className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className={`text-2xl font-bold ${level.color}`}>{trust.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">Trust Score — {level.label}</p>
+            <p className="text-[10px] text-muted-foreground">{t("agentOverview.trustScore", { level: t(`agentOverview.levels.${level.key}`) })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Zap className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-2xl font-bold">{agent.cost_per_use}</p>
-            <p className="text-[10px] text-muted-foreground">Credits / Action</p>
+            <p className="text-[10px] text-muted-foreground">{t("agentOverview.creditsPerAction")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Activity className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-2xl font-bold">{agent.usage_count}</p>
-            <p className="text-[10px] text-muted-foreground">Total Interactions</p>
+            <p className="text-[10px] text-muted-foreground">{t("agentOverview.totalInteractions")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-2xl font-bold">{trustScore ? Number(trustScore.xp_level).toFixed(0) : 0}</p>
-            <p className="text-[10px] text-muted-foreground">XP Level</p>
+            <p className="text-[10px] text-muted-foreground">{t("agentOverview.xpLevel")}</p>
           </CardContent>
         </Card>
       </div>
@@ -155,16 +157,16 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
       {trustScore && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Trust Score Breakdown</CardTitle>
+            <CardTitle className="text-sm">{t("agentOverview.breakdown")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {[
-                { label: "Owner Trust (25%)", value: Number(trustScore.owner_trust), max: 100 },
-                { label: "History Score (25%)", value: Number(trustScore.history_score), max: 100 },
-                { label: "Guild Endorsements (20%)", value: Number(trustScore.guild_endorsements), max: 100 },
-                { label: "XP Level (15%)", value: Number(trustScore.xp_level), max: 100 },
-                { label: "Penalties (15%)", value: Number(trustScore.penalties), max: 100, inverted: true },
+                { label: t("agentOverview.b.owner"), value: Number(trustScore.owner_trust), max: 100 },
+                { label: t("agentOverview.b.history"), value: Number(trustScore.history_score), max: 100 },
+                { label: t("agentOverview.b.endorsements"), value: Number(trustScore.guild_endorsements), max: 100 },
+                { label: t("agentOverview.b.xp"), value: Number(trustScore.xp_level), max: 100 },
+                { label: t("agentOverview.b.penalties"), value: Number(trustScore.penalties), max: 100, inverted: true },
               ].map((item) => (
                 <div key={item.label} className="space-y-0.5">
                   <div className="flex justify-between text-xs">
@@ -187,21 +189,21 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
       {/* Recent Actions */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Recent Actions</CardTitle>
+          <CardTitle className="text-sm">{t("agentOverview.recentActions")}</CardTitle>
         </CardHeader>
         <CardContent>
           {!recentUsage?.length ? (
-            <p className="text-xs text-muted-foreground">No recent actions.</p>
+            <p className="text-xs text-muted-foreground">{t("agentOverview.noRecent")}</p>
           ) : (
             <div className="space-y-2">
               {recentUsage.map((u: any) => (
                 <div key={u.id} className="flex items-center justify-between text-xs border-b border-border/50 pb-2 last:border-0">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">{u.monetized_action_types?.code || "action"}</Badge>
+                    <Badge variant="outline" className="text-[10px]">{u.monetized_action_types?.code || t("agentOverview.action")}</Badge>
                     {u.resource_type && <span className="text-muted-foreground">{u.resource_type}</span>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{Number(u.final_price).toFixed(1)} credits</span>
+                    <span className="font-medium">{t("agentOverview.creditsAmount", { amount: Number(u.final_price).toFixed(1) })}</span>
                     <span className="text-muted-foreground">{format(new Date(u.created_at), "dd/MM HH:mm")}</span>
                   </div>
                 </div>

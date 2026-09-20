@@ -14,6 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useAgentQuota } from "@/hooks/useAgentQuota";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -32,6 +35,7 @@ interface UnitAgentsTabProps {
 
 export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuildId }: UnitAgentsTabProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -82,22 +86,45 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Agent removed");
+      toast.success(t("agentsUi.removed"));
       qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] });
     },
-    onError: () => toast.error("Failed to remove agent"),
+    onError: () => toast.error(t("agentsUi.removeFailed")),
   });
 
   const runSync = async (agentId: string, dryRun: boolean) => {
     const { data, error } = await supabase.functions.invoke("agent-sync", { body: { agent_id: agentId, dry_run: dryRun } });
-    if (error) { toast.error("Sync failed"); return; }
+    if (error) { toast.error(t("agentsUi.syncFailed")); return; }
     const r = data?.results?.[0];
-    toast.message(dryRun ? "Sync simulation" : "Sync done", {
+    toast.message(dryRun ? t("agentsUi.syncSimulation") : t("agentsUi.syncDone"), {
       description: r
-        ? `fetched ${r.fetched ?? 0}, created ${r.created ?? 0}, updated ${r.updated ?? 0}, events ${r.events_sent ?? 0}, errors ${r.errors?.length ?? 0}`
+        ? t("agentsUi.syncSummary", { fetched: r.fetched ?? 0, created: r.created ?? 0, updated: r.updated ?? 0, events: r.events_sent ?? 0, errors: r.errors?.length ?? 0 })
         : JSON.stringify(data),
     });
   };
+
+  // Whether the viewer uses this agent for free here. "maybe": granted through a parent
+  // guild the client can't verify — the server decides and never charges twice.
+  const freeForMe = (ua: any): boolean | "maybe" => {
+    const owned =
+      ua.admitted_by_user_id === ua.agents?.creator_user_id ||
+      (ua.agents?.owner_type === ua.unit_type && ua.agents?.owner_id === ua.unit_id);
+    if (!owned || !ua.free_for || ua.free_for === "nobody") return false;
+    if (ua.inherited) return "maybe";
+    return ua.free_for === "members" ? true : ua.free_for === "admins" ? isAdmin : false;
+  };
+
+  const setFreeFor = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: string }) => {
+      const { error } = await supabase.from("unit_agents" as any).update({ free_for: value } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("agentsUi.freeForSaved"));
+      qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] });
+    },
+    onError: () => toast.error(t("agentsUi.freeForFailed")),
+  });
 
   const activeChatAgent = unitAgents?.find((ua: any) => ua.agent_id === activeChatAgentId);
 
@@ -105,13 +132,14 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" onClick={() => setActiveChatAgentId(null)}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back to agents
+          <ArrowLeft className="h-4 w-4 mr-1" /> {t("agentsUi.back")}
         </Button>
         <UnitAgentChat
           agent={activeChatAgent.agents}
           unitType={unitType}
           unitId={unitId}
           unitName={unitName}
+          freeForMe={freeForMe(activeChatAgent)}
         />
       </div>
     );
@@ -122,19 +150,19 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" /> Agents
+            <Bot className="h-5 w-5 text-primary" /> {t("agentsUi.title")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            AI agents attached to this {unitType}
+            {t("agentsUi.attachedTo", { unit: t(`agentForm.unit.${unitType}`) })}
           </p>
         </div>
         {isAdmin && (
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setRegisterOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Register an agent
+              <Plus className="h-4 w-4 mr-1" /> {t("agentsUi.register")}
             </Button>
             <Button size="sm" onClick={() => setAddOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Attach Agent
+              <Plus className="h-4 w-4 mr-1" /> {t("agentsUi.attach")}
             </Button>
           </div>
         )}
@@ -147,10 +175,10 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
       ) : !unitAgents?.length ? (
         <Card className="p-8 text-center">
           <Bot className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">No agents attached yet.</p>
+          <p className="text-sm text-muted-foreground">{t("agentsUi.none")}</p>
           {isAdmin && (
             <p className="text-xs text-muted-foreground mt-1">
-              Attach a published agent — your own or one another guild already uses.
+              {t("agentsUi.noneHint")}
             </p>
           )}
         </Card>
@@ -174,7 +202,10 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
                     {ua.agents?.category}
                   </Badge>
                   {ua.inherited && (
-                    <Badge variant="secondary" className="text-[10px] mt-0.5 ml-1">From guild</Badge>
+                    <Badge variant="secondary" className="text-[10px] mt-0.5 ml-1">{t("agentsUi.fromGuild")}</Badge>
+                  )}
+                  {freeForMe(ua) === true && (
+                    <Badge className="text-[10px] mt-0.5 ml-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" variant="outline">{t("agentsUi.freeForYou")}</Badge>
                   )}
                   <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
@@ -197,13 +228,26 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
               </div>
               {ua.agents?.sync_enabled && ua.agents?.creator_user_id === user?.id && (
                 <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, true)}>Simulate sync</Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, false)}>Sync now</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, true)}>{t("agentsUi.simulateSync")}</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runSync(ua.agent_id, false)}>{t("agentsUi.syncNow")}</Button>
+                </div>
+              )}
+              {ua.agents?.creator_user_id === user?.id && !ua.inherited && ua.agents?.billing_currency !== "free" && (
+                <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-xs text-muted-foreground">{t("agentsUi.freeForLabel")}</span>
+                  <Select value={ua.free_for ?? "nobody"} onValueChange={(v) => setFreeFor.mutate({ id: ua.id, value: v })}>
+                    <SelectTrigger className="h-7 w-auto text-xs gap-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nobody">{t("agentForm.freeForNobody")}</SelectItem>
+                      <SelectItem value="admins">{t("agentForm.freeForAdmins", { unit: t(`agentForm.unit.${unitType}`) })}</SelectItem>
+                      <SelectItem value="members">{t("agentForm.freeForMembers", { unit: t(`agentForm.unit.${unitType}`) })}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                <Zap className="h-3 w-3" /> {ua.agents?.cost_per_use} credits/msg
-                <span className="ml-auto">Chat →</span>
+                <Zap className="h-3 w-3" /> {t("agentsUi.creditsPerMsg", { count: ua.agents?.cost_per_use })}
+                <span className="ml-auto">{t("agentsUi.chat")}</span>
               </div>
             </Card>
           ))}
@@ -239,6 +283,7 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   open: boolean; onOpenChange: (v: boolean) => void;
   unitType: string; unitId: string; userId: string; existingAgentIds: string[];
 }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
 
@@ -292,10 +337,10 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
       admitted_by_user_id: userId,
     } as any);
     if (error) {
-      toast.error(error.message.includes("duplicate") ? "Agent already attached" : "Failed to attach agent");
+      toast.error(error.message.includes("duplicate") ? t("agentsUi.alreadyAttached") : t("agentsUi.attachFailed"));
       return;
     }
-    toast.success("Agent attached!");
+    toast.success(t("agentsUi.attached"));
     qc.invalidateQueries({ queryKey: ["unit-agents", unitType, unitId] });
     onOpenChange(false);
   };
@@ -303,14 +348,14 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Attach a Published Agent</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("agentsUi.attachTitle")}</DialogTitle></DialogHeader>
         <p className="text-xs text-muted-foreground -mt-2">
-          Any published agent can be attached here — including ones already used by other guilds.
+          {t("agentsUi.attachNote")}
         </p>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search published agents..."
+            placeholder={t("agentsUi.searchPublished")}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -321,9 +366,9 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
             <Skeleton className="h-16" />
           ) : !hiredAgents?.length ? (
             <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">No published agents found.</p>
+              <p className="text-sm text-muted-foreground">{t("agentsUi.noPublished")}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                <a href="/agents" className="text-primary hover:underline">Browse the agent marketplace</a> to create one.
+                <a href="/agents" className="text-primary hover:underline">{t("agentsUi.browseMarketplace")}</a> {t("agentsUi.toCreateOne")}
               </p>
             </div>
           ) : (
@@ -343,12 +388,12 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
                     <p className="text-xs text-muted-foreground truncate">{agent.description}</p>
                     {agent.guildCount > 0 && (
                       <p className="text-[10px] text-primary mt-0.5">
-                        Used by {agent.guildCount} other guild{agent.guildCount !== 1 ? "s" : ""}
+                        {t("agentsUi.usedByGuilds", { count: agent.guildCount })}
                       </p>
                     )}
                   </div>
                   <Badge variant="secondary" className="text-[10px] shrink-0">
-                    {agent.cost_per_use} cr
+                    {t("agentsUi.crShort", { count: agent.cost_per_use })}
                   </Badge>
                 </div>
               ))
@@ -358,16 +403,18 @@ function AdmitAgentDialog({ open, onOpenChange, unitType, unitId, userId, existi
     </Dialog>
   );
 }
-function UnitAgentChat({ agent, unitType, unitId, unitName }: {
-  agent: any; unitType: string; unitId: string; unitName: string;
+function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
+  agent: any; unitType: string; unitId: string; unitName: string; freeForMe: boolean | "maybe";
 }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const [needsTopUp, setNeedsTopUp] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const agentQuota = useAgentQuota();
-  const usagePrice = Number(agent.usage_price ?? agent.cost_per_use ?? 0);
+  const usagePrice = freeForMe ? 0 : Number(agent.usage_price ?? agent.cost_per_use ?? 0);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -382,11 +429,13 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
       const { processAgentPayment } = await import("@/lib/agentPayment");
       const result = await processAgentPayment(user.id, usagePrice, agent.id, "usage");
       if (!result.success) {
-        toast.error(result.error || "Insufficient balance. Please top up.");
+        setNeedsTopUp(true);
+        toast.error(result.error || t("agentsUi.insufficient"));
         return;
       }
     }
 
+    setNeedsTopUp(false);
     setInput("");
     const userMsg: Msg = { role: "user", content: text };
     setMessages(prev => [...prev, userMsg]);
@@ -398,7 +447,7 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
-      if (!accessToken) throw new Error("Not authenticated");
+      if (!accessToken) throw new Error(t("agentsUi.notAuthenticated"));
 
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/unit-agent-chat`, {
         method: "POST",
@@ -417,7 +466,8 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to chat");
+        if (resp.status === 402) setNeedsTopUp(true);
+        throw new Error(err.error || t("agentsUi.chatFailed"));
       }
 
       const reader = resp.body!.getReader();
@@ -458,12 +508,12 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
         }
       }
     } catch (e: any) {
-      toast.error(e.message || "Chat error");
+      toast.error(e.message || t("agentsUi.chatError"));
       setMessages(prev => prev.filter(m => m !== userMsg));
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, messages, agent.id, unitType, unitId]);
+  }, [input, streaming, messages, agent.id, unitType, unitId, usagePrice, user, t]);
 
   return (
     <Card className="flex flex-col h-[500px]">
@@ -471,7 +521,7 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
         <Bot className="h-5 w-5 text-primary" />
         <span className="font-semibold text-sm">{agent.name}</span>
         <Badge variant="secondary" className="text-[10px] ml-auto">
-          Context: {unitName}
+          {t("agentsUi.contextBadge", { name: unitName })}
         </Badge>
       </div>
 
@@ -481,16 +531,16 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
             <Info className="h-3.5 w-3.5 shrink-0" />
             {agentQuota.remaining > 0 ? (
-              <span>You have <span className="font-medium text-foreground">{agentQuota.remaining}</span> free interactions remaining this month.</span>
+              <span>{t("agentsUi.quotaLeft", { count: agentQuota.remaining })}</span>
             ) : (
-              <span>Each message costs <span className="font-medium text-foreground">{usagePrice} credits</span>. Plan credits are used first.</span>
+              <span>{t("agentsUi.costPerMessage", { price: usagePrice })}</span>
             )}
           </div>
         )}
         {messages.length === 0 && (
           <div className="text-center text-muted-foreground text-sm py-8">
             <Sparkles className="h-6 w-6 mx-auto mb-2 opacity-40" />
-            Chat with {agent.name} about {unitName}
+            {t("agentsUi.chatWith", { agent: agent.name, name: unitName })}
           </div>
         )}
         {messages.map((m, i) => (
@@ -517,12 +567,18 @@ function UnitAgentChat({ agent, unitType, unitId, unitName }: {
       </div>
 
       <div className="p-3 border-t border-border">
+        {needsTopUp && (
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700/50 px-3 py-2 text-xs text-amber-900 dark:text-amber-200">
+            <span>{t("agentsUi.needsTopUp")}</span>
+            <Button size="sm" className="h-7 text-xs" asChild><Link to="/me/credit-shop">{t("agentsUi.topUp")}</Link></Button>
+          </div>
+        )}
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Ask about this unit..."
+            placeholder={t("agentsUi.askPlaceholder")}
             rows={1}
             className="resize-none min-h-[40px]"
           />

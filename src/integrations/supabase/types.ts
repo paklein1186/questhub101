@@ -9901,6 +9901,7 @@ export type Database = {
           is_active: boolean
           unit_id: string
           unit_type: string
+          free_for: string
         }
         Insert: {
           admitted_at?: string
@@ -9910,6 +9911,7 @@ export type Database = {
           is_active?: boolean
           unit_id: string
           unit_type: string
+          free_for?: string
         }
         Update: {
           admitted_at?: string
@@ -9919,6 +9921,7 @@ export type Database = {
           is_active?: boolean
           unit_id?: string
           unit_type?: string
+          free_for?: string
         }
         Relationships: [
           {

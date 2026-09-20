@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AttachAgentDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AttachAgentDialogProps {
 type TargetType = "quest" | "guild" | "territory";
 
 export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: AttachAgentDialogProps) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TargetType>("quest");
   const [search, setSearch] = useState("");
   const [attaching, setAttaching] = useState<string | null>(null);
@@ -84,13 +86,13 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
     setAttaching(null);
     if (error) {
       if (error.message.includes("duplicate")) {
-        toast.info("Agent already attached");
+        toast.info(t("agentsUi.alreadyAttached"));
       } else {
-        toast.error("Failed to attach agent");
+        toast.error(t("agentsUi.attachFailed"));
       }
       return;
     }
-    toast.success("Agent attached!");
+    toast.success(t("agentsUi.attached"));
     qc.invalidateQueries({ queryKey: ["unit-agents"] });
     onOpenChange(false);
   };
@@ -98,18 +100,18 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Attach Agent to...</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("agentsUi.attachTo")}</DialogTitle></DialogHeader>
 
         <Tabs value={tab} onValueChange={(v) => { setTab(v as TargetType); setSearch(""); }}>
           <TabsList className="w-full">
             <TabsTrigger value="quest" className="flex-1">
-              <Sparkles className="h-3.5 w-3.5 mr-1" /> Quest
+              <Sparkles className="h-3.5 w-3.5 mr-1" /> {t("agentsUi.targets.quest")}
             </TabsTrigger>
             <TabsTrigger value="guild" className="flex-1">
-              <Users className="h-3.5 w-3.5 mr-1" /> Guild
+              <Users className="h-3.5 w-3.5 mr-1" /> {t("agentsUi.targets.guild")}
             </TabsTrigger>
             <TabsTrigger value="territory" className="flex-1">
-              <Map className="h-3.5 w-3.5 mr-1" /> Territory
+              <Map className="h-3.5 w-3.5 mr-1" /> {t("agentsUi.targets.territory")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -117,7 +119,7 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={`Search ${tab}s...`}
+            placeholder={t("agentsUi.searchTarget", { target: t(`agentsUi.targets.${tab}`).toLowerCase() })}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -127,7 +129,7 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
         <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {!items?.length ? (
             <p className="text-sm text-muted-foreground text-center py-6">
-              No {tab}s found where you have admin access.
+              {t("agentsUi.noTargets", { target: t(`agentsUi.targets.${tab}`).toLowerCase() })}
             </p>
           ) : (
             items.map((item: any) => (
@@ -142,7 +144,7 @@ export function AttachAgentDialog({ open, onOpenChange, agentId, userId }: Attac
                 {attaching === item.id ? (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 ) : (
-                  <Badge variant="secondary" className="text-[10px] shrink-0">Attach</Badge>
+                  <Badge variant="secondary" className="text-[10px] shrink-0">{t("agentsUi.attachBadge")}</Badge>
                 )}
               </div>
             ))
