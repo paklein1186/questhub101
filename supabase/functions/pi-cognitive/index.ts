@@ -1730,6 +1730,16 @@ serve(async (req) => {
     const pageContext2 = await buildPageContext(sb, contextType, contextId);
     systemPrompt += pageContext2;
     systemPrompt += ROUTING_PROMPT;
+    try {
+      // What the user already has at hand, so Pi can point to it without having to look it up first.
+      const mine = await listActiveAgents(sb, userId);
+      if (mine.length) {
+        const lines = mine.slice(0, 12).map((a) => `- ${a.agent_name} — ${a.description || a.category || ""} (in ${a.unit_name ?? a.unit_type})`);
+        systemPrompt += `\n\n## THE USER'S ACTIVE AGENTS (already available in their spaces)\n${lines.join("\n")}\nWhen a request matches one of them, offer to ask it (or consult it directly) and suggest one concrete question to try.`;
+      }
+    } catch (e) {
+      console.error("agents brief error", e);
+    }
 
     // Build messages for AI
     const aiMessages = [

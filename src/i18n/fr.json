@@ -4313,5 +4313,10 @@
       "saved": "Enregistré",
       "failed": "Impossible d'enregistrer le réglage"
     }
+  },
+  "unitChat": {
+    "agentsLabel": "Interroger un agent :",
+    "askPrefix": "Demande à {{agent}} : ",
+    "viaAgent": "Réponse de {{agent}}"
   }
 }

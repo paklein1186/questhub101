@@ -4327,5 +4327,10 @@
       "saved": "Saved",
       "failed": "Couldn't save the setting"
     }
+  },
+  "unitChat": {
+    "agentsLabel": "Ask an agent:",
+    "askPrefix": "Ask {{agent}}: ",
+    "viaAgent": "Answer from {{agent}}"
   }
 }

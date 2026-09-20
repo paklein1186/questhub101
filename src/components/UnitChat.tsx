@@ -1,4 +1,5 @@
 import i18n from "@/i18n/config";
+import { useTranslation } from "react-i18next";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -30,7 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import ReactMarkdown from "react-markdown";
+import { AgentMarkdown } from "@/components/agent/AgentMarkdown";
 
 type EntityType = "GUILD" | "QUEST" | "POD" | "COMPANY" | "TERRITORY" | "COURSE" | "EVENT";
 
@@ -177,7 +178,32 @@ function useStarredExcerpts(threadId: string | undefined, userId: string) {
   });
 }
 
+/** Agents attached to this space (and, on a quest, to its guild): offered as one-click starting points. */
+function useUnitChatAgents(entityType: string, entityId: string) {
+  const unitType = ({ GUILD: "guild", POD: "pod", QUEST: "quest" } as Record<string, string>)[entityType];
+  return useQuery({
+    queryKey: ["unit-chat-agents", entityType, entityId],
+    enabled: !!unitType,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const targets = [{ type: unitType, id: entityId }];
+      if (entityType === "QUEST") {
+        const { data: q } = await supabase.from("quests").select("guild_id").eq("id", entityId).maybeSingle();
+        if (q?.guild_id) targets.push({ type: "guild", id: q.guild_id });
+      }
+      const found = new Map<string, { id: string; name: string; purpose: string | null }>();
+      for (const tg of targets) {
+        const { data } = await supabase.from("unit_agents" as any).select("agent_id, agents(id, name, purpose, description)").eq("unit_type", tg.type).eq("unit_id", tg.id).eq("is_active", true);
+        for (const r of (data ?? []) as any[]) if (r.agents && !found.has(r.agent_id)) found.set(r.agent_id, { id: r.agent_id, name: r.agents.name, purpose: r.agents.purpose || r.agents.description || null });
+      }
+      return [...found.values()];
+    },
+  });
+}
+
 export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
+  const { t } = useTranslation();
+  const { data: unitAgents = [] } = useUnitChatAgents(entityType, entityId);
   const [input, setInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("conversation");
@@ -422,6 +448,17 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
             )}
           </div>
           <div className="border-t border-border p-3 flex flex-col gap-2">
+            {unitAgents.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-muted-foreground">{t("unitChat.agentsLabel")}</span>
+                {unitAgents.map((a) => (
+                  <Button key={a.id} type="button" size="sm" variant="outline" className="h-6 px-2 text-[11px] gap-1" title={a.purpose ?? undefined}
+                    onClick={() => setInput(t("unitChat.askPrefix", { agent: a.name.split(" — ")[0] }))}>
+                    <Bot className="h-3 w-3" /> {a.name.split(" — ")[0]}
+                  </Button>
+                ))}
+              </div>
+            )}
             <MentionTextarea
               value={input}
               onChange={setInput}
@@ -570,6 +607,8 @@ function MessageBubble({ msg, agentLabel, isOwn, onCreatePoll, onStarMessage }: 
   const isAgent = msg.sender_type === "AGENT";
   const senderName = isAgent ? agentLabel : (msg.profiles?.name || "User");
   const suggestions = msg.metadata_json?.suggestions || [];
+  const consulted: string[] = msg.metadata_json?.agentsConsulted || [];
+  const { t } = useTranslation();
   const [showActions, setShowActions] = useState(false);
 
   const handleTextSelection = () => {
@@ -601,9 +640,14 @@ function MessageBubble({ msg, agentLabel, isOwn, onCreatePoll, onStarMessage }: 
           {/@\[.+?\]\(.+?\)/.test(msg.message_text) ? (
             <div className="whitespace-pre-wrap">{renderMentions(msg.message_text)}</div>
           ) : (
-            <div className="prose prose-sm max-w-none dark:prose-invert"><ReactMarkdown>{msg.message_text}</ReactMarkdown></div>
+            <AgentMarkdown>{msg.message_text}</AgentMarkdown>
           )}
         </div>
+        {consulted.length > 0 && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <Bot className="h-3 w-3" /> {t("unitChat.viaAgent", { agent: consulted.map((n) => n.split(" — ")[0]).join(", ") })}
+          </p>
+        )}
         {suggestions.length > 0 && (
           <div className="space-y-2 pt-1">
             {suggestions.map((s: any, i: number) => <SuggestionCard key={i} suggestion={s} onCreatePoll={onCreatePoll} />)}
@@ -630,7 +674,7 @@ function AIInsightCard({ msg, onStar }: { msg: ChatMessage; onStar: (text: strin
           <button onClick={() => onStar(msg.message_text)} className="text-muted-foreground hover:text-accent transition-colors" title="Star excerpt"><Star className="h-3 w-3" /></button>
         </div>
       </div>
-      {expanded && <div className="prose prose-sm max-w-none dark:prose-invert pl-5 pt-1 text-sm"><ReactMarkdown>{msg.message_text}</ReactMarkdown></div>}
+      {expanded && <AgentMarkdown className="pl-5 pt-1">{msg.message_text}</AgentMarkdown>}
     </div>
   );
 }
@@ -692,7 +736,7 @@ function StarredExcerptCard({ excerpt, currentUserId, onUpvote, onReport, onDele
 
       {expanded && (
         <div className="pl-5 space-y-2">
-          <div className="prose prose-sm max-w-none dark:prose-invert text-sm bg-muted/30 rounded-lg p-2"><ReactMarkdown>{excerpt.excerpt_text}</ReactMarkdown></div>
+          <AgentMarkdown className="bg-muted/30 rounded-lg p-2">{excerpt.excerpt_text}</AgentMarkdown>
           <button onClick={onScrollToMessage} className="text-xs text-primary hover:underline flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Go to original message</button>
         </div>
       )}

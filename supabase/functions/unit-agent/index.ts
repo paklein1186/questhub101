@@ -118,7 +118,140 @@ MULTILINGUAL RULES:
 - If a term has no good equivalent, keep the original and add a short gloss in ${name} in parentheses.`;
 }
 
-function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string, topicNames: string[] = [], language?: string) {
+// ── Agents available in this space + what changed recently ─────────────────────────────
+interface Consultable { agent_id: string; agent_name: string; unit_type: string; unit_id: string }
+
+const daysAgo = (iso?: string | null) => (iso ? Math.floor((Date.now() - Date.parse(iso)) / 86_400_000) : null);
+
+async function gatherAgentsBrief(sb: any, entityType: string, entityId: string, userId: string): Promise<{ agentsSection: string; changesSection: string; consultable: Consultable[] }> {
+  const empty = { agentsSection: "", changesSection: "", consultable: [] as Consultable[] };
+  try {
+    const unitType = ({ GUILD: "guild", POD: "pod", QUEST: "quest" } as Record<string, string>)[entityType];
+
+    // Territories have no attached agents: list the published agents whose scope covers them.
+    if (!unitType) {
+      if (entityType !== "TERRITORY") return empty;
+      const { data } = await sb.from("agent_territories").select("agents(id, name, description, purpose, category, is_published)").eq("territory_id", entityId).limit(10);
+      const list = (data ?? []).map((r: any) => r.agents).filter((a: any) => a?.is_published);
+      if (!list.length) return empty;
+      const lines = list.map((a: any) => `- ${a.name} — ${a.purpose || a.description || a.category}`).join("\n");
+      return { agentsSection: `\n\n## AI AGENTS COVERING THIS TERRITORY\n${lines}\nPoint members to them when relevant (they can open the agent from the marketplace, Explore → Agents).`, changesSection: "", consultable: [] };
+    }
+
+    const targets = [{ unit_type: unitType, unit_id: entityId }];
+    if (entityType === "QUEST") {
+      const { data: q } = await sb.from("quests").select("guild_id").eq("id", entityId).maybeSingle();
+      if (q?.guild_id) targets.push({ unit_type: "guild", unit_id: q.guild_id });
+    }
+    const rows: any[] = [];
+    for (const t of targets) {
+      const { data } = await sb.from("unit_agents")
+        .select("agent_id, unit_type, unit_id, free_for, admitted_by_user_id, admitted_at, agents(id, name, description, purpose, category, is_published, creator_user_id, owner_type, owner_id, free_scope, billing_currency, usage_price, cost_per_use)")
+        .eq("unit_type", t.unit_type).eq("unit_id", t.unit_id).eq("is_active", true);
+      for (const r of data ?? []) if (r.agents && !rows.some((x) => x.agent_id === r.agent_id)) rows.push(r);
+    }
+    if (!rows.length) return empty;
+
+    const membership = async (type: string, id: string): Promise<string | null> => {
+      const table = type === "guild" ? "guild_members" : type === "pod" ? "pod_members" : type === "company" ? "company_members" : type === "quest" ? "quest_participants" : null;
+      const col = type === "guild" ? "guild_id" : type === "pod" ? "pod_id" : type === "company" ? "company_id" : "quest_id";
+      if (!table) return null;
+      const { data } = await sb.from(table).select("role").eq(col, id).eq("user_id", userId).maybeSingle();
+      return data ? String((data as any).role ?? "MEMBER").toUpperCase() : null;
+    };
+    const isAdminRole = (r: string | null) => r === "ADMIN" || r === "OWNER" || r === "HOST";
+
+    const lines: string[] = [];
+    const recentlyAdded: string[] = [];
+    const consultable: Consultable[] = [];
+    for (const r of rows) {
+      const a = r.agents;
+      let free = a.billing_currency === "free";
+      if (!free && a.free_scope && a.free_scope !== "nobody" && a.owner_id && (a.owner_type === "guild" || a.owner_type === "company")) {
+        const role = await membership(a.owner_type, a.owner_id);
+        free = !!role && (a.free_scope === "owner_members" || isAdminRole(role));
+      }
+      if (!free && r.free_for && r.free_for !== "nobody" && (r.admitted_by_user_id === a.creator_user_id || (a.owner_type === r.unit_type && a.owner_id === r.unit_id))) {
+        const role = await membership(r.unit_type, r.unit_id);
+        free = !!role && (r.free_for === "members" || isAdminRole(role));
+      }
+      const price = a.usage_price ?? a.cost_per_use ?? 0;
+      const age = daysAgo(r.admitted_at);
+      const isNew = age !== null && age <= 14;
+      if (isNew) recentlyAdded.push(`${a.name} (attached ${age === 0 ? "today" : `${age} day(s) ago`})`);
+      lines.push(`- ${a.name}${isNew ? " [NEW]" : ""} — ${a.purpose || a.description || a.category} · ${free ? "free for this user" : `${price} credits per message`}`);
+      consultable.push({ agent_id: r.agent_id, agent_name: a.name, unit_type: r.unit_type, unit_id: r.unit_id });
+    }
+
+    const agentsSection = `
+
+## AI AGENTS AVAILABLE IN THIS SPACE (specialists you can consult)
+${lines.join("\n")}
+
+How to use them:
+- When a question falls in the domain of one of these agents, call consult_agent FIRST (agent name + a self-contained question), then relay its answer and say it comes from that agent, keeping any sources it cites.
+- If the user asks about "this agent" or names one (e.g. Space2), describe it from the list above. Never confuse an agent with a quest, a document or a person.
+- For an agent marked [NEW], mention it once when relevant and suggest one concrete first question to try.
+- If consult_agent returns needs_top_up, tell the user they need more credits (/me/credit-shop). If it fails, say so plainly and answer with what you know.`;
+
+    const changes: string[] = [];
+    if (recentlyAdded.length) changes.push(`- Agents recently attached: ${recentlyAdded.join(", ")}`);
+    if (entityType === "GUILD") {
+      const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+      const { data: rq } = await sb.from("quests").select("title, created_at").eq("guild_id", entityId).eq("is_deleted", false).gte("created_at", since).order("created_at", { ascending: false }).limit(5);
+      if (rq?.length) changes.push(`- New quests: ${rq.map((q: any) => q.title).join("; ")}`);
+    }
+    const changesSection = changes.length ? `\n\nRecent changes in this space (last 14 days):\n${changes.join("\n")}` : "";
+    return { agentsSection, changesSection, consultable };
+  } catch (e) {
+    console.error("agents brief error", e);
+    return empty;
+  }
+}
+
+const normName = (v: string) => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+
+/** Relays a question to an attached agent through unit-agent-chat, with the user's own token (rights, free usage and billing apply). */
+async function consultAgent(consultable: Consultable[], args: any, entityType: string, entityId: string, authHeader: string) {
+  const question = String(args?.question ?? "").trim();
+  if (!question) return { error: "question is required" };
+  const wanted = normName(String(args?.agent_name ?? ""));
+  const match = consultable.find((c) => wanted && normName(c.agent_name).includes(wanted)) ?? (consultable.length === 1 ? consultable[0] : null);
+  if (!match) return { error: "No agent matches", available_agents: consultable.map((c) => c.agent_name) };
+
+  // On a quest, ask in the quest's own context first (the server falls back to the guild's attachment).
+  const attempts = entityType === "QUEST" && match.unit_type === "guild"
+    ? [{ unit_type: "quest", unit_id: entityId }, { unit_type: match.unit_type, unit_id: match.unit_id }]
+    : [{ unit_type: match.unit_type, unit_id: match.unit_id }];
+
+  let lastError = "Agent chat failed";
+  for (const at of attempts) {
+    try {
+      const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/unit-agent-chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: authHeader },
+        body: JSON.stringify({ agentId: match.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }] }),
+        signal: AbortSignal.timeout(50_000),
+      });
+      const ct = res.headers.get("content-type") || "";
+      if (res.ok && ct.includes("text/event-stream")) {
+        const text = await res.text();
+        const content = text.split("\n").filter((l) => l.startsWith("data: ") && !l.includes("[DONE]"))
+          .map((l) => { try { return JSON.parse(l.slice(6))?.choices?.[0]?.delta?.content || ""; } catch { return ""; } }).join("");
+        return { agent: match.agent_name, answer: content || null };
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return { agent: match.agent_name, answer: data.content || data.answer || null };
+      if (res.status === 402) return { agent: match.agent_name, error: "Not enough credits for this agent.", needs_top_up: true, top_up_path: "/me/credit-shop" };
+      lastError = data?.error || `Agent chat failed (${res.status})`;
+    } catch (e: any) {
+      lastError = `Failed to consult agent: ${e?.message || e}`;
+    }
+  }
+  return { agent: match.agent_name, error: lastError };
+}
+
+function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string, topicNames: string[] = [], language?: string, agentsSection = "", changesSection = "") {
   const agentNames: Record<string, string> = {
     GUILD: "Guild Spirit",
     QUEST: "Quest Companion",
@@ -162,7 +295,7 @@ IMPORTANT — Document access:
 The "Unit context" section below may include the extracted text of documents (PDFs) uploaded by members to the Discussion tab, wrapped in "--- Content of attached document ... ---" markers. When members ask about an uploaded document, READ that content and answer directly with specifics, quotes, and references. NEVER say you can't access uploaded documents if their content appears below — it does.
 
 Unit context:
-${contextSummary}${starredSection}${museSection}
+${contextSummary}${changesSection}${starredSection}${museSection}${agentsSection}
 
 When making suggestions, you can include structured suggestions in your response using this JSON format within your message:
 - For decision polls: [POLL:{"question":"...","options":["A","B","C"]}]
@@ -510,7 +643,8 @@ serve(async (req) => {
     const { name: entityName, summary: contextSummary, attachments } = await gatherContext(supabase, entityType, entityId);
     const { threadId: existingThreadId, messages: dbHistory, starredSummary } = await getConversationFromDB(supabase, entityType, entityId);
 
-    const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary, [], language);
+    const { agentsSection, changesSection, consultable } = await gatherAgentsBrief(supabase, entityType, entityId, authData.user.id);
+    const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary, [], language, agentsSection, changesSection);
 
     const aiMessages: any[] = [{ role: "system", content: systemPrompt }];
     for (const msg of dbHistory) {
@@ -538,38 +672,73 @@ serve(async (req) => {
     }
     aiMessages.push({ role: "user", content: userContent.length > 1 ? userContent : message });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+    // Tool loop: the model may consult the space's agents (up to 4 rounds) before answering.
+    const consultTool = consultable.length ? [{
+      type: "function",
+      function: {
+        name: "consult_agent",
+        description: "Ask one of the AI agents available in this space a question and get its answer. Use the agent's name; write the question so it stands alone (the agent does not see this conversation).",
+        parameters: {
+          type: "object",
+          properties: {
+            agent_name: { type: "string", description: `One of: ${consultable.map((c) => c.agent_name).join(", ")}` },
+            question: { type: "string", description: "Self-contained question for the agent" },
+          },
+          required: ["agent_name", "question"],
+        },
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: aiMessages,
-      }),
-    });
+    }] : null;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const consulted: string[] = [];
+    let replyText = "";
+    for (let round = 0; round <= 4; round++) {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-pro",
+          messages: aiMessages,
+          ...(consultTool && round < 4 ? { tools: consultTool } : {}),
+        }),
       });
-    }
 
-    const data = await response.json();
-    const replyText = data.choices?.[0]?.message?.content ?? "I'm not sure how to help with that right now.";
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "AI usage limit reached." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const t = await response.text();
+        console.error("AI gateway error:", response.status, t);
+        return new Response(JSON.stringify({ error: "AI gateway error" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const data = await response.json();
+      const msg = data.choices?.[0]?.message;
+      const calls = msg?.tool_calls ?? [];
+      if (!calls.length) { replyText = msg?.content ?? "I'm not sure how to help with that right now."; break; }
+
+      aiMessages.push(msg);
+      for (const tc of calls) {
+        let args: any = {};
+        try { args = JSON.parse(tc.function.arguments || "{}"); } catch { /* ignore */ }
+        const result = tc.function.name === "consult_agent"
+          ? await consultAgent(consultable, args, entityType, entityId, authHeader)
+          : { error: `Unknown tool ${tc.function.name}` };
+        if ((result as any).agent && !(result as any).error && !consulted.includes((result as any).agent)) consulted.push((result as any).agent);
+        aiMessages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 12000) });
+      }
+    }
 
     // Markers contain JSON with nested brackets/braces, so a lazy regex would cut
     // them off mid-object and leave stray characters like "}]" in the reply.
@@ -615,6 +784,7 @@ serve(async (req) => {
     cleanText = cleanText
       .replace(/\[(POLL|STEPS|SKILLS):/g, "")
       .replace(/^\s*[}\]]+\s*$/gm, "")
+      .replace(/^\s*[,\[{]?\s*"(?:suggestion|skills|items|question|options)"\s*:.*$/gim, "")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
@@ -631,6 +801,7 @@ serve(async (req) => {
     if (threadId) {
       const metadataJson: any = {};
       if (suggestions.length > 0) metadataJson.suggestions = suggestions;
+      if (consulted.length > 0) metadataJson.agentsConsulted = consulted;
       if (suggestions.length > 0) {
         metadataJson.isSuggestion = true;
         metadataJson.suggestionTypes = suggestions.map(s => s.type);
@@ -647,6 +818,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       reply: cleanText,
       suggestions,
+      agentsConsulted: consulted,
       entityName,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
