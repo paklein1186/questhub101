@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -280,7 +280,27 @@ function ActivitySummary({
 }
 
 // ─── Main component ────────────────────────────────────────
+/**
+ * An AI agent may author items (it feeds the platform) but has no profile of its own: its account
+ * redirects to the agent page.
+ */
 export default function UserProfile() {
+  const { id } = useParams<{ id: string }>();
+  const { data: agentId, isLoading } = useQuery({
+    queryKey: ["agent-for-account", id],
+    enabled: !!id,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("agents").select("id").eq("agent_user_id", id!).maybeSingle();
+      return (data as any)?.id as string | null ?? null;
+    },
+  });
+  if (agentId) return <Navigate to={`/agents/${agentId}`} replace />;
+  if (isLoading) return null;
+  return <UserProfileInner />;
+}
+
+function UserProfileInner() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { session } = useAuth();

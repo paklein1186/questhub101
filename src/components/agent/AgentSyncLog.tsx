@@ -82,7 +82,7 @@ function AgentSyncLogDialog({ agentId, onClose }: { agentId: string; onClose: ()
               ];
               const remaining = (s.skipped_over_limit ?? 0) + (s.geocode_remaining ?? 0);
               return (
-                <details key={r.id} className="rounded-lg border border-border px-3 py-2 text-sm" open={!r.ok && !r.dry_run && runs[0]?.id === r.id}>
+                <details key={r.id} className="rounded-lg border border-border px-3 py-2 text-sm" open={runs[0]?.id === r.id && (!r.ok || r.dry_run)}>
                   <summary className="cursor-pointer flex items-center gap-2 flex-wrap">
                     {r.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" /> : <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />}
                     <span className="font-medium">{new Date(r.created_at).toLocaleString(i18n.language)}</span>
@@ -98,6 +98,21 @@ function AgentSyncLogDialog({ agentId, onClose }: { agentId: string; onClose: ()
                       {s.objects_sent ? ` · ${t("syncLog.objectsSent", { count: s.objects_sent })}` : ""}
                       {remaining ? ` · ${t("agentsUi.syncRemaining", { count: remaining })}` : ""}
                     </p>
+                    {Array.isArray(s.objects_preview) && s.objects_preview.length > 0 && (
+                      <div className="text-xs space-y-1">
+                        <p className="font-medium">{t(r.dry_run ? "syncLog.objectsPreviewDry" : "syncLog.objectsPreview", { count: s.objects_found ?? s.objects_preview.length })}</p>
+                        {["lieu", "organisation", "quete", "entite", "post"].map((kind) => {
+                          const items = s.objects_preview.filter((o: any) => o.kind === kind);
+                          if (!items.length) return null;
+                          return (
+                            <p key={kind}>
+                              <span className="text-muted-foreground">{t(`syncLog.kinds.${kind}`)} ({items.length}) :</span>{" "}
+                              {items.map((o: any) => o.name + (o.commune ? ` (${o.commune})` : "")).join(", ")}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    )}
                     {s.objects_unsupported && <p className="text-xs text-muted-foreground">{t("syncLog.objectsUnsupported")}</p>}
                     {lists.filter(([, l]) => l.length).map(([label, l]) => (
                       <p key={label} className="text-xs"><span className="font-medium">{label} :</span> {l.join(", ")}</p>

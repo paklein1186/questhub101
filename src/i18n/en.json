@@ -4294,7 +4294,10 @@
     "unmatchedPlaces": "Places with no match",
     "photos": "{{count}} photos imported",
     "objectsSent": "{{count}} Third Spaces items sent",
-    "objectsUnsupported": "Third Spaces items found, but the agent does not accept them yet (PUT /ctg/objects)."
+    "objectsUnsupported": "Third Spaces items found, but the agent does not accept them yet (PUT /ctg/objects).",
+    "objectsPreview": "{{count}} Third Spaces items shared with the agent",
+    "objectsPreviewDry": "{{count}} Third Spaces items would be shared with the agent",
+    "kinds": {"lieu": "Places", "organisation": "Organisations", "quete": "Quests", "entite": "Entities", "post": "Posts"}
   },
   "territoryMap": {
     "view": "View territory →",

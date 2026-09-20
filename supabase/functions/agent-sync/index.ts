@@ -471,87 +471,14 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     }
   }
 
-  if (opts.dryRun) return summary;
-
-  // 3. Événements publics ctg → agent ----------------------------------------
-  const allRefs = [...refs.values()];
-  const guildIds = allRefs.map((r) => r.entity_id);
-  if (guildIds.length) {
-    const { data: guilds } = await sb.from("guilds").select("id, name, is_deleted").in("id", guildIds);
-    const alive = new Map<string, any>((guilds ?? []).filter((g: any) => !g.is_deleted).map((g: any) => [g.id, g]));
-    const events: any[] = [];
-    const now = new Date().toISOString();
-
-    for (const ref of allRefs) {
-      const guild = alive.get(ref.entity_id);
-      if (!guild) continue;
-      const url = `${SITE_URL}/guilds/${guild.id}`;
-      const evBase = { space2_id: ref.external_id, ctg_entity_id: guild.id };
-
-      // Membres : un nombre, jamais de noms.
-      const { count } = await sb.from("guild_members").select("id", { count: "exact", head: true })
-        .eq("guild_id", guild.id).neq("user_id", agentUserId ?? "00000000-0000-0000-0000-000000000000");
-      if (typeof count === "number" && count > 0) {
-        events.push({ ...evBase, ctg_event_id: `members:${guild.id}:${count}`, type: "membre", titre: "Membres",
-          texte: `${count} membre${count > 1 ? "s" : ""} dans la guilde sur changethegame.`, url, occurred_at: now });
-      }
-
-      // Discussions publiques (hors salons non publics).
-      const { data: publicRooms } = await sb.from("discussion_rooms").select("id").eq("scope_id", guild.id).eq("audience_type", "PUBLIC");
-      const roomIds = (publicRooms ?? []).map((r: any) => r.id);
-      let postQuery = sb.from("feed_posts").select("id, content, created_at")
-        .eq("context_type", "GUILD").eq("context_id", guild.id).eq("visibility", "public").eq("is_deleted", false)
-        .order("created_at", { ascending: false }).limit(10);
-      postQuery = roomIds.length ? postQuery.or(`room_id.is.null,room_id.in.(${roomIds.join(",")})`) : postQuery.is("room_id", null);
-      const { data: posts } = await postQuery;
-      for (const p of posts ?? []) {
-        if (!p.content) continue;
-        events.push({ ...evBase, ctg_event_id: `post:${p.id}`, type: "discussion", titre: null,
-          texte: String(p.content).slice(0, 1500), url, occurred_at: p.created_at });
-      }
-
-      // Quêtes publiques de la guilde (hors la quête des besoins issue de l'agent).
-      const { data: quests } = await sb.from("quests").select("id, title, description, created_at")
-        .eq("guild_id", guild.id).eq("is_draft", false).eq("is_deleted", false).eq("public_visibility", "public").limit(20);
-      for (const q of quests ?? []) {
-        if (q.id === ref.needs_quest_id) continue;
-        events.push({ ...evBase, ctg_event_id: `quest:${q.id}`, type: "quete", titre: String(q.title).slice(0, 300),
-          texte: q.description ? String(q.description).slice(0, 1500) : null, url: `${SITE_URL}/quests/${q.id}`, occurred_at: q.created_at });
-        const { data: qNeeds } = await sb.from("quest_needs").select("id, title, description, created_at")
-          .eq("quest_id", q.id).in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"]).limit(20);
-        for (const n of qNeeds ?? []) {
-          events.push({ ...evBase, ctg_event_id: `need:${n.id}`, type: "besoin", titre: String(n.title).slice(0, 300),
-            texte: n.description ? String(n.description).slice(0, 1500) : null, url: `${SITE_URL}/quests/${q.id}`, occurred_at: n.created_at });
-        }
-      }
-    }
-
-    for (let i = 0; i < events.length; i += 100) {
-      const batch = events.slice(i, i + 100);
-      const r = await callAgent(base, secret, "/events", { method: "POST", body: JSON.stringify({ events: batch }) });
-      if (r.ok) summary.events_sent += batch.length; else err(`POST /events → ${r.status}`);
-    }
-
-    // 4. Retrait : une guilde supprimée est masquée côté agent ------------------
-    for (const ref of allRefs) {
-      const deleted = !alive.has(ref.entity_id);
-      if (deleted && !ref.masked_notified_at) {
-        const r = await callAgent(base, secret, `/lieux/${encodeURIComponent(ref.external_id)}/masque`, { method: "PUT", body: JSON.stringify({ masque: true }) });
-        if (r.ok) { await sb.from("agent_external_refs").update({ masked_notified_at: now }).eq("id", ref.id); summary.masked++; }
-        else err(`masque ${ref.external_id} → ${r.status}`);
-      } else if (!deleted && ref.masked_notified_at) {
-        const r = await callAgent(base, secret, `/lieux/${encodeURIComponent(ref.external_id)}/masque`, { method: "PUT", body: JSON.stringify({ masque: false }) });
-        if (r.ok) await sb.from("agent_external_refs").update({ masked_notified_at: null }).eq("id", ref.id);
-        else err(`démasquer ${ref.external_id} → ${r.status}`);
-      }
-    }
-  }
-
+  // Objets « Third Spaces » de ctg (guildes, quêtes, entités, posts publics) → agent. `send` = false :
+  // simple aperçu (simulation), rien n'est envoyé.
+  const collectAndPushObjects = async (send: boolean) => {
+    if (!tiersLieuxTopicId) return;
   // 4b. Objets « Third Spaces » de ctg → agent ---------------------------------------------
   // Guildes (lieux physiques cochés, ou simplement taguées), quêtes, entités et posts publics
   // taguées Third Spaces. Contrat : PUT /ctg/objects { objects: [...] }, upsert par ctg_id.
   // Un agent qui n'expose pas encore cette route est simplement ignoré (pas une erreur).
-  if (tiersLieuxTopicId) {
     const pushStartedAt = new Date().toISOString();
     const since = opts.full ? null : agent.objects_cursor ?? null;
     const agentGuildIds = new Set([...refs.values()].map((r: any) => r.entity_id));
@@ -651,9 +578,11 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
       }
     }
 
+    summary.objects_found = objects.length;
+    summary.objects_preview = objects.slice(0, 80).map((o) => ({ kind: o.kind, name: o.name ?? o.description?.slice(0, 60) ?? o.ctg_id, commune: o.commune ?? null }));
+    if (!send) return;
     const toSend = objects.slice(0, 500);
     if (objects.length > toSend.length) { summary.objects_remaining = objects.length - toSend.length; }
-    summary.objects_found = objects.length;
     let unsupported = false;
     for (const batch of chunks(toSend)) {
       const r = await callAgent(base, secret, "/ctg/objects", { method: "PUT", body: JSON.stringify({ objects: batch }) });
@@ -664,7 +593,86 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     if (!unsupported && !objectsFailed && !summary.objects_remaining) {
       try { await sb.from("agents").update({ objects_cursor: pushStartedAt }).eq("id", agent.id); } catch { /* colonne pas encore créée */ }
     }
+  };
+
+  if (opts.dryRun) { await collectAndPushObjects(false); return summary; }
+
+  // 3. Événements publics ctg → agent ----------------------------------------
+  const allRefs = [...refs.values()];
+  const guildIds = allRefs.map((r) => r.entity_id);
+  if (guildIds.length) {
+    const { data: guilds } = await sb.from("guilds").select("id, name, is_deleted").in("id", guildIds);
+    const alive = new Map<string, any>((guilds ?? []).filter((g: any) => !g.is_deleted).map((g: any) => [g.id, g]));
+    const events: any[] = [];
+    const now = new Date().toISOString();
+
+    for (const ref of allRefs) {
+      const guild = alive.get(ref.entity_id);
+      if (!guild) continue;
+      const url = `${SITE_URL}/guilds/${guild.id}`;
+      const evBase = { space2_id: ref.external_id, ctg_entity_id: guild.id };
+
+      // Membres : un nombre, jamais de noms.
+      const { count } = await sb.from("guild_members").select("id", { count: "exact", head: true })
+        .eq("guild_id", guild.id).neq("user_id", agentUserId ?? "00000000-0000-0000-0000-000000000000");
+      if (typeof count === "number" && count > 0) {
+        events.push({ ...evBase, ctg_event_id: `members:${guild.id}:${count}`, type: "membre", titre: "Membres",
+          texte: `${count} membre${count > 1 ? "s" : ""} dans la guilde sur changethegame.`, url, occurred_at: now });
+      }
+
+      // Discussions publiques (hors salons non publics).
+      const { data: publicRooms } = await sb.from("discussion_rooms").select("id").eq("scope_id", guild.id).eq("audience_type", "PUBLIC");
+      const roomIds = (publicRooms ?? []).map((r: any) => r.id);
+      let postQuery = sb.from("feed_posts").select("id, content, created_at")
+        .eq("context_type", "GUILD").eq("context_id", guild.id).eq("visibility", "public").eq("is_deleted", false)
+        .order("created_at", { ascending: false }).limit(10);
+      postQuery = roomIds.length ? postQuery.or(`room_id.is.null,room_id.in.(${roomIds.join(",")})`) : postQuery.is("room_id", null);
+      const { data: posts } = await postQuery;
+      for (const p of posts ?? []) {
+        if (!p.content) continue;
+        events.push({ ...evBase, ctg_event_id: `post:${p.id}`, type: "discussion", titre: null,
+          texte: String(p.content).slice(0, 1500), url, occurred_at: p.created_at });
+      }
+
+      // Quêtes publiques de la guilde (hors la quête des besoins issue de l'agent).
+      const { data: quests } = await sb.from("quests").select("id, title, description, created_at")
+        .eq("guild_id", guild.id).eq("is_draft", false).eq("is_deleted", false).eq("public_visibility", "public").limit(20);
+      for (const q of quests ?? []) {
+        if (q.id === ref.needs_quest_id) continue;
+        events.push({ ...evBase, ctg_event_id: `quest:${q.id}`, type: "quete", titre: String(q.title).slice(0, 300),
+          texte: q.description ? String(q.description).slice(0, 1500) : null, url: `${SITE_URL}/quests/${q.id}`, occurred_at: q.created_at });
+        const { data: qNeeds } = await sb.from("quest_needs").select("id, title, description, created_at")
+          .eq("quest_id", q.id).in("status", ["open", "in_progress", "OPEN", "IN_PROGRESS"]).limit(20);
+        for (const n of qNeeds ?? []) {
+          events.push({ ...evBase, ctg_event_id: `need:${n.id}`, type: "besoin", titre: String(n.title).slice(0, 300),
+            texte: n.description ? String(n.description).slice(0, 1500) : null, url: `${SITE_URL}/quests/${q.id}`, occurred_at: n.created_at });
+        }
+      }
+    }
+
+    for (let i = 0; i < events.length; i += 100) {
+      const batch = events.slice(i, i + 100);
+      const r = await callAgent(base, secret, "/events", { method: "POST", body: JSON.stringify({ events: batch }) });
+      if (r.ok) summary.events_sent += batch.length; else err(`POST /events → ${r.status}`);
+    }
+
+    // 4. Retrait : une guilde supprimée est masquée côté agent ------------------
+    for (const ref of allRefs) {
+      const deleted = !alive.has(ref.entity_id);
+      if (deleted && !ref.masked_notified_at) {
+        const r = await callAgent(base, secret, `/lieux/${encodeURIComponent(ref.external_id)}/masque`, { method: "PUT", body: JSON.stringify({ masque: true }) });
+        if (r.ok) { await sb.from("agent_external_refs").update({ masked_notified_at: now }).eq("id", ref.id); summary.masked++; }
+        else err(`masque ${ref.external_id} → ${r.status}`);
+      } else if (!deleted && ref.masked_notified_at) {
+        const r = await callAgent(base, secret, `/lieux/${encodeURIComponent(ref.external_id)}/masque`, { method: "PUT", body: JSON.stringify({ masque: false }) });
+        if (r.ok) await sb.from("agent_external_refs").update({ masked_notified_at: null }).eq("id", ref.id);
+        else err(`démasquer ${ref.external_id} → ${r.status}`);
+      }
+    }
   }
+
+  // 4b. Objets « Third Spaces » de ctg → agent
+  await collectAndPushObjects(true);
 
   // 5. Accès : uniquement les utilisateurs qui ont consenti ---------------------
   const { data: consents } = await sb.from("agent_access_consents").select("user_id, revoked_at").eq("agent_id", agent.id);

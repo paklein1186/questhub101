@@ -4280,7 +4280,10 @@
     "unmatchedPlaces": "Lieux sans équivalent",
     "photos": "{{count}} photos importées",
     "objectsSent": "{{count}} éléments Third Spaces envoyés",
-    "objectsUnsupported": "Éléments Third Spaces trouvés, mais l'agent ne les accepte pas encore (PUT /ctg/objects)."
+    "objectsUnsupported": "Éléments Third Spaces trouvés, mais l'agent ne les accepte pas encore (PUT /ctg/objects).",
+    "objectsPreview": "{{count}} éléments Third Spaces partagés avec l'agent",
+    "objectsPreviewDry": "{{count}} éléments Third Spaces seraient partagés avec l'agent",
+    "kinds": {"lieu": "Lieux", "organisation": "Organisations", "quete": "Quêtes", "entite": "Entités", "post": "Posts"}
   },
   "territoryMap": {
     "view": "Voir le territoire →",
