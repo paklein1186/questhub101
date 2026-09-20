@@ -3713,6 +3713,13 @@
       "work": "Travail",
       "activity": "Activité"
     },
+    "aiModes": {
+      "chat": "Discussion",
+      "tools": "Outils",
+      "memory": "Mémoire",
+      "agents": "Agents",
+      "settings": "Réglages"
+    },
     "more": {
       "trigger": "Plus",
       "contributionLedger": "Registre des contributions",
@@ -3720,7 +3727,6 @@
       "ecosystem": "Écosystème",
       "aiStudio": "Studio IA",
       "graph": "Graphe",
-      "agentSettings": "Réglages des agents",
       "matchmaker": "Mise en relation",
       "settings": "Réglages"
     },

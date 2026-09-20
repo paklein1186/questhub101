@@ -82,7 +82,7 @@ import { TrustTab } from "@/components/trust/TrustTab";
 import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
-import { Leaf, Network, Bot as BotIcon } from "lucide-react";
+import { Leaf, Network } from "lucide-react";
 import { SectionBanner, HintTooltip, EmptyHint, HINTS } from "@/components/onboarding/ContextualHint";
 import { usePersona } from "@/hooks/usePersona";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
@@ -221,19 +221,21 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
   );
 }
 
-/** AI Studio — single panel with internal mode toggle: Chat · Tools · Memory · Agents */
-type AIMode = "chat" | "tools" | "memory" | "agents";
+/** AI Studio — single panel with internal mode toggle: Chat · Tools · Memory · Agents · Settings */
+type AIMode = "chat" | "tools" | "memory" | "agents" | "settings";
 
 function AIStudioPanel({ guild, isAdmin, isMember }: {
   guild: any; isAdmin: boolean; isMember: boolean;
 }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<AIMode>("chat");
 
   const modes: { key: AIMode; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
-    { key: "chat", label: "Chat", icon: <Bot className="h-3.5 w-3.5" /> },
-    { key: "tools", label: "Tools", icon: <Sparkles className="h-3.5 w-3.5" /> },
-    { key: "memory", label: "Memory", icon: <Brain className="h-3.5 w-3.5" /> },
-    { key: "agents", label: "Agents", icon: <Bot className="h-3.5 w-3.5" />, adminOnly: true },
+    { key: "chat", label: t("guildActivity.aiModes.chat"), icon: <Bot className="h-3.5 w-3.5" /> },
+    { key: "tools", label: t("guildActivity.aiModes.tools"), icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { key: "memory", label: t("guildActivity.aiModes.memory"), icon: <Brain className="h-3.5 w-3.5" /> },
+    { key: "agents", label: t("guildActivity.aiModes.agents"), icon: <Bot className="h-3.5 w-3.5" />, adminOnly: true },
+    { key: "settings", label: t("guildActivity.aiModes.settings"), icon: <Settings className="h-3.5 w-3.5" />, adminOnly: true },
   ];
 
   const visibleModes = modes.filter((m) => !m.adminOnly || isAdmin);
@@ -270,6 +272,9 @@ function AIStudioPanel({ guild, isAdmin, isMember }: {
       )}
       {mode === "agents" && isAdmin && (
         <UnitAgentsTab unitType="guild" unitId={guild.id} unitName={guild.name} isAdmin={isAdmin} />
+      )}
+      {mode === "settings" && isAdmin && (
+        <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
       )}
     </div>
   );
@@ -309,7 +314,7 @@ export default function GuildDetail() {
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
-  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-settings", "agent-revenue": "agent-settings" };
+  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "ai", "agent-revenue": "ai" };
   const rawTab = guildSp.get("tab") || "overview";
   const activeTab = legacyTabMap[rawTab] || rawTab;
   const setActiveTab = (v: string) => setGuildSp(prev => {
@@ -554,9 +559,6 @@ export default function GuildDetail() {
               </DropdownMenuItem>
               {isAdmin && (
                 <>
-                  <DropdownMenuItem onClick={() => setActiveTab("agent-settings")}>
-                    <BotIcon className="h-4 w-4 mr-2" /> {t("guildActivity.more.agentSettings")}
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
                     <Sparkles className="h-4 w-4 mr-2" /> {t("guildActivity.more.matchmaker")}
                   </DropdownMenuItem>
@@ -892,12 +894,6 @@ export default function GuildDetail() {
         <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
           <GraphView centerType="guild" centerId={guild.id} height={700} />
         </TabsContent>
-
-        {isAdmin && (
-          <TabsContent value="agent-settings" className="mt-6">
-            <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
-          </TabsContent>
-        )}
 
         {isAdmin && (
           <TabsContent value="matchmaker" className="mt-6">

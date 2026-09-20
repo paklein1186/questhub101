@@ -3727,6 +3727,13 @@
       "work": "Work",
       "activity": "Activity"
     },
+    "aiModes": {
+      "chat": "Chat",
+      "tools": "Tools",
+      "memory": "Memory",
+      "agents": "Agents",
+      "settings": "Settings"
+    },
     "more": {
       "trigger": "More",
       "contributionLedger": "Contribution Ledger",
@@ -3734,7 +3741,6 @@
       "ecosystem": "Ecosystem",
       "aiStudio": "AI Studio",
       "graph": "Graph",
-      "agentSettings": "Agent Settings",
       "matchmaker": "Matchmaker",
       "settings": "Settings"
     },
