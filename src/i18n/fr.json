@@ -4152,7 +4152,11 @@
     "deleteNo": "Annuler",
     "deleted": "Agent supprimé",
     "deletedUnpublished": "Agent retiré du catalogue et de tous les espaces",
-    "deleteFailed": "Impossible de supprimer l'agent"
+    "deleteFailed": "Impossible de supprimer l'agent",
+    "freeScopeLabel": "Gratuit partout pour",
+    "freeScopeAdmins": "Les admins de {{owner}}",
+    "freeScopeMembers": "Tous les membres de {{owner}}",
+    "freeScopeNote": "Vaut partout où l'agent est utilisé (guilde, pods, quêtes), sans avoir à le régler espace par espace."
   },
   "autoGuild": {
     "notice": "Cette fiche a été créée automatiquement à partir de {{agent}}. Si c'est votre lieu, revendiquez-la pour la gérer.",

@@ -210,12 +210,29 @@ Respond helpfully based on this context. If you don't know something specific ab
       freeByUnit = freeFor === "members" ? member : freeFor === "admins" ? admin : false;
     }
 
+    // ─── Free usage set on the agent itself (members / admins of the entity that owns it) ───
+    let freeByOwner = false;
+    const freeScope: string = (agent as any).free_scope ?? "nobody";
+    if (freeScope !== "nobody" && agent.owner_id && (agent.owner_type === "guild" || agent.owner_type === "company")) {
+      const isGuildOwner = agent.owner_type === "guild";
+      const { data: m } = await adminClient
+        .from(isGuildOwner ? "guild_members" : "company_members")
+        .select("role")
+        .eq(isGuildOwner ? "guild_id" : "company_id", agent.owner_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (m) {
+        const role = String((m as any).role ?? "").toUpperCase();
+        freeByOwner = freeScope === "owner_members" || role === "ADMIN" || role === "OWNER";
+      }
+    }
+
     // ─── Hybrid billing ───────────────────────────────────────────
     const billingCurrency = agent.billing_currency || "credits";
     let chargedAmount = 0;
     let paymentType = "free";
 
-    if (billingCurrency !== "free" && !freeByUnit) {
+    if (billingCurrency !== "free" && !freeByUnit && !freeByOwner) {
       let usedPlan = false;
 
       const { data: profile } = await adminClient

@@ -136,6 +136,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
   });
 
   const activeChatAgent = unitAgents?.find((ua: any) => ua.agent_id === activeChatAgentId);
+  const ownerFree = useOwnerFree(activeChatAgent?.agents, user?.id);
 
   if (activeChatAgentId && activeChatAgent) {
     return (
@@ -148,7 +149,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
           unitType={unitType}
           unitId={unitId}
           unitName={unitName}
-          freeForMe={freeForMe(activeChatAgent)}
+          freeForMe={ownerFree || freeForMe(activeChatAgent)}
         />
       </div>
     );
@@ -213,9 +214,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
                   {ua.inherited && (
                     <Badge variant="secondary" className="text-[10px] mt-0.5 ml-1">{t("agentsUi.fromGuild")}</Badge>
                   )}
-                  {freeForMe(ua) === true && (
-                    <Badge className="text-[10px] mt-0.5 ml-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" variant="outline">{t("agentsUi.freeForYou")}</Badge>
-                  )}
+                  <FreeForYouBadge ua={ua} unitLevel={freeForMe(ua)} userId={user?.id} />
                   <AgentSourceBadge agentSource={ua.agents?.agent_source} healthStatus={ua.agents?.health_status} />
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                     {ua.agents?.description}
@@ -287,6 +286,39 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
         />
       )}
     </div>
+  );
+}
+
+/** Agent-level free usage: members/admins of the guild or company that owns the agent. */
+function useOwnerFree(agent: any, userId?: string): boolean {
+  const rule: string = agent?.free_scope ?? "nobody";
+  const ownerType: string | undefined = agent?.owner_type;
+  const { data } = useQuery({
+    queryKey: ["owner-free", agent?.id, userId, rule],
+    enabled: !!agent && !!userId && rule !== "nobody" && !!agent.owner_id && (ownerType === "guild" || ownerType === "company"),
+    queryFn: async () => {
+      const isGuild = ownerType === "guild";
+      const { data: m } = await supabase
+        .from((isGuild ? "guild_members" : "company_members") as any)
+        .select("role")
+        .eq(isGuild ? "guild_id" : "company_id", agent.owner_id)
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (!m) return false;
+      if (rule === "owner_members") return true;
+      const role = String((m as any).role ?? "").toUpperCase();
+      return role === "ADMIN" || role === "OWNER";
+    },
+  });
+  return data === true;
+}
+
+function FreeForYouBadge({ ua, unitLevel, userId }: { ua: any; unitLevel: boolean | "maybe"; userId?: string }) {
+  const { t } = useTranslation();
+  const owner = useOwnerFree(ua.agents, userId);
+  if (unitLevel !== true && !owner) return null;
+  return (
+    <Badge className="text-[10px] mt-0.5 ml-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" variant="outline">{t("agentsUi.freeForYou")}</Badge>
   );
 }
 
@@ -474,17 +506,7 @@ function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: {
     const text = input.trim();
     if (!text || streaming) return;
 
-    // Process usage payment if needed
-    if (usagePrice > 0 && user) {
-      const { processAgentPayment } = await import("@/lib/agentPayment");
-      const result = await processAgentPayment(user.id, usagePrice, agent.id, "usage");
-      if (!result.success) {
-        setNeedsTopUp(true);
-        toast.error(result.error || t("agentsUi.insufficient"));
-        return;
-      }
-    }
-
+    // The server is the single place that bills a message (plan quota, then credits) — no charge here.
     setNeedsTopUp(false);
     setInput("");
     const userMsg: Msg = { role: "user", content: text };

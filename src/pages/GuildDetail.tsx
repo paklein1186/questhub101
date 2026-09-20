@@ -527,6 +527,9 @@ export default function GuildDetail() {
             {(isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public")) && (
               <TabsTrigger value="activity"><MessageCircle className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.mainTabs.activity")}</TabsTrigger>
             )}
+            {isMember && (
+              <TabsTrigger value="ai"><Bot className="h-3.5 w-3.5 mr-1" /> {t("guildActivity.more.aiStudio")}</TabsTrigger>
+            )}
           </TabsList>
 
           {/* ─── Contextual More Menu ─── */}
@@ -549,11 +552,6 @@ export default function GuildDetail() {
               <DropdownMenuItem onClick={() => setActiveTab("living")}>
                 <Leaf className="h-4 w-4 mr-2" /> {t("guildActivity.more.ecosystem")}
               </DropdownMenuItem>
-              {isMember && (
-                <DropdownMenuItem onClick={() => setActiveTab("ai")}>
-                  <Bot className="h-4 w-4 mr-2" /> {t("guildActivity.more.aiStudio")}
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onClick={() => setActiveTab("graph")}>
                 <Compass className="h-4 w-4 mr-2" /> {t("guildActivity.more.graph")}
               </DropdownMenuItem>

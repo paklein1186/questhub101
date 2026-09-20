@@ -18,6 +18,7 @@ import { toast } from "sonner";
 type AgentSource = "platform" | "custom_llm" | "webhook";
 type OwnerType = "user" | "guild" | "company";
 type FreeFor = "nobody" | "admins" | "members";
+type FreeScope = "nobody" | "owner_admins" | "owner_members";
 
 export interface AgentOwner { type: Exclude<OwnerType, "user">; id: string; name: string }
 
@@ -59,6 +60,10 @@ const SOURCE_MODES: { value: AgentSource; emoji: string; key: string }[] = [
   { value: "custom_llm", emoji: "🔑", key: "sourceOwn" },
   { value: "webhook", emoji: "🔗", key: "sourceExternal" },
 ];
+
+// Only external agents can be registered for now; platform / own-key agents that already
+// exist stay editable (edit mode loads their source), but are no longer offered.
+const CREATABLE_SOURCES: AgentSource[] = ["webhook"];
 
 function generateSecret(): string {
   const bytes = new Uint8Array(24);
@@ -111,8 +116,9 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [usagePrice, setUsagePrice] = useState("5");
   const [freeCallsLimit, setFreeCallsLimit] = useState("");
   const [freeFor, setFreeFor] = useState<FreeFor>("nobody");
+  const [freeScope, setFreeScope] = useState<FreeScope>("nobody");
 
-  const [agentSource, setAgentSource] = useState<AgentSource>("platform");
+  const [agentSource, setAgentSource] = useState<AgentSource>(CREATABLE_SOURCES[0]);
   const [llmProvider, setLlmProvider] = useState("");
   const [llmModel, setLlmModel] = useState("");
   const [llmApiKey, setLlmApiKey] = useState("");
@@ -183,6 +189,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     setPricingMode((a.pricing_mode ?? (a.billing_currency === "free" ? "free" : "paid")) === "free" ? "free" : "paid");
     setHirePrice(String(a.hire_price ?? 0)); setUsagePrice(String(a.usage_price ?? a.cost_per_use ?? 5));
     setFreeCallsLimit(a.free_calls_limit != null ? String(a.free_calls_limit) : "");
+    setFreeScope((a.free_scope ?? "nobody") as FreeScope);
     setImportStatus(null); lastImported.current = a.external_webhook_url ?? "";
     (async () => {
       const [tp, tr] = await Promise.all([
@@ -197,9 +204,9 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const resetForm = () => {
     setName(""); setDescription(""); setPurpose(""); setLongDescription(""); setVariables([]);
     setTopicIds([]); setTerritoryIds([]); setIsListed(true); setSystemPrompt(""); setSkills("");
-    setAgentSource("platform"); setLlmProvider(""); setLlmModel("");
+    setAgentSource(CREATABLE_SOURCES[0]); setLlmProvider(""); setLlmModel("");
     setLlmApiKey(""); setWebhookUrl(""); setShowApiKey(false); setSyncEnabled(false); setSyncBaseUrl(""); setCustomSecret("");
-    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit(""); setFreeFor("nobody");
+    setPricingMode("free"); setHirePrice("0"); setUsagePrice("5"); setFreeCallsLimit(""); setFreeFor("nobody"); setFreeScope("nobody");
     setOwnerKey(defaultOwner ? `${defaultOwner.type}:${defaultOwner.id}` : "user");
     setImportStatus(null); lastImported.current = "";
   };
@@ -283,6 +290,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
       hire_price: isFree ? 0 : (parseInt(hirePrice) || 0),
       usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
       free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
+      free_scope: isFree ? "nobody" : freeScope,
     };
     if (agentSource === "platform") patch.system_prompt = systemPrompt.trim();
     if (agentSource === "webhook") {
@@ -368,6 +376,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
       hire_price: isFree ? 0 : (parseInt(hirePrice) || 0),
       usage_price: isFree ? 0 : (parseInt(usagePrice) || 0),
       free_calls_limit: freeCallsLimit ? parseInt(freeCallsLimit) : null,
+      free_scope: isFree || ownerType === "user" ? "nobody" : freeScope,
     };
 
     if (agentSource === "webhook") insertPayload.external_webhook_url = webhookUrl.trim();
@@ -420,6 +429,19 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     if (secret && generatedSecret) setCreatedSecret(secret);
   };
 
+  const effectiveOwner = isEdit
+    ? { type: editAgent.owner_type as string, id: editAgent.owner_id as string | null }
+    : ownerKey === "user" ? { type: "user", id: null } : { type: ownerKey.split(":")[0], id: ownerKey.split(":")[1] };
+  const ownerHasMembers = effectiveOwner.type === "guild" || effectiveOwner.type === "company";
+  const { data: ownerName } = useQuery({
+    queryKey: ["owner-name", effectiveOwner.type, effectiveOwner.id],
+    enabled: open && ownerHasMembers && !!effectiveOwner.id,
+    queryFn: async () => {
+      const { data } = await supabase.from((effectiveOwner.type === "guild" ? "guilds" : "companies") as any).select("name").eq("id", effectiveOwner.id!).maybeSingle();
+      return (data as any)?.name as string | undefined;
+    },
+  });
+
   const isExternal = agentSource !== "platform";
   const unitLabel = attachTo ? t(`agentForm.unit.${attachTo.unitType}`) : "";
 
@@ -429,8 +451,8 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{isEdit ? t("agentForm.editTitle") : t("agents.createAgent")}</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            {!isEdit && <div className="grid grid-cols-3 gap-2">
-              {SOURCE_MODES.map((m) => (
+            {!isEdit && CREATABLE_SOURCES.length > 1 && <div className="grid grid-cols-3 gap-2">
+              {SOURCE_MODES.filter((m) => CREATABLE_SOURCES.includes(m.value)).map((m) => (
                 <button
                   key={m.value}
                   type="button"
@@ -741,6 +763,20 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
                   <Input type="number" value={freeCallsLimit} onChange={(e) => setFreeCallsLimit(e.target.value)} min="0" placeholder={t("agentForm.freeCallsHint")} />
                   <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.freeCallsNote")}</p>
                 </div>
+                {ownerHasMembers && (
+                  <div>
+                    <Label>{t("agentForm.freeScopeLabel")}</Label>
+                    <Select value={freeScope} onValueChange={(v) => setFreeScope(v as FreeScope)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nobody">{t("agentForm.freeForNobody")}</SelectItem>
+                        <SelectItem value="owner_admins">{t("agentForm.freeScopeAdmins", { owner: ownerName ?? t(`agentForm.ownerType.${effectiveOwner.type}`) })}</SelectItem>
+                        <SelectItem value="owner_members">{t("agentForm.freeScopeMembers", { owner: ownerName ?? t(`agentForm.ownerType.${effectiveOwner.type}`) })}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground mt-1">{t("agentForm.freeScopeNote")}</p>
+                  </div>
+                )}
                 {attachTo && (
                   <div>
                     <Label>{t("agentForm.freeFor", { unit: unitLabel })}</Label>

@@ -4166,7 +4166,11 @@
     "deleteNo": "Cancel",
     "deleted": "Agent deleted",
     "deletedUnpublished": "Agent withdrawn from the catalogue and from all spaces",
-    "deleteFailed": "Couldn't delete the agent"
+    "deleteFailed": "Couldn't delete the agent",
+    "freeScopeLabel": "Free everywhere for",
+    "freeScopeAdmins": "Admins of {{owner}}",
+    "freeScopeMembers": "All members of {{owner}}",
+    "freeScopeNote": "Applies wherever the agent is used (guild, pods, quests), without setting it space by space."
   },
   "autoGuild": {
     "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
