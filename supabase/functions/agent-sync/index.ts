@@ -157,7 +157,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     agent: agent.name, dry_run: opts.dryRun,
     fetched: 0, created: 0, updated: 0, linked: 0, needs_quests: 0, events_sent: 0, access_sent: 0, masked: 0,
     skipped_over_limit: 0, unmatched_places: [] as string[], unmatched_terms: [] as string[], new_territories: [] as string[], territories_created: 0,
-    geocode_remaining: 0, photos: 0, photos_failed: 0, errors: [] as string[],
+    geocode_remaining: 0, photos: 0, photos_failed: 0, objects_found: 0, objects_sent: 0, errors: [] as string[],
   };
   const err = (m: string) => { if (summary.errors.length < 30) summary.errors.push(m); };
 
@@ -544,6 +544,125 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         if (r.ok) await sb.from("agent_external_refs").update({ masked_notified_at: null }).eq("id", ref.id);
         else err(`démasquer ${ref.external_id} → ${r.status}`);
       }
+    }
+  }
+
+  // 4b. Objets « Third Spaces » de ctg → agent ---------------------------------------------
+  // Guildes (lieux physiques cochés, ou simplement taguées), quêtes, entités et posts publics
+  // taguées Third Spaces. Contrat : PUT /ctg/objects { objects: [...] }, upsert par ctg_id.
+  // Un agent qui n'expose pas encore cette route est simplement ignoré (pas une erreur).
+  if (tiersLieuxTopicId) {
+    const pushStartedAt = new Date().toISOString();
+    const since = opts.full ? null : agent.objects_cursor ?? null;
+    const agentGuildIds = new Set([...refs.values()].map((r: any) => r.entity_id));
+    const objects: any[] = [];
+    let objectsFailed = false;
+    const objErr = (m: string) => { objectsFailed = true; err(m); };
+    const cut = (v: unknown, n: number) => (fmt(v) ? fmt(v).slice(0, n) : null);
+    const chunks = <T,>(a: T[], n = 100) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+    const topicNames = (rows: any[]) => (rows ?? []).map((r: any) => r.topics?.name).filter(Boolean);
+    const placeOf = (rows: any[]) => {
+      const list = (rows ?? []).map((r: any) => ({ primary: r.is_primary, ...(r.territories ?? {}) })).filter((t: any) => t.name);
+      const town = list.find((t: any) => t.level === "TOWN" && t.primary) ?? list.find((t: any) => t.level === "TOWN");
+      return { names: list.map((t: any) => t.name), commune: town?.name ?? null, latitude: town?.latitude ?? null, longitude: town?.longitude ?? null };
+    };
+
+    // Guildes
+    const { data: taggedGuilds } = await sb.from("guild_topics").select("guild_id").eq("topic_id", tiersLieuxTopicId);
+    const guildSelect = "id, name, description, website_url, is_physical_place, updated_at, auto_created_by_agent_id, guild_topics(topics(name)), guild_territories(is_primary, territories(name, level, latitude, longitude))";
+    const guildRows = new Map<string, any>();
+    const guildBase = () => {
+      let q = sb.from("guilds").select(guildSelect).eq("is_deleted", false).eq("is_draft", false).eq("is_approved", true).eq("public_visibility", "public");
+      if (since) q = q.gt("updated_at", since);
+      return q;
+    };
+    for (const ids of chunks((taggedGuilds ?? []).map((r: any) => r.guild_id))) {
+      const { data, error } = await guildBase().in("id", ids);
+      if (error) objErr(`objets (guildes) : ${error.message}`);
+      for (const g of data ?? []) guildRows.set(g.id, g);
+    }
+    {
+      const { data, error } = await guildBase().eq("is_physical_place", true);
+      if (error) objErr(`objets (lieux) : ${error.message}`);
+      for (const g of data ?? []) guildRows.set(g.id, g);
+    }
+    for (const g of guildRows.values()) {
+      if (g.auto_created_by_agent_id === agent.id) continue; // vient déjà de cet agent
+      const place = placeOf(g.guild_territories);
+      objects.push({
+        ctg_id: `guild:${g.id}`, kind: g.is_physical_place ? "lieu" : "organisation", is_place: !!g.is_physical_place,
+        name: cut(g.name, 200), description: cut(g.description, 4000), url: `${SITE_URL}/guilds/${g.id}`, website_url: g.website_url ?? null,
+        topics: topicNames(g.guild_topics), territories: place.names, commune: place.commune,
+        latitude: place.latitude, longitude: place.longitude, updated_at: g.updated_at,
+      });
+    }
+
+    // Quêtes
+    const { data: taggedQuests } = await sb.from("quest_topics").select("quest_id").eq("topic_id", tiersLieuxTopicId);
+    for (const ids of chunks((taggedQuests ?? []).map((r: any) => r.quest_id))) {
+      let q = sb.from("quests").select("id, title, description, status, guild_id, updated_at, quest_topics(topics(name))")
+        .eq("is_draft", false).eq("is_deleted", false).eq("public_visibility", "public").in("id", ids);
+      if (since) q = q.gt("updated_at", since);
+      const { data, error } = await q;
+      if (error) { objErr(`objets (quêtes) : ${error.message}`); continue; }
+      for (const qu of data ?? []) {
+        if (qu.guild_id && agentGuildIds.has(qu.guild_id)) continue; // déjà remontée par les événements
+        objects.push({
+          ctg_id: `quest:${qu.id}`, kind: "quete", is_place: false, name: cut(qu.title, 300), description: cut(qu.description, 4000),
+          status: qu.status, url: `${SITE_URL}/quests/${qu.id}`, parent_ctg_id: qu.guild_id ? `guild:${qu.guild_id}` : null,
+          topics: topicNames(qu.quest_topics), updated_at: qu.updated_at,
+        });
+      }
+    }
+
+    // Entités (organisations enregistrées)
+    const { data: taggedCompanies } = await sb.from("company_topics").select("company_id").eq("topic_id", tiersLieuxTopicId);
+    for (const ids of chunks((taggedCompanies ?? []).map((r: any) => r.company_id))) {
+      let q = sb.from("companies").select("id, name, description, website_url, updated_at, company_topics(topics(name))")
+        .eq("is_deleted", false).eq("public_visibility", "public").in("id", ids);
+      if (since) q = q.gt("updated_at", since);
+      const { data, error } = await q;
+      if (error) { objErr(`objets (entités) : ${error.message}`); continue; }
+      for (const c of data ?? []) {
+        objects.push({
+          ctg_id: `company:${c.id}`, kind: "entite", is_place: false, name: cut(c.name, 200), description: cut(c.description, 4000),
+          url: `${SITE_URL}/companies/${c.id}`, website_url: c.website_url ?? null, topics: topicNames(c.company_topics), updated_at: c.updated_at,
+        });
+      }
+    }
+
+    // Posts publics (hors salons non publics ; jamais d'auteur)
+    const { data: taggedPosts } = await sb.from("post_topics").select("post_id").eq("topic_id", tiersLieuxTopicId);
+    for (const ids of chunks((taggedPosts ?? []).map((r: any) => r.post_id))) {
+      let q = sb.from("feed_posts").select("id, content, context_type, context_id, updated_at, created_at, post_topics(topics(name))")
+        .eq("is_deleted", false).eq("visibility", "public").is("room_id", null).in("id", ids);
+      if (since) q = q.gt("updated_at", since);
+      const { data, error } = await q;
+      if (error) { objErr(`objets (posts) : ${error.message}`); continue; }
+      for (const p of data ?? []) {
+        if (!p.content) continue;
+        if (p.context_type === "GUILD" && agentGuildIds.has(p.context_id)) continue; // déjà remonté par les événements
+        objects.push({
+          ctg_id: `post:${p.id}`, kind: "post", is_place: false, name: null, description: cut(p.content, 1500),
+          url: p.context_type === "GUILD" ? `${SITE_URL}/guilds/${p.context_id}` : SITE_URL,
+          parent_ctg_id: p.context_type === "GUILD" && p.context_id ? `guild:${p.context_id}` : null,
+          topics: topicNames(p.post_topics), updated_at: p.updated_at ?? p.created_at,
+        });
+      }
+    }
+
+    const toSend = objects.slice(0, 500);
+    if (objects.length > toSend.length) { summary.objects_remaining = objects.length - toSend.length; }
+    summary.objects_found = objects.length;
+    let unsupported = false;
+    for (const batch of chunks(toSend)) {
+      const r = await callAgent(base, secret, "/ctg/objects", { method: "PUT", body: JSON.stringify({ objects: batch }) });
+      if (r.status === 404 || r.status === 405 || r.status === 501) { unsupported = true; break; }
+      if (r.ok) summary.objects_sent = (summary.objects_sent ?? 0) + batch.length; else objErr(`PUT /ctg/objects → ${r.status}`);
+    }
+    if (unsupported) summary.objects_unsupported = true;
+    if (!unsupported && !objectsFailed && !summary.objects_remaining) {
+      try { await sb.from("agents").update({ objects_cursor: pushStartedAt }).eq("id", agent.id); } catch { /* colonne pas encore créée */ }
     }
   }
 

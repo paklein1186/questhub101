@@ -4292,7 +4292,9 @@
     "manual": "Manual",
     "newTerritories": "New territories",
     "unmatchedPlaces": "Places with no match",
-    "photos": "{{count}} photos imported"
+    "photos": "{{count}} photos imported",
+    "objectsSent": "{{count}} Third Spaces items sent",
+    "objectsUnsupported": "Third Spaces items found, but the agent does not accept them yet (PUT /ctg/objects)."
   },
   "territoryMap": {
     "view": "View territory →",
@@ -4316,5 +4318,14 @@
     "loading": "Loading…",
     "notFound": "Guild not found.",
     "removed": "This guild has been removed."
+  },
+  "guildSettings": {
+    "physicalPlace": {
+      "title": "Physical place",
+      "label": "This guild is a physical place (third place, coliving…)",
+      "help": "Space2 reads it as a place in its library. Left unchecked, the guild is still shared with Space2 when tagged Third Spaces, but only as an organisation: it informs its answers without entering the gallery of places.",
+      "saved": "Saved",
+      "failed": "Couldn't save the setting"
+    }
   }
 }

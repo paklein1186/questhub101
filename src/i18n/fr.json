@@ -4278,7 +4278,9 @@
     "manual": "Manuelle",
     "newTerritories": "Nouveaux territoires",
     "unmatchedPlaces": "Lieux sans équivalent",
-    "photos": "{{count}} photos importées"
+    "photos": "{{count}} photos importées",
+    "objectsSent": "{{count}} éléments Third Spaces envoyés",
+    "objectsUnsupported": "Éléments Third Spaces trouvés, mais l'agent ne les accepte pas encore (PUT /ctg/objects)."
   },
   "territoryMap": {
     "view": "Voir le territoire →",
@@ -4302,5 +4304,14 @@
     "loading": "Chargement…",
     "notFound": "Guilde introuvable.",
     "removed": "Cette guilde a été supprimée."
+  },
+  "guildSettings": {
+    "physicalPlace": {
+      "title": "Lieu physique",
+      "label": "Cette guilde est un lieu physique (tiers-lieu, coliving…)",
+      "help": "Space2 la lit comme un lieu de sa bibliothèque. Décochée, la guilde est quand même partagée avec Space2 si elle est taguée Third Spaces, mais seulement comme organisation : elle nourrit ses réponses sans entrer dans la galerie des lieux.",
+      "saved": "Enregistré",
+      "failed": "Impossible d'enregistrer le réglage"
+    }
   }
 }

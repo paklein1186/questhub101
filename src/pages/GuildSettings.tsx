@@ -42,6 +42,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
 import { Label } from "@/components/ui/label";
 import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
@@ -529,6 +530,12 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     initialScopes={(guild as any).web_scopes || []}
                     initialTags={(guild as any).web_tags || []}
                     initialFeaturedOrder={(guild as any).featured_order ?? null}
+                    onSaved={() => qc.invalidateQueries({ queryKey: ["guild-settings", guildId] })}
+                  />
+
+                  <PhysicalPlaceSection
+                    guildId={guildId}
+                    initial={!!(guild as any).is_physical_place}
                     onSaved={() => qc.invalidateQueries({ queryKey: ["guild-settings", guildId] })}
                   />
                 </div>
@@ -1174,6 +1181,36 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
 }
 
 // ── Helper ──
+/** Lets Space2 read this guild as a physical place (its gallery) rather than as a simple organisation. */
+function PhysicalPlaceSection({ guildId, initial, onSaved }: { guildId: string; initial: boolean; onSaved: () => void }) {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [value, setValue] = useState(initial);
+  const [saving, setSaving] = useState(false);
+
+  const toggle = async (next: boolean) => {
+    setValue(next);
+    setSaving(true);
+    const { error } = await supabase.from("guilds").update({ is_physical_place: next } as any).eq("id", guildId);
+    setSaving(false);
+    if (error) { setValue(!next); toast({ title: t("guildSettings.physicalPlace.failed"), variant: "destructive" }); return; }
+    toast({ title: t("guildSettings.physicalPlace.saved") });
+    onSaved();
+  };
+
+  return (
+    <Section title={t("guildSettings.physicalPlace.title")} icon={<MapPin className="h-5 w-5" />}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">{t("guildSettings.physicalPlace.label")}</p>
+          <p className="text-xs text-muted-foreground">{t("guildSettings.physicalPlace.help")}</p>
+        </div>
+        <Switch checked={value} disabled={saving} onCheckedChange={toggle} />
+      </div>
+    </Section>
+  );
+}
+
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>

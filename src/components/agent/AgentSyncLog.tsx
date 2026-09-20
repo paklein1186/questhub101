@@ -95,8 +95,10 @@ function AgentSyncLogDialog({ agentId, onClose }: { agentId: string; onClose: ()
                     <p className="text-xs text-muted-foreground">
                       {t("agentsUi.syncSummary", { fetched: s.fetched ?? 0, created: s.created ?? 0, updated: s.updated ?? 0, events: s.events_sent ?? 0, errors: errs.length })}
                       {s.photos ? ` · ${t("syncLog.photos", { count: s.photos })}` : ""}
+                      {s.objects_sent ? ` · ${t("syncLog.objectsSent", { count: s.objects_sent })}` : ""}
                       {remaining ? ` · ${t("agentsUi.syncRemaining", { count: remaining })}` : ""}
                     </p>
+                    {s.objects_unsupported && <p className="text-xs text-muted-foreground">{t("syncLog.objectsUnsupported")}</p>}
                     {lists.filter(([, l]) => l.length).map(([label, l]) => (
                       <p key={label} className="text-xs"><span className="font-medium">{label} :</span> {l.join(", ")}</p>
                     ))}
