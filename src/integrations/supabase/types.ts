@@ -415,6 +415,50 @@ export type Database = {
           },
         ]
       }
+      agent_sync_runs: {
+        Row: {
+          agent_id: string
+          created_at: string
+          dry_run: boolean
+          duration_ms: number | null
+          id: string
+          ok: boolean
+          summary: Json
+          trigger: string
+          triggered_by: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          id?: string
+          ok: boolean
+          summary?: Json
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          id?: string
+          ok?: boolean
+          summary?: Json
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_sync_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_territories: {
         Row: {
           agent_id: string
