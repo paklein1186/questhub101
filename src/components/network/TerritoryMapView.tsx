@@ -33,14 +33,14 @@ function createCircleGeoJSON(lat: number, lng: number, radiusKm: number, points 
  */
 interface LevelStyle { key: string; rank: number; color: string; km: number; hideAfterZoom: number }
 const LEVEL_STYLES: Record<string, LevelStyle> = {
-  GLOBAL: { key: "global", rank: 0, color: "#6366f1", km: 2000, hideAfterZoom: 3 },
-  CONTINENT: { key: "continent", rank: 1, color: "#8b5cf6", km: 800, hideAfterZoom: 5 },
-  NATIONAL: { key: "national", rank: 2, color: "#f59e0b", km: 250, hideAfterZoom: 7 },
-  REGION: { key: "region", rank: 3, color: "#10b981", km: 80, hideAfterZoom: 9 },
-  PROVINCE: { key: "region", rank: 3, color: "#10b981", km: 40, hideAfterZoom: 10 },
-  BIOREGION: { key: "bioregion", rank: 3, color: "#14b8a6", km: 60, hideAfterZoom: 11 },
-  OTHER: { key: "other", rank: 3, color: "#ec4899", km: 40, hideAfterZoom: 10 },
-  TOWN: { key: "town", rank: 4, color: "#3b82f6", km: 0, hideAfterZoom: 99 },
+  GLOBAL: { key: "global", rank: 0, color: "#4338ca", km: 2000, hideAfterZoom: 3 },
+  CONTINENT: { key: "continent", rank: 1, color: "#6d28d9", km: 800, hideAfterZoom: 5 },
+  NATIONAL: { key: "national", rank: 2, color: "#9a3412", km: 250, hideAfterZoom: 7 },
+  REGION: { key: "region", rank: 3, color: "#7e22ce", km: 80, hideAfterZoom: 9 },
+  PROVINCE: { key: "region", rank: 3, color: "#7e22ce", km: 40, hideAfterZoom: 10 },
+  BIOREGION: { key: "bioregion", rank: 3, color: "#0e7490", km: 60, hideAfterZoom: 11 },
+  OTHER: { key: "other", rank: 3, color: "#be185d", km: 40, hideAfterZoom: 10 },
+  TOWN: { key: "town", rank: 4, color: "#1d4ed8", km: 0, hideAfterZoom: 99 },
 };
 const styleForLevel = (level: string | undefined): LevelStyle => LEVEL_STYLES[(level ?? "").toUpperCase()] ?? LEVEL_STYLES.TOWN;
 
@@ -110,6 +110,7 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
   const [zoom, setZoom] = useState(2);
   const [boundaryTick, setBoundaryTick] = useState(0);
   const requestedBoundaries = useRef(new Set<string>());
+  const boundaryUnavailable = useRef(false);
 
   const territoryIds = useMemo(() => territories.map((t) => t.id), [territories]);
   const { data: geoData = {} } = useQuery({
@@ -161,6 +162,7 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
 
   // Ask the server for the real outline of towns, bioregions… that have none yet (8 at a time).
   useEffect(() => {
+    if (boundaryUnavailable.current) return;
     const missing = mappedTerritories
       .filter((t) => {
         const g = geoData[t.id];
@@ -170,11 +172,13 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
     if (!missing.length) return;
     missing.forEach((t) => requestedBoundaries.current.add(t.id));
     supabase.functions.invoke("territory-boundary", { body: { territory_ids: missing.map((t) => t.id) } })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // Function not deployed / signed out: stop asking instead of retrying for every batch.
+        if (error) { boundaryUnavailable.current = true; return; }
         if ((data?.updated ?? 0) > 0) qc.invalidateQueries({ queryKey: ["territory-geo"] });
         setBoundaryTick((n) => n + 1);
       })
-      .catch(() => {});
+      .catch(() => { boundaryUnavailable.current = true; });
   }, [mappedTerritories, geoData, boundaryTick, qc]);
 
   const unmappedCount = territories.length - mappedTerritories.length;
@@ -249,16 +253,29 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
                 );
               }
 
-              // Meta levels: outline only (real contour when known), fading as we zoom, plus a small centre dot to click.
-              const fade = Math.min(1, Math.max(0.25, (st.hideAfterZoom - zoom + 1) / 3));
-              const outline = { color: st.color, weight: 2.5, fill: false, opacity: 0.75 * fade, dashArray: geo.geojson ? undefined : "6 4" };
+              // Meta levels: a light tint and a white casing (both ignore clicks) under a coloured outline, so the
+              // area stands out from the map and still lets clicks through to what is inside it.
+              const fade = Math.min(1, Math.max(0.3, (st.hideAfterZoom - zoom + 1) / 3));
+              const tint = { stroke: false, fillColor: st.color, fillOpacity: 0.09 * fade };
+              const casing = { color: "#ffffff", weight: 6, fill: false, opacity: 0.85 * fade };
+              const outline = { color: st.color, weight: 3, fill: false, opacity: 0.95 * fade, dashArray: geo.geojson ? undefined : "8 5" };
               return (
                 <Fragment key={`area-${t.id}`}>
-                  {geo.geojson
-                    ? <GeoJSON key={`geo-${t.id}-${zoom > 8}`} data={geo.geojson} style={outline}>{label}</GeoJSON>
-                    : <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={outline}>{label}</Circle>}
-                  <CircleMarker center={[geo.lat, geo.lng]} radius={5}
-                    pathOptions={{ color: st.color, weight: 2, fillColor: st.color, fillOpacity: 0.2, opacity: 0.9 * fade }}>
+                  {geo.geojson ? (
+                    <>
+                      <GeoJSON data={geo.geojson} style={tint} interactive={false} />
+                      <GeoJSON data={geo.geojson} style={casing} interactive={false} />
+                      <GeoJSON data={geo.geojson} style={outline}>{label}</GeoJSON>
+                    </>
+                  ) : (
+                    <>
+                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={tint} interactive={false} />
+                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={casing} interactive={false} />
+                      <Circle center={[geo.lat, geo.lng]} radius={st.km * 1000} pathOptions={outline}>{label}</Circle>
+                    </>
+                  )}
+                  <CircleMarker center={[geo.lat, geo.lng]} radius={6}
+                    pathOptions={{ color: "#fff", weight: 2, fillColor: st.color, fillOpacity: 0.9 * fade, opacity: fade }}>
                     {label}{popup}
                   </CircleMarker>
                 </Fragment>
