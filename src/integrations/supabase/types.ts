@@ -711,6 +711,7 @@ export type Database = {
           external_llm_config: Json | null
           external_webhook_url: string | null
           free_calls_limit: number | null
+          free_scope: string
           health_status: string
           hire_price: number
           id: string
@@ -749,6 +750,7 @@ export type Database = {
           external_llm_config?: Json | null
           external_webhook_url?: string | null
           free_calls_limit?: number | null
+          free_scope?: string
           health_status?: string
           hire_price?: number
           id?: string
@@ -787,6 +789,7 @@ export type Database = {
           external_llm_config?: Json | null
           external_webhook_url?: string | null
           free_calls_limit?: number | null
+          free_scope?: string
           health_status?: string
           hire_price?: number
           id?: string
