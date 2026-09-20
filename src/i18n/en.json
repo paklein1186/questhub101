@@ -4274,5 +4274,20 @@
     "noRecent": "No recent actions.",
     "creditsAmount": "{{amount}} credits",
     "action": "action"
+  },
+  "syncLog": {
+    "title": "Sync journal",
+    "open": "Journal",
+    "last": "Last sync: {{date}}",
+    "never": "Never synced",
+    "needsAttention": "{{count}} to check",
+    "empty": "No sync yet.",
+    "simulation": "Simulation",
+    "real": "Sync",
+    "auto": "Automatic",
+    "manual": "Manual",
+    "newTerritories": "New territories",
+    "unmatchedPlaces": "Places with no match",
+    "photos": "{{count}} photos imported"
   }
 }

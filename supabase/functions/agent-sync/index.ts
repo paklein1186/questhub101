@@ -577,6 +577,21 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
   return summary;
 }
 
+const KEEP_RUNS = 50;
+
+/** Journal des passages : ne doit jamais faire échouer la synchro elle-même. */
+async function logRun(sb: any, agentId: string, r: { trigger: string; dryRun: boolean; userId: string | null; ok: boolean; summary: unknown; ms: number }) {
+  try {
+    await sb.from("agent_sync_runs").insert({
+      agent_id: agentId, trigger: r.trigger, dry_run: r.dryRun, triggered_by: r.userId,
+      ok: r.ok, summary: r.summary, duration_ms: r.ms,
+    });
+    const { data: old } = await sb.from("agent_sync_runs").select("id").eq("agent_id", agentId)
+      .order("created_at", { ascending: false }).range(KEEP_RUNS, KEEP_RUNS + 200);
+    if (old?.length) await sb.from("agent_sync_runs").delete().in("id", old.map((x: any) => x.id));
+  } catch (e) { console.error("sync log failed", e); }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -612,11 +627,21 @@ serve(async (req) => {
       }
       if (!allowed) { results.push({ agent: agent.name, error: "forbidden" }); continue; }
     }
+    const startedAt = Date.now();
+    let summary: any = null;
+    let failure: string | null = null;
     try {
-      results.push(await syncAgent(sb, agent, { dryRun, maxCreate, full: !isCron }));
+      summary = await syncAgent(sb, agent, { dryRun, maxCreate, full: !isCron });
+      results.push(summary);
     } catch (e: any) {
-      results.push({ agent: agent.name, error: String(e?.message ?? e) });
+      failure = String(e?.message ?? e);
+      results.push({ agent: agent.name, error: failure });
     }
+    await logRun(sb, agent.id, {
+      trigger: isCron ? "cron" : "manual", dryRun, userId,
+      ok: !failure && !(summary?.errors?.length),
+      summary: summary ?? { error: failure }, ms: Date.now() - startedAt,
+    });
   }
   return json({ results });
 });

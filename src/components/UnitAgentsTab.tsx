@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCanManageAgent } from "@/hooks/useCanManageAgent";
+import { AgentSyncStatus } from "@/components/agent/AgentSyncLog";
 import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -96,6 +97,8 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
 
   const runSync = async (agentId: string, dryRun: boolean) => {
     const { data, error } = await supabase.functions.invoke("agent-sync", { body: { agent_id: agentId, dry_run: dryRun } });
+    qc.invalidateQueries({ queryKey: ["agent-sync-runs", agentId] });
+    qc.invalidateQueries({ queryKey: ["agent-sync-last", agentId] });
     if (error) { toast.error(t("agentsUi.syncFailed")); return; }
     const r = data?.results?.[0];
     toast.message(dryRun ? t("agentsUi.syncSimulation") : t("agentsUi.syncDone"), {
@@ -308,6 +311,7 @@ function AgentManageBar({ ua, unitType, userId, onEdit, onSync, onFreeFor }: {
           </>
         )}
       </div>
+      {ua.agents?.sync_enabled && <AgentSyncStatus agentId={ua.agent_id} />}
       {!ua.inherited && ua.agents?.billing_currency !== "free" && (
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{t("agentsUi.freeForLabel")}</span>
