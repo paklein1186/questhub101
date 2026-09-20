@@ -9897,31 +9897,31 @@ export type Database = {
           admitted_at: string
           admitted_by_user_id: string
           agent_id: string
+          free_for: string
           id: string
           is_active: boolean
           unit_id: string
           unit_type: string
-          free_for: string
         }
         Insert: {
           admitted_at?: string
           admitted_by_user_id: string
           agent_id: string
+          free_for?: string
           id?: string
           is_active?: boolean
           unit_id: string
           unit_type: string
-          free_for?: string
         }
         Update: {
           admitted_at?: string
           admitted_by_user_id?: string
           agent_id?: string
+          free_for?: string
           id?: string
           is_active?: boolean
           unit_id?: string
           unit_type?: string
-          free_for?: string
         }
         Relationships: [
           {
