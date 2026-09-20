@@ -316,6 +316,95 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_secrets: {
+        Row: {
+          agent_id: string
+          created_at: string
+          llm_api_key: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          llm_api_key?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          llm_api_key?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_secrets_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_territories: {
+        Row: {
+          agent_id: string
+          territory_id: string
+        }
+        Insert: {
+          agent_id: string
+          territory_id: string
+        }
+        Update: {
+          agent_id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_territories_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_topics: {
+        Row: {
+          agent_id: string
+          topic_id: string
+        }
+        Insert: {
+          agent_id: string
+          topic_id: string
+        }
+        Update: {
+          agent_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_topics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_transactions: {
         Row: {
           agent_id: string
@@ -513,15 +602,19 @@ export type Database = {
           is_featured: boolean
           is_published: boolean
           last_health_check_at: string | null
+          long_description: string | null
           name: string
+          owner_id: string | null
+          owner_type: string
           pricing_mode: string
+          purpose: string | null
           skills: string[] | null
           system_prompt: string
           territory_id: string | null
           updated_at: string
           usage_count: number
           usage_price: number
-          webhook_secret: string | null
+          variables: Json
         }
         Insert: {
           agent_source?: string
@@ -541,15 +634,19 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
+          long_description?: string | null
           name: string
+          owner_id?: string | null
+          owner_type?: string
           pricing_mode?: string
+          purpose?: string | null
           skills?: string[] | null
           system_prompt: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
           usage_price?: number
-          webhook_secret?: string | null
+          variables?: Json
         }
         Update: {
           agent_source?: string
@@ -569,15 +666,19 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           last_health_check_at?: string | null
+          long_description?: string | null
           name?: string
+          owner_id?: string | null
+          owner_type?: string
           pricing_mode?: string
+          purpose?: string | null
           skills?: string[] | null
           system_prompt?: string
           territory_id?: string | null
           updated_at?: string
           usage_count?: number
           usage_price?: number
-          webhook_secret?: string | null
+          variables?: Json
         }
         Relationships: [
           {
