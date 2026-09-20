@@ -4238,7 +4238,8 @@
     "edit": "Edit",
     "syncUnmatched": "Places with no match in changethegame: {{list}}.",
     "syncRemaining": "{{count}} more to process: run the sync again.",
-    "detach": "Remove from this space (the agent stays in the catalogue)"
+    "detach": "Remove from this space (the agent stays in the catalogue)",
+    "syncNewTerritories": "New territories: {{list}}."
   },
   "agentOverview": {
     "published": "Published",

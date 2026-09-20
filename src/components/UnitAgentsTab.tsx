@@ -102,6 +102,8 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
       description: r
         ? t("agentsUi.syncSummary", { fetched: r.fetched ?? 0, created: r.created ?? 0, updated: r.updated ?? 0, events: r.events_sent ?? 0, errors: r.errors?.length ?? 0 }) +
           (r.skipped_over_limit ? ` ${t("agentsUi.syncRemaining", { count: r.skipped_over_limit })}` : "") +
+          (r.new_territories?.length ? ` ${t("agentsUi.syncNewTerritories", { list: r.new_territories.join(", ") })}` : "") +
+          (r.geocode_remaining ? ` ${t("agentsUi.syncRemaining", { count: r.geocode_remaining })}` : "") +
           (r.unmatched_places?.length ? ` ${t("agentsUi.syncUnmatched", { list: r.unmatched_places.join(", ") })}` : "")
         : JSON.stringify(data),
     });

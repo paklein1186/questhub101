@@ -36,6 +36,13 @@ function describeLieu(lieu: any, agentName: string): string {
   ];
   const detail = lines.filter(([, v]) => fmt(v)).map(([k, v]) => `${k} : ${fmt(v)}`);
   if (detail.length) parts.push(detail.join("\n"));
+  const lat = Number(lieu.latitude), lon = Number(lieu.longitude);
+  const address = [fmt(lieu.adresse), fmt(lieu.code_postal), fmt(lieu.commune)].filter(Boolean).join(" ");
+  if (lieu.latitude != null && lieu.longitude != null && Number.isFinite(lat) && Number.isFinite(lon)) {
+    parts.push(`Localisation : ${address ? address + " — " : ""}${lat.toFixed(5)}, ${lon.toFixed(5)} (https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon})`);
+  } else if (address) {
+    parts.push(`Localisation : ${address}`);
+  }
   parts.push(`Source : ${agentName}.`);
   return parts.join("\n\n").slice(0, 4000);
 }
@@ -110,6 +117,39 @@ function splitTerms(v: unknown): string[] {
   return raw.flatMap((x) => String(x ?? "").split(/[,;|/·\n]+/)).map((s) => s.trim()).filter((s) => s.length > 1 && s.length < 60);
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const NOMINATIM_URL = Deno.env.get("NOMINATIM_URL") ?? "https://nominatim.openstreetmap.org";
+const slugify = (s: string) => normTax(s).replace(/ /g, "-");
+const km = (aLat: number, aLon: number, bLat: number, bLon: number) => {
+  const r = (x: number) => (x * Math.PI) / 180;
+  const h = Math.sin(r(bLat - aLat) / 2) ** 2 + Math.cos(r(aLat)) * Math.cos(r(bLat)) * Math.sin(r(bLon - aLon) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+};
+
+const IMAGE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+const MAX_PHOTO_BYTES = 5_000_000;
+
+/** Copie la photo d'un lieu dans notre stockage (jamais de lien externe vers le serveur de l'agent) et renvoie son URL publique. */
+async function importPhoto(sb: any, guildId: string, url: string): Promise<string | null> {
+  let u: URL;
+  try { u = new URL(url); } catch { return null; }
+  const host = u.hostname.toLowerCase();
+  if (u.protocol !== "https:" || u.username || u.password) return null;
+  if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") || /^[0-9.]+$/.test(host) || host.includes(":")) return null;
+  const res = await fetch(u.toString(), { headers: { Accept: "image/*" }, signal: AbortSignal.timeout(8_000) });
+  if (!res.ok) return null;
+  const type = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  const ext = IMAGE_TYPES[type];
+  if (!ext) return null;
+  if (Number(res.headers.get("content-length") ?? 0) > MAX_PHOTO_BYTES) return null;
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > MAX_PHOTO_BYTES) return null;
+  const path = `guilds/${guildId}/logo-${Date.now()}.${ext}`;
+  const { error } = await sb.storage.from("entity-images").upload(path, bytes, { contentType: type, upsert: true });
+  if (error) return null;
+  return sb.storage.from("entity-images").getPublicUrl(path).data.publicUrl ?? null;
+}
+
 async function callAgent(base: string, secret: string, path: string, init: RequestInit = {}) {
   return await fetch(`${base.replace(/\/$/, "")}${path}`, {
     ...init,
@@ -123,7 +163,8 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
   const summary: Record<string, any> = {
     agent: agent.name, dry_run: opts.dryRun,
     fetched: 0, created: 0, updated: 0, linked: 0, needs_quests: 0, events_sent: 0, access_sent: 0, masked: 0,
-    skipped_over_limit: 0, unmatched_places: [] as string[], unmatched_terms: [] as string[], errors: [] as string[],
+    skipped_over_limit: 0, unmatched_places: [] as string[], unmatched_terms: [] as string[], new_territories: [] as string[], territories_created: 0,
+    geocode_remaining: 0, photos: 0, photos_failed: 0, errors: [] as string[],
   };
   const err = (m: string) => { if (summary.errors.length < 30) summary.errors.push(m); };
 
@@ -159,7 +200,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
   const refs = new Map<string, any>((refRows ?? []).map((r: any) => [r.external_id, r]));
 
   const { data: allTopics } = await sb.from("topics").select("id, name, slug");
-  const { data: allTerritories } = await sb.from("territories").select("id, name, slug");
+  const { data: allTerritories } = await sb.from("territories").select("id, name, slug, level, latitude, longitude, parent_id").eq("is_deleted", false);
   const topicPool = allTopics ?? [];
   const territoryPool = allTerritories ?? [];
   const tiersLieuxTopicId = findByName("tiers-lieux", topicPool, TOPIC_ALIASES)?.id ?? null;
@@ -179,7 +220,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     if (lieu.region && !region) note(summary.unmatched_places, String(lieu.region));
     if (lieu.pays && !country) note(summary.unmatched_places, String(lieu.pays));
     const territoryIds = [region, country].filter((t, i, a): t is any => !!t && a.findIndex((x) => x?.id === t.id) === i).map((t) => t.id as string);
-    return { topicIds: [...topicIds], territoryIds };
+    return { topicIds: [...topicIds], territoryIds, region, country };
   };
   const applyTaxonomy = async (guildId: string, tax: { topicIds: string[]; territoryIds: string[] }, onlyMissing: boolean) => {
     let addTopics = tax.topicIds.length > 0, addTerritories = tax.territoryIds.length > 0;
@@ -193,6 +234,111 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
     }
     if (addTopics) await sb.from("guild_topics").insert(tax.topicIds.map((topic_id) => ({ guild_id: guildId, topic_id })));
     if (addTerritories) await sb.from("guild_territories").insert(tax.territoryIds.map((territory_id, i) => ({ guild_id: guildId, territory_id, is_primary: i === 0 })));
+  };
+
+  // Localisation exacte : la commune (reverse-geocoding OSM des coordonnées du lieu), rattachée à la
+  // guilde comme territoire principal, et créée si elle n'existe pas encore chez nous.
+  const GEO_BUDGET = 30;
+  let geoCalls = 0;
+  let lastGeo = 0;
+  const geoCache = new Map<string, { name: string; lat: number; lon: number } | null>();
+  const reverse = async (lat: number, lon: number) => {
+    const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+    if (geoCache.has(key)) return geoCache.get(key) ?? null;
+    if (geoCalls >= GEO_BUDGET) return undefined;
+    geoCalls++;
+    const wait = 1_100 - (Date.now() - lastGeo);
+    if (wait > 0) await sleep(wait);
+    lastGeo = Date.now();
+    let out: { name: string; lat: number; lon: number } | null = null;
+    try {
+      const res = await fetch(`${NOMINATIM_URL}/reverse?format=jsonv2&zoom=10&addressdetails=1&accept-language=fr&lat=${lat}&lon=${lon}`, {
+        headers: { "User-Agent": `changethegame-agent-sync/1.0 (${SITE_URL})` },
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const a = j?.address ?? {};
+        const name = a.city ?? a.town ?? a.village ?? a.municipality ?? a.hamlet ?? null;
+        if (name) out = { name: String(name), lat: Number(j.lat), lon: Number(j.lon) };
+      } else err(`géocodage → ${res.status}`);
+    } catch (e: any) { err(`géocodage : ${e?.message ?? e}`); }
+    geoCache.set(key, out);
+    return out;
+  };
+
+  type Town = { id: string | null; name: string; created: boolean };
+  // "budget" : plus de crédit de géocodage pour ce passage — le lieu sera repris au suivant.
+  const locateTown = async (lieu: any, region: any, country: any): Promise<Town | null | "budget"> => {
+    const lat = Number(lieu.latitude), lon = Number(lieu.longitude);
+    const hasCoords = lieu.latitude != null && lieu.longitude != null && Number.isFinite(lat) && Number.isFinite(lon) && (lat !== 0 || lon !== 0);
+    let name: string | null = fmt(lieu.commune ?? lieu.ville) || null;
+    let cLat: number | null = hasCoords ? lat : null;
+    let cLon: number | null = hasCoords ? lon : null;
+    if (!name) {
+      if (!hasCoords) return null;
+      const g = await reverse(lat, lon);
+      if (g === undefined) return "budget";
+      if (!g) return null;
+      summary.geocoded = (summary.geocoded ?? 0) + 1;
+      name = g.name;
+      if (Number.isFinite(g.lat) && Number.isFinite(g.lon)) { cLat = g.lat; cLon = g.lon; }
+    }
+    const n = normTax(name);
+    const target = TERRITORY_ALIASES[n] ?? n;
+    const parents = new Set([region?.id, country?.id].filter(Boolean));
+    const existing = territoryPool.find((t: any) => {
+      const tn = normTax(t.name);
+      if (tn !== n && tn !== target) return false;
+      if (t.latitude != null && t.longitude != null && cLat != null && cLon != null) return km(Number(t.latitude), Number(t.longitude), cLat, cLon) < 30;
+      return !t.parent_id || parents.has(t.parent_id);
+    });
+    if (existing) return { id: existing.id, name: existing.name, created: false };
+
+    note(summary.new_territories, name);
+    if (opts.dryRun) return { id: null, name, created: true };
+    const base = slugify(name) || "lieu";
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const slug = attempt === 0 ? base : attempt === 1 && country ? `${base}-${slugify(country.name)}` : `${base}-${attempt + 1}`;
+      const { data: row, error } = await sb.from("territories").insert({
+        name, level: "TOWN", slug, parent_id: region?.id ?? country?.id ?? null,
+        latitude: cLat, longitude: cLon, created_by_user_id: agentUserId,
+      }).select("id").single();
+      if (!error && row) {
+        territoryPool.push({ id: row.id, name, slug, level: "TOWN", latitude: cLat, longitude: cLon, parent_id: region?.id ?? country?.id ?? null });
+        summary.territories_created++;
+        return { id: row.id, name, created: true };
+      }
+      if (error?.code !== "23505") { err(`territoire « ${name} » : ${error?.message}`); return null; }
+    }
+    return null;
+  };
+
+  // Guilde déjà créée sans commune rattachée : la rattrape (commune principale, région/pays ensuite).
+  const ensureTown = async (guildId: string, lieu: any, tax: { region: any; country: any }) => {
+    const { data: rows } = await sb.from("guild_territories").select("territory_id").eq("guild_id", guildId);
+    const attached = new Set((rows ?? []).map((r: any) => r.territory_id));
+    if (territoryPool.some((t: any) => attached.has(t.id) && t.level === "TOWN")) return;
+    const town = await locateTown(lieu, tax.region, tax.country);
+    if (town === "budget") { summary.geocode_remaining++; cursorBlocked = true; return; }
+    if (!town?.id || attached.has(town.id)) return;
+    await sb.from("guild_territories").update({ is_primary: false }).eq("guild_id", guildId);
+    await sb.from("guild_territories").insert({ guild_id: guildId, territory_id: town.id, is_primary: true });
+  };
+
+  // Photo du lieu → logo de la guilde (copie dans notre stockage, plafonnée par passage).
+  const PHOTO_BUDGET = 40;
+  let photoCalls = 0;
+  const applyPhoto = async (guildId: string, lieu: any) => {
+    const url = fmt(lieu.photo_url);
+    if (!url) return;
+    if (photoCalls >= PHOTO_BUDGET) { cursorBlocked = true; return; }
+    photoCalls++;
+    try {
+      const publicUrl = await importPhoto(sb, guildId, url);
+      if (publicUrl) { await sb.from("guilds").update({ logo_url: publicUrl }).eq("id", guildId); summary.photos++; }
+      else summary.photos_failed++;
+    } catch { summary.photos_failed++; }
   };
 
   let createdThisRun = 0;
@@ -221,7 +367,10 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         createdThisRun++;
         summary.created++;
         const tax = taxonomyFor(lieu);
+        const town = await locateTown(lieu, tax.region, tax.country);
+        if (town === "budget") { summary.geocode_remaining++; cursorBlocked = true; }
         if (opts.dryRun) continue;
+        if (town && town !== "budget" && town.id) tax.territoryIds = [town.id, ...tax.territoryIds.filter((id) => id !== town.id)];
 
         const { data: guild, error: gErr } = await sb.from("guilds").insert({
           name: String(lieu.tiers_lieu).slice(0, 200),
@@ -239,6 +388,7 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         await sb.from("guild_members").insert({ guild_id: guild.id, user_id: agentUserId, role: "ADMIN" });
 
         await applyTaxonomy(guild.id, tax, false);
+        await applyPhoto(guild.id, lieu);
 
         const { data: inserted } = await sb.from("agent_external_refs")
           .insert({ agent_id: agent.id, external_id: lieu.space2_id, entity_type: "guild", entity_id: guild.id })
@@ -252,10 +402,13 @@ async function syncAgent(sb: any, agent: any, opts: { dryRun: boolean; maxCreate
         if (linkRes.ok) summary.linked++; else err(`link ${lieu.space2_id} → ${linkRes.status}`);
       } else if (!opts.dryRun) {
         // Mise à jour de la description tant que la fiche n'est pas revendiquée.
-        const { data: guild } = await sb.from("guilds").select("id, claimed_at, auto_created_by_agent_id, is_deleted").eq("id", ref.entity_id).maybeSingle();
+        const { data: guild } = await sb.from("guilds").select("id, claimed_at, auto_created_by_agent_id, is_deleted, logo_url").eq("id", ref.entity_id).maybeSingle();
         if (guild && !guild.claimed_at && guild.auto_created_by_agent_id === agent.id && !guild.is_deleted) {
           await sb.from("guilds").update({ description: describeLieu(lieu, agent.name) }).eq("id", guild.id);
-          await applyTaxonomy(guild.id, taxonomyFor(lieu), true);
+          const tax = taxonomyFor(lieu);
+          await applyTaxonomy(guild.id, tax, true);
+          await ensureTown(guild.id, lieu, tax);
+          if (!guild.logo_url) await applyPhoto(guild.id, lieu);
           summary.updated++;
         }
       }

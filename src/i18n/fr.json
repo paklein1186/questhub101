@@ -4224,7 +4224,8 @@
     "edit": "Modifier",
     "syncUnmatched": "Lieux sans équivalent dans changethegame : {{list}}.",
     "syncRemaining": "Il en reste {{count}} à traiter : relancez la synchro.",
-    "detach": "Retirer de cet espace (l'agent reste dans le catalogue)"
+    "detach": "Retirer de cet espace (l'agent reste dans le catalogue)",
+    "syncNewTerritories": "Nouveaux territoires : {{list}}."
   },
   "agentOverview": {
     "published": "Publié",
