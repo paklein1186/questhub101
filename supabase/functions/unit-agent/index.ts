@@ -212,7 +212,7 @@ How to use them:
 const normName = (v: string) => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 
 /** Relays a question to an attached agent through unit-agent-chat, with the user's own token (rights, free usage and billing apply). */
-async function consultAgent(consultable: Consultable[], args: any, entityType: string, entityId: string, authHeader: string) {
+async function consultAgent(consultable: Consultable[], args: any, entityType: string, entityId: string, authHeader: string, language?: string) {
   const question = String(args?.question ?? "").trim();
   if (!question) return { error: "question is required" };
   const wanted = normName(String(args?.agent_name ?? ""));
@@ -230,8 +230,8 @@ async function consultAgent(consultable: Consultable[], args: any, entityType: s
       const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/unit-agent-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: authHeader },
-        body: JSON.stringify({ agentId: match.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }] }),
-        signal: AbortSignal.timeout(50_000),
+        body: JSON.stringify({ agentId: match.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }], language }),
+        signal: AbortSignal.timeout(65_000),
       });
       const ct = res.headers.get("content-type") || "";
       if (res.ok && ct.includes("text/event-stream")) {
@@ -733,7 +733,7 @@ serve(async (req) => {
         let args: any = {};
         try { args = JSON.parse(tc.function.arguments || "{}"); } catch { /* ignore */ }
         const result = tc.function.name === "consult_agent"
-          ? await consultAgent(consultable, args, entityType, entityId, authHeader)
+          ? await consultAgent(consultable, args, entityType, entityId, authHeader, language)
           : { error: `Unknown tool ${tc.function.name}` };
         if ((result as any).agent && !(result as any).error && !consulted.includes((result as any).agent)) consulted.push((result as any).agent);
         aiMessages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 12000) });

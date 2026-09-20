@@ -31,6 +31,7 @@ serve(async (req) => {
     const unitType = typeof body.unitType === "string" ? body.unitType : "";
     const unitId = typeof body.unitId === "string" ? body.unitId : "";
     const messages = Array.isArray(body.messages) ? body.messages : [];
+    const reqLanguage = typeof body.language === "string" && /^[a-z]{2}(-[A-Za-z]{2})?$/.test(body.language) ? body.language : null;
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const allowedUnitTypes = new Set(["guild", "pod", "quest"]);
@@ -379,9 +380,9 @@ Respond helpfully based on this context. If you don't know something specific ab
           headers: webhookHeaders,
           body: JSON.stringify({
             messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
-            context: { unit_type: unitType, unit_id: unitId, unit_context: headerContext, agent_id: agentId, user_id: user.id },
+            context: { unit_type: unitType, unit_id: unitId, unit_context: headerContext, agent_id: agentId, user_id: user.id, language: reqLanguage, channel: "changethegame" },
           }),
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(55_000),
         });
 
         // Update health

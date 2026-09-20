@@ -351,7 +351,7 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
   agent: any; unitType: string; unitId: string; unitName: string; freeForMe: boolean | "maybe";
 }) {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [needsTopUp, setNeedsTopUp] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -404,6 +404,7 @@ export function UnitAgentChat({ agent, unitType, unitId, unitName, freeForMe }: 
           unitType,
           unitId,
           messages: allMessages,
+          language: i18n.language,
         }),
       });
 

@@ -383,7 +383,7 @@ async function executeToolCall(
   userId: string,
   sb: any,
   authHeader?: string,
-  pageCtx?: { type?: string; id?: string }
+  pageCtx?: { type?: string; id?: string; language?: string }
 ): Promise<any> {
   switch (toolName) {
     case "get_user_profile": {
@@ -881,8 +881,8 @@ async function executeToolCall(
           const res = await fetch(`${supabaseUrl}/functions/v1/unit-agent-chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: authHeader },
-            body: JSON.stringify({ agentId: target.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }] }),
-            signal: AbortSignal.timeout(50_000),
+            body: JSON.stringify({ agentId: target.agent_id, unitType: at.unit_type, unitId: at.unit_id, messages: [{ role: "user", content: question }], language: pageCtx?.language }),
+            signal: AbortSignal.timeout(65_000),
           });
           const contentType = res.headers.get("content-type") || "";
           if (res.ok && contentType.includes("text/event-stream")) {
@@ -999,7 +999,7 @@ const ROUTING_PROMPT = `
 ## AGENTS AND KNOWLEDGE — HOW TO ROUTE A QUESTION
 You are the front door to the platform's specialised AI agents, and you can chain several tool calls in a row.
 - NEVER say "I have no information" or "I cannot interact with agents" before trying: search_site (it covers guilds, quests, territories, services, courses AND published agents), then list_my_active_agents.
-- If the user names an agent (for example "Space2") or asks about a domain an agent covers (for example third places / tiers-lieux, which Space2 knows), call consult_agent with agent_name and a self-contained question, then relay its answer faithfully. Say which agent answered and keep the sources it cites. Do not invent anything beyond what it returned.
+- If the user names an agent (for example "Space2") or asks about a domain an agent covers (for example third places / tiers-lieux, which Space2 knows), call consult_agent with agent_name and a self-contained question, then relay its answer faithfully. Say which agent answered and keep the sources it cites. Relay its answer in full — never shorten, summarise or flatten it unless the user asks; you may add a one-line pointer to a next question. Do not invent anything beyond what it returned.
 - If the user asks what an agent is, describe it from search_site (name, description, purpose) and offer to ask it something.
 - If consult_agent returns needs_top_up, tell the user they need more credits and link /me/credit-shop. If no agent matches, say which agents are available (available_agents) instead of guessing.
 - Follow-ups such as "an agent…" or "yes, that one" refer to the previous messages: resolve them from the conversation before asking the user to repeat.
@@ -1769,7 +1769,7 @@ serve(async (req) => {
           messages: convo,
           ...(round < MAX_TOOL_ROUNDS ? { tools: TOOLS } : {}),
           temperature: 0.4,
-          max_tokens: 2000,
+          max_tokens: 4000,
         }),
       });
 
@@ -1794,7 +1794,7 @@ serve(async (req) => {
           toolParams = JSON.parse(tc.function.arguments || "{}");
         } catch {}
 
-        const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader, { type: contextType, id: contextId });
+        const result = await executeToolCall(toolName, toolParams, userId, sb, authHeader, { type: contextType, id: contextId, language });
         toolResults.push({ tool: toolName, result });
 
         await sb.from("pi_tool_logs").insert({
