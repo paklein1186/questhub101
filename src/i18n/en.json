@@ -4042,5 +4042,20 @@
     "loading": "Loading opportunities…",
     "empty": "No opportunities match your filters.",
     "clearFilters": "Clear filters"
+  },
+  "profileAgents": {
+    "tab": "Agentic",
+    "intro": "The AI agents you can use: the ones you hired yourself, and those attached to the guilds, pods and quests you belong to.",
+    "browse": "Browse agents",
+    "manage": "Manage my hires",
+    "hiredTitle": "Hired by me",
+    "hiredEmpty": "You haven't hired any agent yet.",
+    "viaUnitsTitle": "Through my guilds and projects",
+    "viaUnitsEmpty": "None of your guilds, pods or quests has an agent attached yet.",
+    "via": {
+      "guild": "Via guild {{name}}",
+      "pod": "Via pod {{name}}",
+      "quest": "Via quest {{name}}"
+    }
   }
 }

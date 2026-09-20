@@ -37,6 +37,7 @@ import { XP_LEVEL_THRESHOLDS, LEVEL_LABELS, computeLevelFromXp } from "@/lib/xpC
 import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { ProfileAgentsTab } from "@/components/profile/ProfileAgentsTab";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
@@ -55,7 +56,7 @@ import { GraphView } from "@/components/graph/GraphView";
 
 import { ProfileCTGStats } from "@/components/ctg/CTGIntegrationWidgets";
 import { LivingTab } from "@/components/living/LivingTab";
-import { Leaf } from "lucide-react";
+import { Leaf, Bot } from "lucide-react";
 import { MyContributionsSummary } from "@/components/ocu/MyContributionsSummary";
 
 // ─── Persona badge helper ──────────────────────────────────
@@ -442,7 +443,7 @@ export default function UserProfile() {
   const { data: followedQuestsCount = 0 } = useFollowedEntityCount(id, "QUEST");
 
   // ─── Auto-translation ───
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const profileTrFields = useMemo(() => [
     { fieldName: "bio", originalText: profile?.bio ?? null },
   ], [profile?.bio]);
@@ -646,6 +647,7 @@ export default function UserProfile() {
           <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="contributions"><CurrencyIcon currency="coins" className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> {t("profileAgents.tab")}</TabsTrigger>}
         </TabsList>
 
         {/* ─── Overview ─── */}
@@ -1015,6 +1017,13 @@ export default function UserProfile() {
         {isOwnProfile && (
           <TabsContent value="matchmaker">
             <MatchmakerPanel matchType="user" userId={profile.userId} />
+          </TabsContent>
+        )}
+
+        {/* ─── Agents ─── */}
+        {isOwnProfile && (
+          <TabsContent value="agents">
+            <ProfileAgentsTab userId={profile.userId} />
           </TabsContent>
         )}
 

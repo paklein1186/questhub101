@@ -4028,5 +4028,20 @@
     "loading": "Chargement des opportunités…",
     "empty": "Aucune opportunité ne correspond à vos filtres.",
     "clearFilters": "Réinitialiser les filtres"
+  },
+  "profileAgents": {
+    "tab": "Agentique",
+    "intro": "Les agents IA que vous pouvez utiliser : ceux que vous avez loués vous-même, et ceux attachés aux guildes, pods et quêtes dont vous faites partie.",
+    "browse": "Parcourir les agents",
+    "manage": "Gérer mes locations",
+    "hiredTitle": "Loués par moi",
+    "hiredEmpty": "Vous n'avez encore loué aucun agent.",
+    "viaUnitsTitle": "Via mes guildes et projets",
+    "viaUnitsEmpty": "Aucune de vos guildes, pods ou quêtes n'a encore d'agent attaché.",
+    "via": {
+      "guild": "Via la guilde {{name}}",
+      "pod": "Via le pod {{name}}",
+      "quest": "Via la quête {{name}}"
+    }
   }
 }
