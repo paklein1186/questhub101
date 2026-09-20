@@ -4139,7 +4139,14 @@
     "addDataset": "Ajouter un jeu de données",
     "kindData": "Données",
     "kindInput": "Entrée",
-    "columnsPlaceholder": "Colonnes, séparées par des virgules"
+    "columnsPlaceholder": "Colonnes, séparées par des virgules",
+    "deleteAgent": "Supprimer cet agent",
+    "deleteConfirm": "L'agent disparaît pour tout le monde : catalogue, guildes, embauches. S'il a un historique d'usage, il est seulement retiré du catalogue.",
+    "deleteYes": "Oui, supprimer",
+    "deleteNo": "Annuler",
+    "deleted": "Agent supprimé",
+    "deletedUnpublished": "Agent retiré du catalogue et de tous les espaces",
+    "deleteFailed": "Impossible de supprimer l'agent"
   },
   "autoGuild": {
     "notice": "Cette fiche a été créée automatiquement à partir de {{agent}}. Si c'est votre lieu, revendiquez-la pour la gérer.",
@@ -4216,7 +4223,8 @@
     "attachBadge": "Attacher",
     "edit": "Modifier",
     "syncUnmatched": "Lieux sans équivalent dans changethegame : {{list}}.",
-    "syncRemaining": "Il en reste {{count}} à traiter : relancez la synchro."
+    "syncRemaining": "Il en reste {{count}} à traiter : relancez la synchro.",
+    "detach": "Retirer de cet espace (l'agent reste dans le catalogue)"
   },
   "agentOverview": {
     "published": "Publié",

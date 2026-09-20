@@ -4153,7 +4153,14 @@
     "addDataset": "Add a dataset",
     "kindData": "Data",
     "kindInput": "Input",
-    "columnsPlaceholder": "Columns, separated by commas"
+    "columnsPlaceholder": "Columns, separated by commas",
+    "deleteAgent": "Delete this agent",
+    "deleteConfirm": "This removes the agent for everyone: catalogue, guilds, hires. If it has usage history, it is only withdrawn from the catalogue.",
+    "deleteYes": "Yes, delete",
+    "deleteNo": "Cancel",
+    "deleted": "Agent deleted",
+    "deletedUnpublished": "Agent withdrawn from the catalogue and from all spaces",
+    "deleteFailed": "Couldn't delete the agent"
   },
   "autoGuild": {
     "notice": "This page was created automatically from {{agent}}. If this is your place, claim it to manage it.",
@@ -4230,7 +4237,8 @@
     "attachBadge": "Attach",
     "edit": "Edit",
     "syncUnmatched": "Places with no match in changethegame: {{list}}.",
-    "syncRemaining": "{{count}} more to process: run the sync again."
+    "syncRemaining": "{{count}} more to process: run the sync again.",
+    "detach": "Remove from this space (the agent stays in the catalogue)"
   },
   "agentOverview": {
     "published": "Published",

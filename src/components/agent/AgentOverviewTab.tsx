@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Bot, Shield, Zap, TrendingUp, Activity, Star, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { AgentFiche } from "@/components/agent/AgentFiche";
@@ -41,6 +41,7 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const canManage = useCanManageAgent(agent.id, user?.id);
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const { data: trustScore } = useQuery({
     queryKey: ["agent-trust-score", agent.id],
@@ -207,6 +208,7 @@ export default function AgentOverviewTab({ agent, isOwner, isAdmin }: Props) {
           onOpenChange={setEditOpen}
           userId={user.id}
           editAgent={agent}
+          onDeleted={() => navigate("/agents")}
           onCreated={() => qc.invalidateQueries({ queryKey: ["agent", agent.id] })}
         />
       )}

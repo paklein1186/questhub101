@@ -81,9 +81,10 @@ interface Props {
   onCreated?: (agentId: string) => void;
   /** Edit an existing agent instead of registering a new one. */
   editAgent?: any;
+  onDeleted?: () => void;
 }
 
-export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, attachTo, onCreated, editAgent }: Props) {
+export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, attachTo, onCreated, editAgent, onDeleted }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const isEdit = !!editAgent;
@@ -102,6 +103,7 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
   const [skills, setSkills] = useState("");
   const [category, setCategory] = useState("general");
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [ownerKey, setOwnerKey] = useState(defaultOwner ? `${defaultOwner.type}:${defaultOwner.id}` : "user");
 
   const [pricingMode, setPricingMode] = useState<"free" | "paid">("free");
@@ -306,6 +308,29 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
     for (const key of [["agent", editAgent.id], ["agent-scope", editAgent.id], ["unit-agents"], ["agents"]]) qc.invalidateQueries({ queryKey: key });
     onOpenChange(false);
     onCreated?.(editAgent.id);
+  };
+
+  const handleDelete = async () => {
+    setSaving(true);
+    // A blocked delete returns no error, only no rows: check what was actually removed.
+    const { data: removed, error } = await supabase.from("agents").delete().eq("id", editAgent.id).select("id");
+    let outcome: "deleted" | "unpublished" | "failed" = "deleted";
+    if (error || !removed?.length) {
+      // Still referenced (usage history…): withdraw it from the catalogue and from every space instead.
+      const { error: e2 } = await supabase.from("agents").update({ is_published: false }).eq("id", editAgent.id);
+      if (e2) outcome = "failed";
+      else {
+        outcome = "unpublished";
+        await supabase.from("unit_agents" as any).update({ is_active: false } as any).eq("agent_id", editAgent.id);
+      }
+    }
+    setSaving(false);
+    setConfirmDelete(false);
+    if (outcome === "failed") { toast.error(t("agentForm.deleteFailed")); return; }
+    toast.success(t(outcome === "deleted" ? "agentForm.deleted" : "agentForm.deletedUnpublished"));
+    for (const key of [["agent", editAgent.id], ["agents"], ["unit-agents"]]) qc.invalidateQueries({ queryKey: key });
+    onOpenChange(false);
+    onDeleted?.();
   };
 
   const handleCreate = async () => {
@@ -749,6 +774,24 @@ export function CreateAgentDialog({ open, onOpenChange, userId, defaultOwner, at
             <Button onClick={handleCreate} disabled={saving} className="w-full">
               {saving ? t("agents.creating") : isEdit ? t("agentForm.saveChanges") : t("agents.createAgent")}
             </Button>
+
+            {isEdit && (
+              <div className="rounded-lg border border-destructive/30 p-3 space-y-2">
+                {!confirmDelete ? (
+                  <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {t("agentForm.deleteAgent")}
+                  </Button>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">{t("agentForm.deleteConfirm")}</p>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="destructive" size="sm" disabled={saving} onClick={handleDelete}>{t("agentForm.deleteYes")}</Button>
+                      <Button type="button" variant="outline" size="sm" disabled={saving} onClick={() => setConfirmDelete(false)}>{t("agentForm.deleteNo")}</Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

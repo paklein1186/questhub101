@@ -221,6 +221,7 @@ export function UnitAgentsTab({ unitType, unitId, unitName, isAdmin, parentGuild
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive"
+                    title={t("agentsUi.detach")}
                     onClick={(e) => {
                       e.stopPropagation();
                       removeAgent.mutate(ua.id);
