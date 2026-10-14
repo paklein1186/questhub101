@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useSpokenLanguages } from "@/hooks/useSpokenLanguages";
 
-/** Proper-noun fields: never machine-translated (guild, company and quest names). */
-export const NEVER_TRANSLATED = new Set(["name", "title"]);
+/** Entity names (guilds, companies, pods…) are proper nouns: never machine-translated. Titles (quests…) are. */
+export const NEVER_TRANSLATED = new Set(["name"]);
 
 interface TranslatedContent {
   translatedText: string | null;
@@ -145,7 +145,7 @@ export function useContentTranslations(
 
   const result: Record<string, { text: string | null; isTranslated: boolean; isAuto: boolean; displayLanguage: string | null }> = {};
   for (const f of fields) {
-    // Names and titles are proper nouns: shown as written, never translated.
+    // Entity names are proper nouns: shown as written, never translated.
     if (NEVER_TRANSLATED.has(f.fieldName)) {
       result[f.fieldName] = { text: f.originalText ?? null, isTranslated: false, isAuto: false, displayLanguage: null };
       continue;
