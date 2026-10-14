@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { detectLanguage } from "@/lib/detectLanguage";
+import { NEVER_TRANSLATED } from "@/hooks/useContentTranslation";
 
 /**
  * Auto-triggers translation for multiple fields of an entity when its text is not in the
@@ -37,10 +38,9 @@ export function useAutoTranslateEntity(
 
     for (const f of fields) {
       const key = `${entityId}:${f.fieldName}:${lang}`;
-      if (!f.originalText) continue;
+      if (!f.originalText || NEVER_TRANSLATED.has(f.fieldName)) continue;
       const detected = detectLanguage(f.originalText);
       if (lang === "en") {
-        if (f.fieldName === "name" || f.fieldName === "title") continue;
         if (detected === null || detected === "en") continue;
       } else if (detected === lang) continue;
       if (translations[f.fieldName]?.isTranslated) continue;
