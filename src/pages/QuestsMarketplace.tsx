@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { GuestContentGate } from "@/components/GuestContentGate";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
 import { useExploreGridDensity } from "@/pages/ExploreHub";
+import { useQuestHostsBatch } from "@/hooks/useQuestHosts";
+import { QuestHostChips } from "@/components/quest/QuestHostChips";
 import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
@@ -143,6 +145,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
   }), filters.sortBy);
 
 
+  const { data: hostsByQuest } = useQuestHostsBatch(filtered.map((q: any) => q.id));
   return (
     <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -196,6 +199,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
               <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
                 <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} name={quest.title} height="h-32" />
                 <div className="p-5">
+                  <div className="mb-2"><QuestHostChips hosts={hostsByQuest?.[quest.id]} /></div>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-display font-semibold">{quest.title}</h3>

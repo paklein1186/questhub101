@@ -154,3 +154,36 @@ export function useRemoveQuestHost() {
     },
   });
 }
+
+/** Hosts of many quests in one go (cards in lists), resolved to names and logos. */
+export function useQuestHostsBatch(questIds: string[]) {
+  const key = [...new Set(questIds)].sort();
+  return useQuery({
+    queryKey: ["quest-hosts-batch", key.join(",")],
+    enabled: key.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data: rows } = await supabase.from("quest_hosts").select("*").in("quest_id", key);
+      const hosts = (rows ?? []) as QuestHost[];
+      const guildIds = [...new Set(hosts.filter(h => h.entity_type === "GUILD").map(h => h.entity_id))];
+      const companyIds = [...new Set(hosts.filter(h => h.entity_type === "COMPANY").map(h => h.entity_id))];
+      const names: Record<string, { name: string; logo_url: string | null }> = {};
+      if (guildIds.length) {
+        const { data } = await supabase.from("guilds").select("id, name, logo_url").in("id", guildIds);
+        (data ?? []).forEach(g => { names[`GUILD:${g.id}`] = { name: g.name, logo_url: g.logo_url }; });
+      }
+      if (companyIds.length) {
+        const { data } = await supabase.from("companies").select("id, name, logo_url").in("id", companyIds);
+        (data ?? []).forEach(c => { names[`COMPANY:${c.id}`] = { name: c.name, logo_url: c.logo_url }; });
+      }
+      const byQuest: Record<string, ResolvedHost[]> = {};
+      for (const h of hosts) {
+        const n = names[`${h.entity_type}:${h.entity_id}`];
+        if (!n) continue;
+        (byQuest[h.quest_id] ??= []).push({ ...h, name: n.name, logo_url: n.logo_url });
+      }
+      for (const list of Object.values(byQuest)) list.sort((a, b) => (a.role === "PRIMARY" ? 0 : 1) - (b.role === "PRIMARY" ? 0 : 1));
+      return byQuest;
+    },
+  });
+}

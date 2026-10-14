@@ -89,6 +89,8 @@ import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
 import { GuildContributionMap } from "@/components/ocu/GuildContributionMap";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
+import { useQuestHostsBatch } from "@/hooks/useQuestHosts";
+import { QuestThumbnail } from "@/components/quest/QuestHostChips";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 import { GuildCTGStat } from "@/components/ctg/CTGIntegrationWidgets";
 import { translateTopicName, translateEntityType } from "@/lib/entityLabels";
@@ -351,6 +353,16 @@ export default function GuildDetail() {
   const trName = (guildTr.name?.isTranslated ? guildTr.name.text : null) ?? guild?.name;
   const trDesc = (guildTr.description?.isTranslated ? guildTr.description.text : null) ?? guild?.description;
 
+  // The three most recent quests (own, hosted or co-hosted), shown as thumbnails with their hosts.
+  const recentQuests = useMemo(
+    () => [...(guildQuests || [])]
+      .filter((q: any) => !q.is_draft && !q.is_deleted)
+      .sort((a: any, b: any) => String(b.created_at).localeCompare(String(a.created_at)))
+      .slice(0, 3),
+    [guildQuests],
+  );
+  const { data: recentHosts } = useQuestHostsBatch(recentQuests.map((q: any) => q.id));
+
   if (isLoading) return <PageShell><p>{t("guildHeader.loading")}</p></PageShell>;
   if (!guild) return <PageShell><p>{t("guildHeader.notFound")}</p></PageShell>;
   if (guild.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>{t("guildHeader.removed")}</p></PageShell>;
@@ -578,6 +590,18 @@ export default function GuildDetail() {
                 <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}>
                   <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{trDesc}</p>
                 </GuestContentGate>
+              </div>
+            </div>
+          )}
+
+          {recentQuests.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display font-semibold">{t("guildOverview.recentQuests")}</h3>
+                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setActiveTab("work")}>{t("guildOverview.seeAll")}</Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {recentQuests.map((q: any) => <QuestThumbnail key={q.id} quest={q} hosts={recentHosts?.[q.id]} />)}
               </div>
             </div>
           )}

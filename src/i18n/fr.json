@@ -4385,5 +4385,14 @@
       "participants_one": "{{count}} participant",
       "participants_other": "{{count}} participants"
     }
+  },
+  "questHosts": {
+    "hostedBy": "Porté par",
+    "hostedByMany": "Porté par",
+    "noHost": "Aucun porteur"
+  },
+  "guildOverview": {
+    "recentQuests": "Quêtes récentes",
+    "seeAll": "Tout voir"
   }
 }
