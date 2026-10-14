@@ -45,6 +45,9 @@ interface Option { label: string; description?: string }
 
 interface Props {
   guildId: string;
+  /** Defaults to the guild; set for decisions that belong to another entity (a quest). */
+  entityType?: string;
+  entityId?: string;
   isAdmin: boolean;
   isMember: boolean;
   currentUserId: string;
@@ -69,8 +72,9 @@ const STATUS_COLORS: Record<DecisionStatus, string> = {
 };
 
 /* ───────── Component ───────── */
-export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig, permissionContext }: Props & { permissionContext?: import("@/lib/permissions").PermissionContext }) {
+export function GuildDecisions({ guildId, entityType = "GUILD", entityId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig, permissionContext }: Props & { permissionContext?: import("@/lib/permissions").PermissionContext }) {
   const { t } = useTranslation();
+  const ownerId = entityId ?? guildId;
   const { toast } = useToast();
   const qc = useQueryClient();
   const { notifyDecisionCreated } = useNotifications();
@@ -80,13 +84,13 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 
   // ── Fetch decisions ──
   const { data: decisions = [], isLoading } = useQuery({
-    queryKey: ["guild-decisions", guildId],
+    queryKey: ["guild-decisions", entityType, ownerId],
     queryFn: async () => {
       const { data } = await supabase
         .from("decision_polls")
         .select("*")
-        .eq("entity_type", "GUILD")
-        .eq("entity_id", guildId)
+        .eq("entity_type", entityType)
+        .eq("entity_id", ownerId)
         .order("created_at", { ascending: false });
       return (data || []) as any[];
     },
@@ -123,7 +127,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{t("guildDecisions.createDecision")}</DialogTitle></DialogHeader>
-              <CreateDecisionForm guildId={guildId} userId={currentUserId} onCreated={() => { setCreateOpen(false); qc.invalidateQueries({ queryKey: ["guild-decisions", guildId] }); }} />
+              <CreateDecisionForm guildId={guildId} entityType={entityType} entityId={ownerId} userId={currentUserId} onCreated={() => { setCreateOpen(false); qc.invalidateQueries({ queryKey: ["guild-decisions", entityType, ownerId] }); }} />
             </DialogContent>
           </Dialog>
         )}
@@ -151,7 +155,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
               currentUserRole={currentUserRole}
               memberCount={memberCount}
               guildId={guildId}
-              onRefresh={() => qc.invalidateQueries({ queryKey: ["guild-decisions", guildId] })}
+              onRefresh={() => qc.invalidateQueries({ queryKey: ["guild-decisions", entityType, ownerId] })}
               permissionContext={permissionContext}
             />
           </motion.div>
@@ -168,7 +172,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 }
 
 /* ═══════════ Create Form ═══════════ */
-function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; userId: string; onCreated: () => void }) {
+function CreateDecisionForm({ guildId, entityType, entityId, userId, onCreated }: { guildId: string; entityType: string; entityId: string; userId: string; onCreated: () => void }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { notifyDecisionCreated } = useNotifications();
@@ -205,8 +209,8 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
           : [{ id: 0, label: "I consent" }, { id: 1, label: "I object" }];
 
       const { error } = await supabase.from("decision_polls").insert({
-        entity_type: "GUILD",
-        entity_id: guildId,
+        entity_type: entityType,
+        entity_id: entityId,
         created_by: userId,
         question: title.trim(),
         description: description.trim() || null,
@@ -232,7 +236,7 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
     onSuccess: () => {
       toast({ title: saveAsDraft ? t("guildDecisions.toast.savedDraft") : t("guildDecisions.toast.createdOpened") });
       // Notify members (fire-and-forget)
-      if (!saveAsDraft) {
+      if (!saveAsDraft && entityType === "GUILD") {
         (async () => {
           try {
             const { data: guild } = await supabase.from("guilds").select("name").eq("id", guildId).maybeSingle();
@@ -546,7 +550,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
           body: `A member responded to "${truncQ}"`,
           related_entity_type: decision.entity_type,
           related_entity_id: decision.entity_id,
-          deep_link_url: `/${decision.entity_type === "COMPANY" ? "companies" : "guilds"}/${decision.entity_id}?tab=decisions&decision=${decision.id}`,
+          deep_link_url: `/${decision.entity_type === "COMPANY" ? "companies" : decision.entity_type === "QUEST" ? "quests" : "guilds"}/${decision.entity_id}?tab=decisions&decision=${decision.id}`,
         } as any).then(undefined, () => {});
       }
     }

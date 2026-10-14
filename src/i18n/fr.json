@@ -4355,5 +4355,35 @@
       "pod": "Pod",
       "quest": "Quête"
     }
+  },
+  "questActivity": {
+    "overview": "Vue d'ensemble",
+    "updates": "Mises à jour",
+    "discussion": "Discussion",
+    "rituals": "Rituels",
+    "decisions": "Décisions",
+    "opportunities": "Opportunités",
+    "documents": "Documents",
+    "decisionsMembersOnly": "Les décisions sont ouvertes aux participants de la quête.",
+    "alive": {
+      "nextMeeting": "Prochaine rencontre",
+      "noMeeting": "Aucune rencontre prévue",
+      "decision": "Décision en cours",
+      "noDecision": "Aucune décision ouverte",
+      "closes": "se clôt {{when}}",
+      "openVote": "vote ouvert",
+      "moreCount": "{{count}} autre(s)",
+      "lastUpdate": "Dernière mise à jour",
+      "noUpdate": "Aucune mise à jour pour l'instant",
+      "lastDiscussion": "Dernière discussion",
+      "noDiscussion": "Aucune discussion pour l'instant",
+      "opportunities": "Opportunités",
+      "noOpportunity": "Rien de recherché pour l'instant",
+      "openNeeds_one": "{{count}} besoin ouvert",
+      "openNeeds_other": "{{count}} besoins ouverts",
+      "team": "Équipe",
+      "participants_one": "{{count}} participant",
+      "participants_other": "{{count}} participants"
+    }
   }
 }

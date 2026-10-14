@@ -4369,5 +4369,35 @@
       "pod": "Pod",
       "quest": "Quest"
     }
+  },
+  "questActivity": {
+    "overview": "Overview",
+    "updates": "Updates",
+    "discussion": "Discussion",
+    "rituals": "Rituals",
+    "decisions": "Decisions",
+    "opportunities": "Opportunities",
+    "documents": "Documents",
+    "decisionsMembersOnly": "Decisions are open to the quest's participants.",
+    "alive": {
+      "nextMeeting": "Next meeting",
+      "noMeeting": "No meeting planned",
+      "decision": "Decision in progress",
+      "noDecision": "No open decision",
+      "closes": "closes {{when}}",
+      "openVote": "open for votes",
+      "moreCount": "{{count}} more",
+      "lastUpdate": "Latest update",
+      "noUpdate": "No update yet",
+      "lastDiscussion": "Latest discussion",
+      "noDiscussion": "No discussion yet",
+      "opportunities": "Opportunities",
+      "noOpportunity": "Nothing needed right now",
+      "openNeeds_one": "{{count}} open need",
+      "openNeeds_other": "{{count}} open needs",
+      "team": "Team",
+      "participants_one": "{{count}} participant",
+      "participants_other": "{{count}} participants"
+    }
   }
 }

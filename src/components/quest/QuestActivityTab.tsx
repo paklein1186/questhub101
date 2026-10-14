@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GuildDecisions } from "@/components/guild/GuildDecisions";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar, Lightbulb } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Megaphone, BookOpen, MoreHorizontal, Pencil, Calendar, Lightbulb, LayoutDashboard, Vote, FileText } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { CommentThread } from "@/components/CommentThread";
 import { AttachmentList } from "@/components/AttachmentUpload";
 import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
@@ -38,6 +42,8 @@ interface QuestActivityTabProps {
   onEditUpdate: (update: any) => void;
   onDeleteUpdate: (updateId: string) => void;
   onTogglePin: (updateId: string, currentPinned: boolean) => void;
+  /** Documents and links of the quest, rendered as a sub-tab. */
+  documentsSlot?: React.ReactNode;
 }
 
 export function QuestActivityTab({
@@ -55,93 +61,37 @@ export function QuestActivityTab({
   onEditUpdate,
   onDeleteUpdate,
   onTogglePin,
+  documentsSlot,
 }: QuestActivityTabProps) {
-  const [discussionOpen, setDiscussionOpen] = useState(false);
-  const [ritualsOpen, setRitualsOpen] = useState(false);
-  const [opportunitiesOpen, setOpportunitiesOpen] = useState(false);
-
+  const { t } = useTranslation();
+  const [sub, setSub] = useState("overview");
   const guild = quest.guilds;
+  const canPost = isOwner || isParticipant || false;
 
   return (
     <div className="mt-6 space-y-4">
-      {/* ─── Side Panel Buttons ─── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {canPostUpdate && (
-          <Button size="sm" onClick={onOpenUpdateDialog}>
-            <Send className="h-4 w-4 mr-1" /> Post Update
-          </Button>
-        )}
+      <Tabs value={sub} onValueChange={setSub}>
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="overview"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> {t("questActivity.overview")}</TabsTrigger>
+          <TabsTrigger value="updates"><Send className="h-3.5 w-3.5 mr-1" /> {t("questActivity.updates")}</TabsTrigger>
+          <TabsTrigger value="discussion"><MessageCircle className="h-3.5 w-3.5 mr-1" /> {t("questActivity.discussion")}</TabsTrigger>
+          {qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> {t("questActivity.rituals")}</TabsTrigger>}
+          <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 mr-1" /> {t("questActivity.decisions")}</TabsTrigger>
+          <TabsTrigger value="opportunities"><Lightbulb className="h-3.5 w-3.5 mr-1" /> {t("questActivity.opportunities")}</TabsTrigger>
+          {documentsSlot && <TabsTrigger value="documents"><FileText className="h-3.5 w-3.5 mr-1" /> {t("questActivity.documents")}</TabsTrigger>}
+        </TabsList>
 
-        <Sheet open={discussionOpen} onOpenChange={setDiscussionOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm" variant="outline">
-              <MessageCircle className="h-4 w-4 mr-1" /> Discussion
+        <TabsContent value="overview" className="mt-4">
+          <QuestAlivePanel quest={quest} updates={updates} participants={participants} qfc={qfc} canPostUpdate={canPostUpdate}
+            onOpenUpdateDialog={onOpenUpdateDialog} goTo={setSub} />
+        </TabsContent>
+
+        <TabsContent value="updates" className="mt-4 space-y-4">
+          {canPostUpdate && (
+            <Button size="sm" onClick={onOpenUpdateDialog}>
+              <Send className="h-4 w-4 mr-1" /> Post Update
             </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Discussion</SheetTitle>
-              <SheetDescription>Quest discussion rooms and threads</SheetDescription>
-            </SheetHeader>
-            <div className="mt-4">
-              <GuildDiscussionTab
-                guildId={quest.guild_id || quest.id}
-                guildName={guild?.name || quest.title}
-                isAdmin={isOwner}
-                isMember={isParticipant || false}
-                canPost={isOwner || isParticipant || false}
-                initialTerritoryIds={territories.map((t: any) => t.id)}
-                initialTopicIds={topics.map((t: any) => t.id)}
-                scopeType="QUEST"
-                scopeId={quest.id}
-                membership={isOwner ? { role: "ADMIN" } : isParticipant ? { role: "MEMBER" } : undefined}
-                currentUserId={currentUser.id}
-              />
-              <div className="mt-4">
-                <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {qfc.rituals && (
-          <Sheet open={ritualsOpen} onOpenChange={setRitualsOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Calendar className="h-4 w-4 mr-1" /> Rituals
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Rituals</SheetTitle>
-                <SheetDescription>Recurring meetings and ceremonies</SheetDescription>
-              </SheetHeader>
-              <div className="mt-4">
-                <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
-              </div>
-            </SheetContent>
-          </Sheet>
-        )}
-
-        <Sheet open={opportunitiesOpen} onOpenChange={setOpportunitiesOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm" variant="outline">
-              <Lightbulb className="h-4 w-4 mr-1" /> Opportunities
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Opportunities</SheetTitle>
-              <SheetDescription>What this quest needs</SheetDescription>
-            </SheetHeader>
-            <div className="mt-4">
-              <QuestNeedsManager questId={quest.id} questOwnerId={quest.created_by_user_id} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* ─── Updates Feed ─── */}
+          )}
       {(updates || []).length === 0 && (
         <div className="text-center py-10">
           <p className="text-muted-foreground">No updates yet.</p>
@@ -231,6 +181,179 @@ export function QuestActivityTab({
           </motion.div>
         );
       })}
+        </TabsContent>
+
+        <TabsContent value="discussion" className="mt-4">
+          <GuildDiscussionTab
+            guildId={quest.guild_id || quest.id}
+            guildName={guild?.name || quest.title}
+            isAdmin={isOwner}
+            isMember={isParticipant || false}
+            canPost={canPost}
+            initialTerritoryIds={territories.map((t: any) => t.id)}
+            initialTopicIds={topics.map((t: any) => t.id)}
+            scopeType="QUEST"
+            scopeId={quest.id}
+            membership={isOwner ? { role: "ADMIN" } : isParticipant ? { role: "MEMBER" } : undefined}
+            currentUserId={currentUser.id}
+          />
+          <div className="mt-4">
+            <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
+          </div>
+        </TabsContent>
+
+        {qfc.rituals && (
+          <TabsContent value="rituals" className="mt-4">
+            <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
+          </TabsContent>
+        )}
+
+        <TabsContent value="decisions" className="mt-4">
+          {isParticipant || isOwner ? (
+            <GuildDecisions
+              guildId={quest.guild_id || quest.id}
+              entityType="QUEST"
+              entityId={quest.id}
+              isAdmin={isOwner}
+              isMember={isParticipant || isOwner}
+              currentUserId={currentUser.id}
+              memberCount={Math.max(1, participants.length)}
+              currentUserRole={isOwner ? "ADMIN" : "MEMBER"}
+            />
+          ) : (
+            <p className="text-muted-foreground text-sm">{t("questActivity.decisionsMembersOnly")}</p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="opportunities" className="mt-4">
+          <QuestNeedsManager questId={quest.id} questOwnerId={quest.created_by_user_id} />
+        </TabsContent>
+
+        {documentsSlot && <TabsContent value="documents" className="mt-4">{documentsSlot}</TabsContent>}
+      </Tabs>
+    </div>
+  );
+}
+
+/** What is alive in the quest right now, each card leading to its sub-tab. */
+function QuestAlivePanel({ quest, updates, participants, qfc, canPostUpdate, onOpenUpdateDialog, goTo }: {
+  quest: any; updates: any[]; participants: any[]; qfc: { rituals: boolean };
+  canPostUpdate: boolean; onOpenUpdateDialog: () => void; goTo: (tab: string) => void;
+}) {
+  const { t } = useTranslation();
+  const nowIso = new Date().toISOString();
+
+  const { data: live, isLoading } = useQuery({
+    queryKey: ["quest-alive", quest.id],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const [ritual, occurrence, decision, discussion, needs] = await Promise.all([
+        qfc.rituals
+          ? supabase.from("rituals").select("id, title, next_occurrence").eq("quest_id", quest.id).eq("is_active", true).gte("next_occurrence", nowIso).order("next_occurrence", { ascending: true }).limit(1)
+          : Promise.resolve({ data: [] as any[] }),
+        qfc.rituals
+          ? supabase.from("ritual_occurrences").select("id, scheduled_at, rituals!inner(title, quest_id)").eq("rituals.quest_id", quest.id).gte("scheduled_at", nowIso).order("scheduled_at", { ascending: true }).limit(1)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from("decision_polls").select("id, question, closes_at, status").eq("entity_type", "QUEST").eq("entity_id", quest.id).eq("status", "OPEN").order("closes_at", { ascending: true, nullsFirst: false }).limit(3),
+        supabase.from("feed_posts").select("id, content, created_at").eq("context_type", "QUEST_DISCUSSION").eq("context_id", quest.id).eq("is_deleted", false).order("created_at", { ascending: false }).limit(1),
+        supabase.from("quest_needs").select("id, title, status").eq("quest_id", quest.id).in("status", ["open", "OPEN", "in_progress", "IN_PROGRESS"]).limit(5),
+      ]);
+      const r = (ritual.data ?? [])[0] as any;
+      const o = (occurrence.data ?? [])[0] as any;
+      const nextMeeting = [
+        r?.next_occurrence ? { title: r.title as string, at: r.next_occurrence as string } : null,
+        o?.scheduled_at ? { title: (o.rituals?.title ?? "") as string, at: o.scheduled_at as string } : null,
+      ].filter(Boolean).sort((a: any, b: any) => a.at.localeCompare(b.at))[0] as { title: string; at: string } | undefined;
+      return {
+        nextMeeting,
+        decisions: (decision.data ?? []) as any[],
+        discussion: ((discussion.data ?? [])[0] ?? null) as any,
+        needs: (needs.data ?? []) as any[],
+      };
+    },
+  });
+
+  const latestUpdate = (updates || []).find((u: any) => !u.is_draft) ?? (updates || [])[0];
+  const when = (iso: string) => formatDistanceToNow(new Date(iso), { addSuffix: true });
+  const snippet = (text: string, n = 110) => (text.length > n ? text.slice(0, n).trimEnd() + "…" : text);
+
+  const Card = ({ icon: Icon, title, tab, children, empty }: { icon: any; title: string; tab: string; children?: React.ReactNode; empty?: string }) => (
+    <button type="button" onClick={() => goTo(tab)}
+      className="text-left rounded-xl border border-border bg-card p-4 space-y-1.5 hover:border-primary/40 hover:shadow-sm transition-all">
+      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <Icon className="h-3.5 w-3.5" /> {title}
+      </div>
+      {children ?? <p className="text-sm text-muted-foreground">{empty}</p>}
+    </button>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {qfc.rituals && (
+          <Card icon={Calendar} title={t("questActivity.alive.nextMeeting")} tab="rituals" empty={isLoading ? "…" : t("questActivity.alive.noMeeting")}>
+            {live?.nextMeeting && (
+              <>
+                <p className="text-sm font-medium">{live.nextMeeting.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(live.nextMeeting.at).toLocaleString(undefined, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })} · {when(live.nextMeeting.at)}
+                </p>
+              </>
+            )}
+          </Card>
+        )}
+
+        <Card icon={Vote} title={t("questActivity.alive.decision")} tab="decisions" empty={isLoading ? "…" : t("questActivity.alive.noDecision")}>
+          {live && live.decisions.length > 0 && (
+            <>
+              <p className="text-sm font-medium">{snippet(live.decisions[0].question, 90)}</p>
+              <p className="text-xs text-muted-foreground">
+                {live.decisions[0].closes_at ? t("questActivity.alive.closes", { when: when(live.decisions[0].closes_at) }) : t("questActivity.alive.openVote")}
+                {live.decisions.length > 1 ? ` · ${t("questActivity.alive.moreCount", { count: live.decisions.length - 1 })}` : ""}
+              </p>
+            </>
+          )}
+        </Card>
+
+        <Card icon={Send} title={t("questActivity.alive.lastUpdate")} tab="updates" empty={t("questActivity.alive.noUpdate")}>
+          {latestUpdate && (
+            <>
+              <p className="text-sm font-medium">{latestUpdate.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {latestUpdate.author?.name ? `${latestUpdate.author.name} · ` : ""}{when(latestUpdate.created_at)}
+              </p>
+            </>
+          )}
+        </Card>
+
+        <Card icon={MessageCircle} title={t("questActivity.alive.lastDiscussion")} tab="discussion" empty={isLoading ? "…" : t("questActivity.alive.noDiscussion")}>
+          {live?.discussion && (
+            <>
+              <p className="text-sm">{snippet(String(live.discussion.content ?? ""))}</p>
+              <p className="text-xs text-muted-foreground">{when(live.discussion.created_at)}</p>
+            </>
+          )}
+        </Card>
+
+        <Card icon={Lightbulb} title={t("questActivity.alive.opportunities")} tab="opportunities" empty={isLoading ? "…" : t("questActivity.alive.noOpportunity")}>
+          {live && live.needs.length > 0 && (
+            <>
+              <p className="text-sm font-medium">{t("questActivity.alive.openNeeds", { count: live.needs.length })}</p>
+              <p className="text-xs text-muted-foreground">{live.needs.slice(0, 3).map((n: any) => n.title).join(" · ")}</p>
+            </>
+          )}
+        </Card>
+
+        <Card icon={Sparkles} title={t("questActivity.alive.team")} tab="updates">
+          <p className="text-sm font-medium">{t("questActivity.alive.participants", { count: participants.length })}</p>
+        </Card>
+      </div>
+
+      {canPostUpdate && (
+        <Button size="sm" onClick={onOpenUpdateDialog}>
+          <Send className="h-4 w-4 mr-1" /> Post Update
+        </Button>
+      )}
     </div>
   );
 }

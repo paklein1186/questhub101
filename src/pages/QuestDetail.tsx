@@ -1168,6 +1168,13 @@ export default function QuestDetail() {
             onEditUpdate={openEditUpdate}
             onDeleteUpdate={deleteUpdate}
             onTogglePin={togglePin}
+            documentsSlot={(
+              <div className="space-y-6">
+                <QuestExternalLinks questId={quest.id} isOwner={isOwner} />
+                <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
+                {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
+              </div>
+            )}
           />
         </TabsContent>
 
