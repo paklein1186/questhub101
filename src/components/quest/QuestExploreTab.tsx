@@ -163,49 +163,45 @@ export function QuestExploreTab({
         </section>
       )}
 
+      {/* ═══ Hosted by — always open, no accordion ═══ */}
+      {resolvedHosts && resolvedHosts.length > 0 && (
+        <section className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h3 className="font-display font-semibold">Hosted by</h3>
+              <Badge variant="secondary" className="text-xs ml-1">{resolvedHosts.length}</Badge>
+            </div>
+            {(quest.guild_id || quest.company_id) && isOwner && (
+              <QuestCoHostsManager
+                questId={quest.id}
+                primaryEntityType={quest.guild_id ? "GUILD" : quest.company_id ? "COMPANY" : undefined}
+                primaryEntityId={quest.guild_id || quest.company_id || undefined}
+                hosts={resolvedHosts}
+                canManage={isOwner}
+              />
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {resolvedHosts.map((host) => (
+              <Link
+                key={host.id}
+                to={host.entity_type === "GUILD" ? `/guilds/${host.entity_id}` : `/companies/${host.entity_id}`}
+                className="flex items-center gap-3 rounded-lg border border-border bg-background p-3 hover:border-primary/30 transition-all"
+              >
+                <Avatar className="h-9 w-9"><AvatarImage src={host.logo_url ?? undefined} /><AvatarFallback>{host.name?.[0]}</AvatarFallback></Avatar>
+                <div>
+                  <p className="text-sm font-medium">{host.name}</p>
+                  <Badge variant="outline" className="text-[10px] capitalize">{host.role === "PRIMARY" ? "Host" : "Co-host"}</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ═══ Accordion Sections ═══ */}
       <Accordion type="multiple" defaultValue={["opportunities", "participants"]} className="space-y-2">
-
-        {/* ─── Hosted by ─── */}
-        {resolvedHosts && resolvedHosts.length > 0 && (
-          <AccordionItem value="hosts" className="rounded-xl border border-border bg-card px-4">
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center gap-3">
-                <Building2 className="h-5 w-5 text-primary" />
-                <span className="font-display font-semibold">Hosted by</span>
-                <Badge variant="secondary" className="text-xs ml-1">{resolvedHosts.length}</Badge>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="flex items-center justify-end mb-3">
-                {(quest.guild_id || quest.company_id) && isOwner && (
-                  <QuestCoHostsManager
-                    questId={quest.id}
-                    primaryEntityType={quest.guild_id ? "GUILD" : quest.company_id ? "COMPANY" : undefined}
-                    primaryEntityId={quest.guild_id || quest.company_id || undefined}
-                    hosts={resolvedHosts}
-                    canManage={isOwner}
-                  />
-                )}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {resolvedHosts.map((host) => (
-                  <Link
-                    key={host.id}
-                    to={host.entity_type === "GUILD" ? `/guilds/${host.entity_id}` : `/companies/${host.entity_id}`}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-background p-3 hover:border-primary/30 transition-all"
-                  >
-                    <Avatar className="h-9 w-9"><AvatarImage src={host.logo_url ?? undefined} /><AvatarFallback>{host.name?.[0]}</AvatarFallback></Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{host.name}</p>
-                      <Badge variant="outline" className="text-[10px] capitalize">{host.role === "PRIMARY" ? "Host" : "Co-host"}</Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
 
         {/* ─── Opportunities (Needs + Contributions + Campaigns) ─── */}
         <AccordionItem value="opportunities" className="rounded-xl border border-border bg-card px-4">
