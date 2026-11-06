@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import { AgentMarkdown } from "@/components/agent/AgentMarkdown";
 import { useTranslation } from "react-i18next";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { PiActionPaths } from "@/components/assistant/PiActionPaths";
@@ -434,9 +434,7 @@ export function PiChat({ className }: PiChatProps) {
                       : "bg-muted text-foreground"
                   }`}
                 >
-                  <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1.5 [&>p:last-child]:mb-0">
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
-                  </div>
+                  <AgentMarkdown>{msg.text}</AgentMarkdown>
                 </div>
 
                 {/* Action Cards */}

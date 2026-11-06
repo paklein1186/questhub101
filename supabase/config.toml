@@ -143,3 +143,6 @@ verify_jwt = false
 
 [functions.territory-boundary]
 verify_jwt = false
+
+[functions.search-index-sync]
+verify_jwt = false

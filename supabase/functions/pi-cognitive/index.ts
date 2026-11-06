@@ -310,6 +310,22 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "search_platform",
+      description: "Semantic search across EVERYTHING on the platform: guilds, quests (with their open needs), organisations, pods, services, courses, AI agents, territories, topics and member profiles. Understands meaning, not just keywords — use it to advise someone on their path: which guild or quest to join, which people to meet, which service, course or agent could help, what already exists around a theme or place. Returns items with a ready-made markdown link. Prefer it over search_site for any advice or discovery question; call it several times with different angles when useful.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "What to look for, in natural language (any language). Be specific: a need, a theme, a place, a skill." },
+          types: { type: "array", items: { type: "string", enum: ["guild", "quest", "company", "pod", "service", "course", "agent", "territory", "topic", "profile"] }, description: "Optional: restrict to these kinds of items" },
+          limit: { type: "number", description: "Max results (default 8, up to 15)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "list_my_active_agents",
       description: "List the AI agents currently active (attached) in the user's guilds, quests and pods. Use this to know what specialized help is already available to the user before answering yourself, or to point them to the right agent.",
       parameters: { type: "object", properties: {}, required: [] },
@@ -374,6 +390,33 @@ async function listActiveAgents(sb: any, userId: string) {
     unit_id: ua.unit_id as string,
     unit_name: unitNameByKey.get(`${ua.unit_type}:${ua.unit_id}`) || null,
   }));
+}
+
+const SEARCH_LABELS: Record<string, string> = {
+  guild: "Guilde", quest: "Quête", company: "Organisation", pod: "Pod", service: "Service", course: "Cours",
+  agent: "Agent IA", territory: "Territoire", topic: "Thème", profile: "Membre",
+};
+
+/** Keys « type:id » of the private items this user may see (their guilds, quests, organisations, pods, services). */
+async function allowedSearchKeys(sb: any, userId: string): Promise<string[]> {
+  const [guilds, pods, parts, owned, companies, services, ownGuilds] = await Promise.all([
+    sb.from("guild_members").select("guild_id").eq("user_id", userId),
+    sb.from("pod_members").select("pod_id").eq("user_id", userId),
+    sb.from("quest_participants").select("quest_id").eq("user_id", userId),
+    sb.from("quests").select("id").eq("created_by_user_id", userId),
+    sb.from("company_members").select("company_id").eq("user_id", userId),
+    sb.from("services").select("id").eq("provider_user_id", userId),
+    sb.from("guilds").select("id").eq("created_by_user_id", userId),
+  ]);
+  const keys = new Set<string>();
+  for (const r of guilds.data ?? []) keys.add(`guild:${r.guild_id}`);
+  for (const r of ownGuilds.data ?? []) keys.add(`guild:${r.id}`);
+  for (const r of pods.data ?? []) keys.add(`pod:${r.pod_id}`);
+  for (const r of parts.data ?? []) keys.add(`quest:${r.quest_id}`);
+  for (const r of owned.data ?? []) keys.add(`quest:${r.id}`);
+  for (const r of companies.data ?? []) keys.add(`company:${r.company_id}`);
+  for (const r of services.data ?? []) keys.add(`service:${r.id}`);
+  return [...keys];
 }
 
 const normAgentName = (v: string) => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
@@ -842,6 +885,68 @@ async function executeToolCall(
       }
     }
 
+    case "search_platform": {
+      const query = String(params.query ?? "").trim();
+      if (query.length < 2) return { error: "query required" };
+      const limit = Math.min(Math.max(parseInt(params.limit) || 8, 1), 15);
+      const types = Array.isArray(params.types) && params.types.length ? params.types.map(String) : null;
+      const allowed = await allowedSearchKeys(sb, userId);
+
+      // Semantic and keyword search together: meaning for advice, exact words for names.
+      let semantic: any[] = [];
+      let semanticError: string | null = null;
+      try {
+        const apiKey = Deno.env.get("LOVABLE_API_KEY");
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "openai/text-embedding-3-small", input: query.slice(0, 2000) }),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!res.ok) throw new Error(`embeddings ${res.status}`);
+        const vector = (await res.json()).data[0].embedding as number[];
+        const { data, error } = await sb.rpc("match_search_index", {
+          p_query_embedding: `[${vector.join(",")}]`, p_match_count: limit * 2, p_types: types, p_allowed_keys: allowed, p_authenticated: true,
+        });
+        if (error) throw new Error(error.message);
+        semantic = data ?? [];
+      } catch (e: any) {
+        semanticError = String(e?.message ?? e);
+      }
+      const { data: keyword } = await sb.rpc("search_index_keyword", {
+        p_query: query, p_match_count: limit, p_types: types, p_allowed_keys: allowed, p_authenticated: true,
+      });
+
+      const merged = new Map<string, any>();
+      for (const r of [...semantic, ...(keyword ?? [])]) {
+        const key = `${r.entity_type}:${r.entity_id}`;
+        const prev = merged.get(key);
+        // An item found both ways ranks higher.
+        merged.set(key, prev ? { ...prev, score: Math.min(1, Math.max(prev.score, r.similarity) + 0.08) } : { ...r, score: r.similarity });
+      }
+      const results = [...merged.values()]
+        .filter((r) => r.score >= 0.25)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map((r) => ({
+          type: SEARCH_LABELS[r.entity_type] ?? r.entity_type,
+          title: r.title,
+          link: `[${String(r.title).replace(/[\[\]]/g, "")}](${r.url})`,
+          url: r.url,
+          about: String(r.body ?? "").slice(0, 260),
+          topics: (r.topics ?? []).slice(0, 5),
+          territories: (r.territories ?? []).slice(0, 4),
+          relevance: Math.round(r.score * 100) / 100,
+        }));
+      return {
+        results,
+        note: results.length === 0
+          ? "Nothing relevant indexed yet. Say so plainly; do not invent items."
+          : "Cite items with their `link` (markdown). Only mention what is in these results.",
+        ...(semanticError ? { semantic_unavailable: semanticError } : {}),
+      };
+    }
+
     case "list_my_active_agents": {
       return await listActiveAgents(sb, userId);
     }
@@ -997,6 +1102,14 @@ MULTILINGUAL RULES:
 
 const ROUTING_PROMPT = `
 
+## ADVISING WITH THE WHOLE PLATFORM
+You can search everything on the platform with search_platform: guilds, quests and their open needs, organisations, pods, services, courses, AI agents, territories, topics and member profiles. Use it whenever someone asks where to start, what to join, who to meet, what exists around a theme or a place, or how to move forward on their path.
+- Search first, advise second. Run 2–3 searches from different angles when the need is broad (the person's interest, their place, the skill they seek), then propose a short, prioritised path: what to look at first, then next steps.
+- EVERY item you mention must be a markdown link built from the tool result (use the \`link\` field, e.g. [Trois-Tiers](/guilds/…)). Never write a bare name for something you found, never invent a link, and never mention an item that is not in the results.
+- For people, say why they match (shared themes, place, skills) in one line and link their profile. Do not reveal anything beyond what the result shows.
+- Say which kind each item is (guild, quest, service…) and prefer a handful of strong suggestions over a long list.
+- If the results are thin, say so and suggest how to broaden the search or what to create.
+
 ## AGENTS AND KNOWLEDGE — HOW TO ROUTE A QUESTION
 You are the front door to the platform's specialised AI agents, and you can chain several tool calls in a row.
 - NEVER say "I have no information" or "I cannot interact with agents" before trying: search_site (it covers guilds, quests, territories, services, courses AND published agents), then list_my_active_agents.
@@ -1004,7 +1117,8 @@ You are the front door to the platform's specialised AI agents, and you can chai
 - If the user asks what an agent is, describe it from search_site (name, description, purpose) and offer to ask it something.
 - If consult_agent returns needs_top_up, tell the user they need more credits and link /me/credit-shop. If no agent matches, say which agents are available (available_agents) instead of guessing.
 - Follow-ups such as "an agent…" or "yes, that one" refer to the previous messages: resolve them from the conversation before asking the user to repeat.
-- Answer in the user's language, keep it concise, and still return the JSON format described above.`;
+- Answer in the user's language, keep it concise, and still return the JSON format described above.
+- In "message", use markdown: links [title](/path) for every item, short lists for options.`;
 
 const BASE_SYSTEM_PROMPT = `You are Pi, the AI assistant of ChangeTheGame — a regenerative ecosystem
 platform where humans collaborate to restore territories, build guilds,
