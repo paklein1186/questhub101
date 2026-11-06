@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -8581,6 +8581,54 @@ export type Database = {
           },
         ]
       }
+      search_index: {
+        Row: {
+          audience: string
+          body: string
+          content_hash: string
+          embedding: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          indexed_at: string
+          source_updated_at: string | null
+          territories: string[]
+          title: string
+          topics: string[]
+          url: string
+        }
+        Insert: {
+          audience?: string
+          body?: string
+          content_hash: string
+          embedding?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          indexed_at?: string
+          source_updated_at?: string | null
+          territories?: string[]
+          title: string
+          topics?: string[]
+          url: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          content_hash?: string
+          embedding?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          indexed_at?: string
+          source_updated_at?: string | null
+          territories?: string[]
+          title?: string
+          topics?: string[]
+          url?: string
+        }
+        Relationships: []
+      }
       service_territories: {
         Row: {
           id: string
@@ -11376,6 +11424,25 @@ export type Database = {
           title: string
         }[]
       }
+      match_search_index: {
+        Args: {
+          p_allowed_keys?: string[]
+          p_authenticated?: boolean
+          p_match_count?: number
+          p_query_embedding: string
+          p_types?: string[]
+        }
+        Returns: {
+          body: string
+          entity_id: string
+          entity_type: string
+          similarity: number
+          territories: string[]
+          title: string
+          topics: string[]
+          url: string
+        }[]
+      }
       match_territory_with_datasets: {
         Args: { p_territory_id: string }
         Returns: {
@@ -11432,6 +11499,25 @@ export type Database = {
         Returns: {
           total_released: number
           users_processed: number
+        }[]
+      }
+      search_index_keyword: {
+        Args: {
+          p_allowed_keys?: string[]
+          p_authenticated?: boolean
+          p_match_count?: number
+          p_query: string
+          p_types?: string[]
+        }
+        Returns: {
+          body: string
+          entity_id: string
+          entity_type: string
+          similarity: number
+          territories: string[]
+          title: string
+          topics: string[]
+          url: string
         }[]
       }
       set_ctg_exchange_rate: {
