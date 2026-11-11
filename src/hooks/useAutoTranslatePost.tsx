@@ -35,6 +35,8 @@ export function useAutoTranslatePost(postId: string, originalContent: string | n
   // 2. Auto-trigger translation if no cached version found
   const translateMut = useMutation({
     mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
       const { data, error } = await supabase.functions.invoke("translate-content", {
         body: {
           entityType: "FEED_POST",

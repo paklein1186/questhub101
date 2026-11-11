@@ -48,6 +48,8 @@ export function useContentTranslation(
   const translateMut = useMutation({
     mutationFn: async () => {
       if (!entityId || !originalText) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
       const { data: result, error } = await supabase.functions.invoke("translate-content", {
         body: {
           entityType,
