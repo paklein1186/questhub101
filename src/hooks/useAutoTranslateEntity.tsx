@@ -23,6 +23,8 @@ export function useAutoTranslateEntity(
 
   const translateMut = useMutation({
     mutationFn: async ({ fieldName, text }: { fieldName: string; text: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
       const { error } = await supabase.functions.invoke("translate-content", {
         body: { entityType, entityId, fieldName, text, targetLanguage: lang },
       });
