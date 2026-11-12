@@ -261,7 +261,7 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
     // Outlines can only be fetched by signed-in visitors; skip the call otherwise.
     supabase.auth.getSession()
       .then(({ data: s }) => {
-        if (!s.session) { boundaryUnavailable.current = true; return { data: null, error: true }; }
+        if (!s.session) { boundaryUnavailable.current = true; return { data: null as any, error: true }; }
         return supabase.functions.invoke("territory-boundary", { body: { territory_ids: missing.map((t) => t.id) } });
       })
       .then(({ data, error }) => {
