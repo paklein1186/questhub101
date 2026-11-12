@@ -228,9 +228,11 @@ export function TerritoryGuestPortal({
               zoom={territory.level === "TOWN" || territory.level === "LOCALITY" ? 12 : territory.level === "PROVINCE" || territory.level === "REGION" ? 8 : 5}
               scrollWheelZoom={false}
               style={{ height: "100%", width: "100%" }}
-              attributionControl={false}
             >
-              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
               <Marker
                 position={[territory.latitude, territory.longitude]}
                 icon={L.divIcon({

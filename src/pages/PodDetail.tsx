@@ -157,13 +157,13 @@ export default function PodDetail() {
         </div>
         <h1 className="font-display text-3xl font-bold">{pod.name}</h1>
         {pod.description && (
-          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mt-2">
+          <div className="rounded-xl border border-border bg-card/50 p-5 w-full max-w-5xl mt-2">
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{pod.description}</p>
           </div>
         )}
 
         {/* Unit details */}
-        <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mt-3 space-y-3">
+        <div className="rounded-xl border border-border bg-card/50 p-5 w-full max-w-5xl mt-3 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Followers</span>
             <EntityFollowersCount entityId={pod.id} entityType="POD" variant="inline" />

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { decodeHtmlEntities } from "@/lib/htmlEntities";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   UserPlus, Loader2, ArrowRight, ArrowLeft,
@@ -234,23 +235,26 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         body: { url },
       });
       if (scrapeErr) throw scrapeErr;
-      setScrapedOrg(scraped);
+      const clean = scraped
+        ? { ...scraped, name: decodeHtmlEntities(scraped.name), description: decodeHtmlEntities(scraped.description), sector: decodeHtmlEntities(scraped.sector) }
+        : scraped;
+      setScrapedOrg(clean);
 
       const [guildsRes, usersRes] = await Promise.all([
-        scraped?.name
+        clean?.name
           ? supabase
               .from("guilds")
               .select("id, name, logo_url, description")
               .eq("is_deleted", false)
               .eq("is_draft", false)
-              .ilike("name", `%${(scraped.name || "").split(/\s+/)[0]}%`)
+              .ilike("name", `%${(clean.name || "").split(/\s+/)[0]}%`)
               .limit(5)
           : Promise.resolve({ data: [] }),
-        scraped?.sector
+        clean?.sector
           ? supabase
               .from("profiles_public")
               .select("user_id, name, avatar_url, headline")
-              .ilike("headline", `%${scraped.sector.split(/\s+/)[0]}%`)
+              .ilike("headline", `%${clean.sector.split(/\s+/)[0]}%`)
               .eq("has_completed_onboarding", true)
               .limit(6)
           : Promise.resolve({ data: [] }),
@@ -723,7 +727,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-xs font-medium truncate">{g.name}</p>
-                                    <p className="text-[10px] text-muted-foreground">{g.member_count} members</p>
+                                    <p className="text-[10px] text-muted-foreground">{g.member_count} {g.member_count === 1 ? "member" : "members"}</p>
                                   </div>
                                   {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
                                 </button>

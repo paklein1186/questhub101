@@ -846,13 +846,13 @@ export default function QuestDetail() {
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
         {(questTr.description?.text || quest.description) && (
-          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+          <div className="rounded-xl border border-border bg-card/50 p-5 w-full max-w-5xl">
             <GuestContentGate
               blur
               previewText={questTr.description?.text || quest.description || ""}
               previewSentences={3}
             >
-              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{questTr.description?.text || quest.description}</p>
+              <p className="text-[15px] text-foreground/85 leading-relaxed whitespace-pre-line">{questTr.description?.text || quest.description}</p>
             </GuestContentGate>
             {questTr.description?.isTranslated && (
               <p className="text-[10px] text-muted-foreground mt-1 italic">🌐 Auto-translated</p>

@@ -1252,6 +1252,25 @@ export const ONBOARDING_FR: Record<string, string> = {
   "Powered by": "Propulsé par",
   "Made with": "Fait avec",
   "All rights reserved": "Tous droits réservés",
+  // Assistant « Commencer » (GuestOnboardingAssistant)
+  "World": "Univers",
+  "Creative Houses": "Maisons créatives",
+  "member": "membre",
+  "members": "membres",
+  "Just create my account and take me back to where I was. I'll personalize my profile later.": "Je crée simplement mon compte et je retourne là où j'étais. Je personnaliserai mon profil plus tard.",
+  "No matching communities found yet — you'll be able to create or join after signing up.": "Aucune communauté correspondante pour l'instant : vous pourrez en créer ou en rejoindre après votre inscription.",
+  "Passwords don't match": "Les mots de passe ne correspondent pas",
+  "Paste a website to discover relevant communities, people, and pre-fill services.": "Collez l'adresse d'un site pour découvrir des communautés et des personnes pertinentes, et pré-remplir vos services.",
+  "Pick up to 7 — helps us personalize your feed.": "Choisissez-en jusqu'à 7 : cela nous aide à personnaliser votre fil.",
+  "See what's possible first": "Voir d'abord ce qui est possible",
+  "We'll look for matching communities, users with similar expertise, and suggest services you could offer.": "Nous chercherons des communautés correspondantes, des personnes aux expertises proches, et vous suggérerons des services que vous pourriez proposer.",
+
+  // Secteurs détectés sur un site web
+  "Technology": "Technologie", "Education": "Éducation", "Health": "Santé", "Healthcare": "Santé", "Agriculture": "Agriculture",
+  "Culture": "Culture", "Arts": "Arts", "Arts & Culture": "Arts & Culture", "Energy": "Énergie", "Environment": "Environnement",
+  "Social": "Social", "Finance": "Finance", "Food": "Alimentation", "Nonprofit": "Association", "Non-profit": "Association",
+  "Research": "Recherche", "Media": "Médias", "Design": "Design", "Business": "Entreprise", "Consulting": "Conseil",
+  "Real Estate": "Immobilier", "Tourism": "Tourisme", "Sports": "Sport",
 };
 
 // Attribute names whose value should be translated

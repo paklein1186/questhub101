@@ -405,7 +405,7 @@ export default function ServiceDetail() {
         </div>
 
         {svc.description && (
-          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
+          <div className="rounded-xl border border-border bg-card/50 p-5 w-full max-w-5xl mb-4">
             <GuestContentGate blur previewText={svc.description} previewSentences={3}>
               <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{svc.description}</p>
             </GuestContentGate>

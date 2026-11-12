@@ -494,7 +494,7 @@ export default function GuildDetail() {
               <Badge variant="secondary" className="capitalize">{translateEntityType(guild.type || "guild", t)}</Badge>
               <span>{t("guildHeader.createdBy")} <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
-            <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}><p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{trDesc}</p></GuestContentGate>
+            <GuestContentGate blur previewText={trDesc || ""} previewSentences={3}><p className="text-muted-foreground max-w-4xl mt-2 line-clamp-3">{trDesc}</p></GuestContentGate>
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 flex-wrap">
               <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth("follow this guild", toggleFollow)}>
