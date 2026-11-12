@@ -22,6 +22,28 @@ function isBlockedHost(hostname: string): boolean {
   return BLOCKED_IP_RANGES.some((p) => p.test(h));
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", ndash: "–", mdash: "—", hellip: "…", rsquo: "’", lsquo: "‘",
+  rdquo: "”", ldquo: "“", laquo: "«", raquo: "»", eacute: "é", egrave: "è", ecirc: "ê", agrave: "à", acirc: "â", ccedil: "ç",
+  ocirc: "ô", ucirc: "û", icirc: "î", euro: "€", copy: "©",
+};
+/** Decodes HTML entities in text taken from meta tags and titles (&#8211;, &amp;, &eacute;…). */
+function decodeEntities(text: string | null): string | null {
+  if (!text) return text;
+  return text
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch { return ""; } })
+    .replace(/&#(\d+);/g, (_, d) => { try { return String.fromCodePoint(parseInt(d, 10)); } catch { return ""; } })
+    .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m);
+}
+
+/** Gate / cookie-wall texts that are not a description of the organisation (« Connect for action », « Log in »…). */
+const BOILERPLATE = /^(connect(ez-vous)?( for| pour)? ?(action|agir)?|log ?in|sign ?(in|up)|login|accept (all )?cookies?|we use cookies|enable javascript|javascript (is )?(required|disabled)|just a moment|access denied|coming soon|under construction|welcome)\W*$/i;
+function usableDescription(text: string | null): string | null {
+  const t = (text ?? "").replace(/\s+/g, " ").trim();
+  if (t.length < 25 || BOILERPLATE.test(t)) return null;
+  return t;
+}
+
 function getMetaContent(html: string, property: string): string | null {
   for (const attr of [
     `property="${property}"`, `name="${property}"`,
@@ -263,8 +285,8 @@ serve(async (req) => {
     const ogImage = getMetaContent(homeHtml, "og:image");
     const siteName = getMetaContent(homeHtml, "og:site_name");
 
-    result.name = siteName || ogTitle || titleTag?.[1]?.trim() || null;
-    result.description = ogDesc || null;
+    result.name = decodeEntities(siteName || ogTitle || titleTag?.[1]?.trim() || null);
+    result.description = usableDescription(decodeEntities(ogDesc));
     result.url = finalUrl;
 
     if (ogImage) {
@@ -310,11 +332,13 @@ serve(async (req) => {
 
     // Improve description if OG desc was missing / too short
     if (!result.description || result.description.length < 40) {
+      result.description = usableDescription(result.description);
       // Try to grab first meaningful paragraph from homepage body
       const paraMatch = homeHtml.match(/<p[^>]*>([\s\S]{60,600}?)<\/p>/i);
       if (paraMatch) {
         const cleaned = paraMatch[1].replace(/<[^>]+>/g, "").trim();
-        if (cleaned.length > 40) result.description = cleaned.slice(0, 300);
+        const para = usableDescription(decodeEntities(cleaned));
+        if (para && para.length > 40) result.description = para.slice(0, 300);
       }
     }
 
