@@ -325,7 +325,7 @@ export default function InboxPage() {
     if (!userId) return;
     try {
       if (field === "bio" || field === "headline") {
-        await supabase.from("profiles").update({ [field]: value }).eq("user_id", userId);
+        await supabase.from("profiles").update({ [field]: value } as any).eq("user_id", userId);
         toast({ title: `${field === "bio" ? "Bio" : "Headline"} updated!` });
       }
     } catch (e: any) {

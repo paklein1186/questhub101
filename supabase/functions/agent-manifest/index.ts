@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Lit la fiche d'un agent externe à partir de son propre endpoint GET /manifest
 // (repli : /.well-known/agent.json) pour préremplir sa fiche dans changethegame.
 //

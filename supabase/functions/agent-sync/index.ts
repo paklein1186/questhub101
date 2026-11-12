@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Synchronisation bidirectionnelle avec un agent externe qui expose le contrat
 // « Space2 » : GET /lieux, POST /lieux/{id}/link, POST /events, PUT /access,
 // PUT /lieux/{id}/masque. changethegame appelle l'agent ; l'agent n'a jamais

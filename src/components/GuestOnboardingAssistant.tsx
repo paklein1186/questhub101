@@ -390,7 +390,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
               profileUpdate.has_completed_onboarding = true;
               profileUpdate.onboarding_skipped = true;
             }
-            await supabase.from("profiles").update(profileUpdate).eq("user_id", uid);
+            await supabase.from("profiles").update(profileUpdate as any).eq("user_id", uid);
 
             if (topicIds.length > 0) {
               const topicRows = topicIds.map((tid: string) => ({ user_id: uid, topic_id: tid }));

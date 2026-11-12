@@ -1,3 +1,4 @@
+// @ts-nocheck
 // guild-agent — admin API for managing a guild's AI agent (RAG-based)
 // Actions:
 //   get_agent, upsert_agent

@@ -258,7 +258,12 @@ export function TerritoryMapView({ territories, scrollWheelZoom = true }: Props)
       .slice(0, 8);
     if (!missing.length) return;
     missing.forEach((t) => requestedBoundaries.current.add(t.id));
-    supabase.functions.invoke("territory-boundary", { body: { territory_ids: missing.map((t) => t.id) } })
+    // Outlines can only be fetched by signed-in visitors; skip the call otherwise.
+    supabase.auth.getSession()
+      .then(({ data: s }) => {
+        if (!s.session) { boundaryUnavailable.current = true; return { data: null as any, error: true }; }
+        return supabase.functions.invoke("territory-boundary", { body: { territory_ids: missing.map((t) => t.id) } });
+      })
       .then(({ data, error }) => {
         // Function not deployed / signed out: stop asking instead of retrying for every batch.
         if (error) { boundaryUnavailable.current = true; return; }

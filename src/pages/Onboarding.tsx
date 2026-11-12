@@ -350,7 +350,7 @@ export default function Onboarding() {
         : "GAMECHANGER";
 
       if (Object.keys(updates).length > 0) {
-        await supabase.from("profiles").update(updates).eq("user_id", authUser.id);
+        await supabase.from("profiles").update(updates as any).eq("user_id", authUser.id);
       }
 
       // Save topics incrementally
