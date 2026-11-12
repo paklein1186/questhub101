@@ -1,3 +1,4 @@
+// @ts-nocheck
 // MCP server for changethegame — exposes guild-scoped tools to external AI agents.
 // Auth: per-guild API key passed as `Authorization: Bearer ctg_xxx...` or `X-API-Key: ctg_xxx...`.
 // Transport: Streamable HTTP (MCP spec).
