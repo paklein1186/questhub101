@@ -82,7 +82,7 @@ export function GuildMonetizationTab({ guildId, guildName, isAdmin }: Props) {
   // Update settings mutation
   const updateSettings = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
-      const { error } = await supabase.from("guilds").update(updates).eq("id", guildId);
+      const { error } = await supabase.from("guilds").update(updates as any).eq("id", guildId);
       if (error) throw error;
     },
     onSuccess: () => {
